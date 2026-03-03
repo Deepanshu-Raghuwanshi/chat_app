@@ -1,0 +1,46 @@
+{
+  "npmScope": "chat",
+  "affected": {
+    "defaultBase": "main"
+  },
+  "implicitDependencies": {
+    "libs/openapi-specs/**": [
+      "libs/shared-types"
+    ],
+    "libs/shared-types/**": [
+      "apps/frontend"
+    ]
+  },
+  "targetDefaults": {
+    "typecheck": {
+      "executor": "@nx/js:tsc"
+    }
+  },
+  "dependencyConstraints": [
+    {
+      "sourceTag": "layer:domain",
+      "onlyDependOnLibsWithTags": ["layer:domain"]
+    },
+    {
+      "sourceTag": "layer:application",
+      "onlyDependOnLibsWithTags": ["layer:domain", "layer:application"]
+    },
+    {
+      "sourceTag": "layer:infrastructure",
+      "onlyDependOnLibsWithTags": ["layer:domain", "layer:application", "layer:infrastructure"]
+    }
+  ],
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": [
+          "build",
+          "lint",
+          "test",
+          "typecheck"
+        ]
+      }
+    }
+  }
+}

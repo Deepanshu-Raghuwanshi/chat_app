@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist/apps/message-service",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+   "include": [
+    "apps/message-service/src/**/*.ts",
+    "libs/**/*.ts"
+  ]
+}

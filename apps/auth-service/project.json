@@ -1,0 +1,22 @@
+{
+  "name": "auth-service",
+  "tags": ["layer:infrastructure", "type:app"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/apps/auth-service"],
+      "options": {
+  "command": "pnpm tsc -p tsconfig.auth-service.json && pnpm tsc-alias -p tsconfig.auth-service.json"  
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest"
+    },
+    "typecheck": {
+      "executor": "@nx/js:tsc"
+    }
+  }
+}

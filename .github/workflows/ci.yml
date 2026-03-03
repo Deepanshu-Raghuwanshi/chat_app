@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+      
+      - name: Nx Affected
+        run: |
+          pnpm nx affected --target=lint --parallel=3
+          pnpm nx affected --target=typecheck --parallel=3
+          pnpm nx affected --target=test --parallel=3
+          pnpm nx affected --target=build --parallel=3

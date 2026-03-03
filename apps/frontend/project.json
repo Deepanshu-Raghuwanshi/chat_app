@@ -1,0 +1,23 @@
+{
+  "name": "frontend",
+  "tags": ["layer:infrastructure", "type:app"],
+  "targets": {
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+      "outputPath": "dist/apps/frontend",
+       "buildLibsFromSource": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint"
+    },
+    "test": {
+      "executor": "@nx/vite:test"
+    },
+    "typecheck": {
+      "executor": "@nx/js:tsc"
+    }
+  }
+}

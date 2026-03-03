@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+
+# Nx
+.nx/cache/
+.nx/workspace-data/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output
+
+# Prisma
+/prisma/migrations/*.sql
+# (Generally migrations SHOULD be committed, but sometimes 
+# specific env-based ones are ignored. We'll keep them for now 
+# unless specifically asked to ignore them)
+
+# Docker
+.docker-data/
+
+# Temporary files
+.tmp/
+.cache/
+node_modules/.pnpm/@lukeed+csprng@1.1.0/node_modules/@lukeed/csprng/browser/index.mjs

@@ -1,0 +1,15 @@
+{
+  "name": "shared-exceptions",
+  "tags": ["layer:infrastructure", "type:lib"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/linter:eslint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest"
+    },
+    "typecheck": {
+      "executor": "@nx/js:tsc"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist/apps/chat-service",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+    "include": [
+    "apps/chat-service/src/**/*.ts",
+    "libs/**/*.ts"
+  ]
+}
