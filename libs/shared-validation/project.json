@@ -1,5 +1,5 @@
 {
-  "name": "shared-exceptions",
+  "name": "shared-validation",
   "tags": ["layer:infrastructure", "type:lib"],
   "targets": {
     "lint": {},

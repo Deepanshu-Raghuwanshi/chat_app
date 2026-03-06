@@ -1,5 +1,5 @@
 {
-  "name": "shared-exceptions",
+  "name": "shared-utils",
   "tags": ["layer:infrastructure", "type:lib"],
   "targets": {
     "lint": {},

@@ -9,14 +9,8 @@
                   "command": "pnpm tsc -p tsconfig.notification-service.json && pnpm tsc-alias -p tsconfig.notification-service.json" 
       }
     },
-    "lint": {
-      "executor": "@nx/linter:eslint"
-    },
-    "test": {
-      "executor": "@nx/jest:jest"
-    },
-    "typecheck": {
-      "executor": "@nx/js:tsc"
-    }
+    "lint": {},
+    "test": {},
+    "typecheck": {}
   }
 }

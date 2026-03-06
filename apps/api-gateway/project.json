@@ -8,15 +8,9 @@
       "options": {
   "command": "pnpm tsc -p tsconfig.api-gateway.json && pnpm tsc-alias -p tsconfig.api-gateway.json"      }
     },
-    "lint": {
-      "executor": "@nx/linter:eslint"
-    },
-    "test": {
-      "executor": "@nx/jest:jest"
-    },
-    "typecheck": {
-      "executor": "@nx/js:tsc"
-    },
+    "lint": {},
+    "test": {},
+    "typecheck": {},
     "serve": {
       "executor": "nx:run-commands",
       "options": {

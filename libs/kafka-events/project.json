@@ -1,5 +1,5 @@
 {
-  "name": "shared-exceptions",
+  "name": "kafka-events",
   "tags": ["layer:infrastructure", "type:lib"],
   "targets": {
     "lint": {},

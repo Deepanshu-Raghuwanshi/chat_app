@@ -7,7 +7,7 @@ import { INestApplicationContext } from '@nestjs/common';
 export class RedisIoAdapter extends IoAdapter {
   private adapterConstructor!: ReturnType<typeof createAdapter>;
 
-  constructor(appOrHttpServer: INestApplicationContext | any) {
+  constructor(appOrHttpServer: INestApplicationContext) {
     super(appOrHttpServer);
   }
 
@@ -20,7 +20,7 @@ export class RedisIoAdapter extends IoAdapter {
     this.adapterConstructor = createAdapter(pubClient, subClient);
   }
 
-  override createIOServer(port: number, options?: ServerOptions): any {
+  override createIOServer(port: number, options?: ServerOptions) {
     const server = super.createIOServer(port, options);
     server.adapter(this.adapterConstructor);
     return server;

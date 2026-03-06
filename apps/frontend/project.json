@@ -10,14 +10,14 @@
        "buildLibsFromSource": true
       }
     },
-    "lint": {
-      "executor": "@nx/linter:eslint"
-    },
     "test": {
-      "executor": "@nx/vite:test"
+      "executor": "@nx/vitest:test",
+      "options": {
+        "config": "apps/frontend/vitest.config.ts",
+        "passWithNoTests": true
+      }
     },
-    "typecheck": {
-      "executor": "@nx/js:tsc"
-    }
+    "lint": {},
+    "typecheck": {}
   }
 }

@@ -29,8 +29,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
-      error: typeof message === 'string' ? message : (message as any).error || (message as any).message,
-      message: typeof message === 'string' ? message : (message as any).message || (message as any).error,
+      error: typeof message === 'string' ? message : (message as Record<string, unknown>).error || (message as Record<string, unknown>).message,
+      message: typeof message === 'string' ? message : (message as Record<string, unknown>).message || (message as Record<string, unknown>).error,
     };
 
     response.status(status).json(errorResponse);
