@@ -4,6 +4,9 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3004),
   MONGODB_URL: z.string().url(),
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
   KAFKA_BROKERS: z.string().default('localhost:9092'),
 });
 

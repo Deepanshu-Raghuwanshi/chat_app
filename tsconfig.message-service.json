@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist/apps/message-service",
+    "outDir": "./dist",
     "rootDir": ".",
     "types": ["node"]
   },

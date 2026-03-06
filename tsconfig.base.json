@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
     "paths": {
       "@shared-types/*": [
         "libs/shared-types/*"

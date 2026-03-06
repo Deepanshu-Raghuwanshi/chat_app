@@ -1,41 +1,62 @@
-# Stage 1: Build
+# =============================================================================
+# Stage 1: Dependencies
+# =============================================================================
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+RUN npm install -g pnpm
+
+# ✅ Copy manifests first for optimal layer caching
+COPY package.json pnpm-lock.yaml ./
+COPY nx.json tsconfig.base.json ./
+
+# ✅ Copy only project.json files (no source) so dep install is cached
+COPY apps/frontend/project.json ./apps/frontend/
+
+RUN pnpm install --frozen-lockfile
+
+# =============================================================================
+# Stage 2: Builder
+# =============================================================================
 FROM node:20-alpine AS builder
 
 WORKDIR /app
-
-# Install pnpm
 RUN npm install -g pnpm
 
-# Copy package.json and lockfile
-COPY package.json pnpm-lock.yaml ./
-
-# Install all dependencies
-RUN pnpm install --frozen-lockfile
-
-# Copy the rest of the workspace
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build the frontend
-RUN pnpm nx build frontend
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Stage 2: Run
+RUN pnpm nx build frontend --configuration=production
+
+# =============================================================================
+# Stage 3: Runtime
+# Uses Next.js standalone output – no pnpm, minimal footprint
+# =============================================================================
 FROM node:20-alpine
+
+RUN apk add --no-cache wget
 
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy only what's needed for Next.js to run
-# Use apps/frontend/.next directory as it is where the build outputs the standalone
+# ✅ Copy only standalone output + static assets
 COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
 COPY --from=builder /app/apps/frontend/.next/standalone ./
 COPY --from=builder /app/apps/frontend/.next/static ./apps/frontend/.next/static
 
-# Note: Standalone mode includes all node_modules needed
-# Port defaults to 3000 in standalone mode
+# ✅ Run as non-root user
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs \
+    && chown -R nextjs:nodejs /app
+USER nextjs
+
 EXPOSE 3000
 
-# Set working directory to where server.js is
 WORKDIR /app/apps/frontend
 
 CMD ["node", "server.js"]
