@@ -10,20 +10,38 @@
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
     "paths": {
+      "@shared-types": [
+        "libs/shared-types/src/index"
+      ],
       "@shared-types/*": [
-        "libs/shared-types/*"
+        "libs/shared-types/src/*"
+      ],
+      "@shared-utils": [
+        "libs/shared-utils/src/index"
       ],
       "@shared-utils/*": [
-        "libs/shared-utils/*"
+        "libs/shared-utils/src/*"
+      ],
+      "@shared-exceptions": [
+        "libs/shared-exceptions/src/index"
       ],
       "@shared-exceptions/*": [
         "libs/shared-exceptions/src/*"
       ],
+      "@shared-logger": [
+        "libs/shared-logger/src/index"
+      ],
       "@shared-logger/*": [
         "libs/shared-logger/src/*"
       ],
+      "@shared-validation": [
+        "libs/shared-validation/src/index"
+      ],
       "@shared-validation/*": [
         "libs/shared-validation/src/*"
+      ],
+      "@kafka-events": [
+        "libs/kafka-events/src/index"
       ],
       "@kafka-events/*": [
         "libs/kafka-events/src/*"

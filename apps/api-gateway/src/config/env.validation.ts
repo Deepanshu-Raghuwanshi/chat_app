@@ -8,6 +8,7 @@ export const envSchema = z.object({
   CHAT_SERVICE_URL: z.string().url().default('http://localhost:3003'),
   MESSAGE_SERVICE_URL: z.string().url().default('http://localhost:3004'),
   NOTIFICATION_SERVICE_URL: z.string().url().default('http://localhost:3005'),
+  CORS_ORIGIN: z.string().default('http://localhost:4200'),
 });
 
 export type Env = z.infer<typeof envSchema>;

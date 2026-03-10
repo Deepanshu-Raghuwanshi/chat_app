@@ -6,6 +6,7 @@ import { validate } from './config/env.validation';
 import { HealthController } from './interfaces/controllers/health.controller';
 import { PrismaService } from './infrastructure/persistence/prisma.service';
 import { PrismaHealthIndicator } from './infrastructure/persistence/prisma.health';
+import { UserEventsConsumer } from './infrastructure/messaging/user-events.consumer';
 
 @Module({
   imports: [
@@ -24,6 +25,6 @@ import { PrismaHealthIndicator } from './infrastructure/persistence/prisma.healt
     TerminusModule,
   ],
   controllers: [HealthController],
-  providers: [PrismaService, PrismaHealthIndicator],
+  providers: [PrismaService, PrismaHealthIndicator, UserEventsConsumer],
 })
 export class AppModule {}

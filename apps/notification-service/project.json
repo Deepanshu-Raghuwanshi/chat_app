@@ -6,11 +6,17 @@
       "executor": "nx:run-commands",
       "outputs": ["{workspaceRoot}/dist/apps/notification-service"],
       "options": {
-                  "command": "pnpm tsc -p tsconfig.notification-service.json && pnpm tsc-alias -p tsconfig.notification-service.json" 
+        "command": "pnpm tsc -p tsconfig.notification-service.json && pnpm tsc-alias -p tsconfig.notification-service.json"
       }
     },
     "lint": {},
     "test": {},
-    "typecheck": {}
+    "typecheck": {},
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TS_NODE_PROJECT=tsconfig.notification-service.json node --watch -r ts-node/register -r tsconfig-paths/register apps/notification-service/src/main.ts"
+      }
+    }
   }
 }

@@ -3,7 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from '@shared-exceptions/index';
+import { GlobalExceptionFilter } from '@shared-exceptions';
 import { RedisIoAdapter } from './infrastructure/messaging/websocket.adapter';
 
 async function bootstrap() {
@@ -40,8 +40,8 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3003;
   await app.listen(port);
-  console.log(`🚀 Chat Service is running on: http://localhost:${port}/api/v1`);
-  console.log(`📖 Swagger docs: http://localhost:${port}/api/docs`);
+  console.log(`Chat Service is running on: http://localhost:${port}/api/v1`);
+  console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();

@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  output        = "../../../node_modules/@prisma/client-user"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -7,8 +9,7 @@ datasource db {
 }
 
 model UserProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
+  id        String   @id // Universal User ID from auth-service
   username  String   @unique
   fullName  String?
   avatarUrl String?

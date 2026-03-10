@@ -9,6 +9,10 @@ export const envSchema = z.object({
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASSWORD: z.string().optional(),
   KAFKA_BROKERS: z.string().default('localhost:9092'),
+  CORS_ORIGIN: z.string().default('http://localhost:4200'),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CALLBACK_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -135,8 +135,8 @@ services:
       args:
         APP_NAME: auth-service
     container_name: auth-service
-    expose:
-      - '3001'
+    ports:
+      - '3001:3001'
     env_file:
       - .env
     environment:
@@ -170,8 +170,8 @@ services:
       args:
         APP_NAME: user-service
     container_name: user-service
-    expose:
-      - '3002'
+    ports:
+      - '3002:3002'
     env_file:
       - .env
     environment:
@@ -206,8 +206,8 @@ services:
       args:
         APP_NAME: chat-service
     container_name: chat-service
-    expose:
-      - '3003'
+    ports:
+      - '3003:3003'
     env_file:
       - .env
     environment:
@@ -242,8 +242,8 @@ services:
       args:
         APP_NAME: message-service
     container_name: message-service
-    expose:
-      - '3004'
+    ports:
+      - '3004:3004'
     env_file:
       - .env
     environment:
@@ -278,8 +278,8 @@ services:
       args:
         APP_NAME: notification-service
     container_name: notification-service
-    expose:
-      - '3005'
+    ports:
+      - '3005:3005'
     env_file:
       - .env
     environment:
@@ -305,18 +305,19 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: frontend
     ports:
-      - '4200:3000'
+      - '4200:4200'
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+      - PORT=4200
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     depends_on:
       api-gateway:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4200/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

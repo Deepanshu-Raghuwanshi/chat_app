@@ -1,0 +1,123 @@
+services:
+  postgres:
+    image: postgres:15.7-alpine
+    container_name: chat-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: chat_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: builder
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx nx serve frontend --host 0.0.0.0
+    ports:
+      - "4200:4200"
+    healthcheck:
+      disable: true
+    depends_on:
+      - api-gateway
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      args:
+        APP_NAME: api-gateway
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx nx serve api-gateway
+    healthcheck:
+      disable: true
+    depends_on:
+      - auth-service
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      args:
+        APP_NAME: auth-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx nx serve auth-service
+    healthcheck:
+      disable: true
+    depends_on:
+      - postgres
+
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      args:
+        APP_NAME: user-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx nx serve user-service
+    healthcheck:
+      disable: true
+    depends_on:
+      - postgres
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      args:
+        APP_NAME: chat-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx nx serve chat-service
+    healthcheck:
+      disable: true
+
+  message-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      args:
+        APP_NAME: message-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx nx serve message-service
+    healthcheck:
+      disable: true
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      args:
+        APP_NAME: notification-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx nx serve notification-service
+    healthcheck:
+      disable: true
+
+volumes:
+  postgres_data:

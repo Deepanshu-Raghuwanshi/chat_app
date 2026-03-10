@@ -1,0 +1,185 @@
+import { Injectable, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { User } from '@prisma/client-auth';
+import { RegisterDto, AuthResponse } from '@shared-types';
+import { PrismaService } from '../../infrastructure/persistence/prisma.service';
+import { EmailService } from '../../infrastructure/messaging/email.service';
+import { UserEventsProducer } from '../../infrastructure/messaging/user-events.producer';
+
+export interface GoogleProfile {
+  email: string;
+  googleId: string;
+}
+
+@Injectable()
+export class AuthUseCases {
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+    private emailService: EmailService,
+    private userEventsProducer: UserEventsProducer,
+  ) {}
+
+  async register(dto: RegisterDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('User already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 12);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        password: hashedPassword,
+        provider: 'LOCAL',
+        isVerified: false,
+      },
+    });
+
+    const verificationToken = await this.generateEmailVerificationToken(user.id);
+    await this.emailService.sendVerificationEmail(user.email, verificationToken);
+
+    await this.userEventsProducer.emitUserCreated({
+      id: user.id,
+      email: user.email,
+    });
+
+    return { id: user.id, email: user.email };
+  }
+  async verifyEmail(token: string) {
+    const verification = await this.prisma.emailVerification.findUnique({
+      where: { token },
+    });
+
+    if (!verification || verification.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    await this.prisma.user.update({
+      where: { id: verification.userId },
+      data: { isVerified: true },
+    });
+
+    await this.prisma.emailVerification.delete({
+      where: { id: verification.id },
+    });
+
+    return { message: 'Email verified successfully' };
+  }
+
+  async generateEmailVerificationToken(userId: string): Promise<string> {
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 1); // 24 hours
+
+    await this.prisma.emailVerification.upsert({
+      where: { userId },
+      update: { token, expiresAt },
+      create: { userId, token, expiresAt },
+    });
+
+    return token;
+  }
+
+  async validateUser(email: string, pass: string): Promise<Partial<User> | null> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
+  async login(user: Partial<User>): Promise<AuthResponse> {
+    if (!user.id || !user.email) {
+      throw new UnauthorizedException('Invalid user data');
+    }
+    if (!user.isVerified && user.provider === 'LOCAL') {
+      throw new UnauthorizedException('Please verify your email first');
+    }
+
+    const payload = { email: user.email, sub: user.id };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET || 'access-secret',
+      expiresIn: '15m',
+    });
+
+    const refreshToken = await this.generateRefreshToken(user.id);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    };
+  }
+
+  async generateRefreshToken(userId: string): Promise<string> {
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token,
+        userId,
+        expiresAt,
+      },
+    });
+
+    return token;
+  }
+
+  async validateGoogleUser(profile: GoogleProfile) {
+    let user = await this.prisma.user.findUnique({
+      where: { email: profile.email },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email: profile.email,
+          googleId: profile.googleId,
+          provider: 'GOOGLE',
+          isVerified: true, // Google users are auto-verified
+        },
+      });
+      await this.userEventsProducer.emitUserCreated({
+        id: user.id,
+        email: user.email,
+      });
+    }
+
+    return this.login(user);
+  }
+
+  async refreshTokens(token: string) {
+    const refreshToken = await this.prisma.refreshToken.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (!refreshToken || refreshToken.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    // Rotate refresh token
+    await this.prisma.refreshToken.delete({ where: { id: refreshToken.id } });
+    
+    return this.login(refreshToken.user);
+  }
+
+  async logout(token: string) {
+    await this.prisma.refreshToken.deleteMany({
+      where: { token },
+    });
+  }
+}

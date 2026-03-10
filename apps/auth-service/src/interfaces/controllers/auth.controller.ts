@@ -1,0 +1,104 @@
+import { Controller, Post, Body, Get, UseGuards, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Request, Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
+import { RegisterDto, LoginDto } from '@shared-types';
+import { AuthUseCases, GoogleProfile } from '../../application/use-cases/auth.use-cases';
+
+@Controller('auth')
+export class AuthController {
+  constructor(private authUseCases: AuthUseCases) {}
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+@Post('register')
+async register(@Body() dto: RegisterDto) {
+  try {
+    return await this.authUseCases.register(dto);
+  } catch (error) {
+     console.error("PRISMA ERROR:", JSON.stringify(error, null, 2));
+    throw error;
+  }
+}
+
+  @Get('verify-email')
+  async verifyEmail(@Req() req: Request) {
+    const token = req.query.token as string;
+    return this.authUseCases.verifyEmail(token);
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Post('login')
+  async login(@Res({ passthrough: true }) res: Response, @Body() body: LoginDto) {
+    const user = await this.authUseCases.validateUser(body.email, body.password);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const { accessToken, refreshToken, user: userData } = await this.authUseCases.login(user);
+
+    this.setAuthCookies(res, accessToken, refreshToken);
+    return userData;
+  }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies['refresh_token'];
+    if (refreshToken) {
+      await this.authUseCases.logout(refreshToken);
+    }
+    this.clearAuthCookies(res);
+    return { message: 'Logged out successfully' };
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @Post('refresh')
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies['refresh_token'];
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    const { accessToken, refreshToken: newRefreshToken, user: userData } = await this.authUseCases.refreshTokens(refreshToken);
+
+    this.setAuthCookies(res, accessToken, newRefreshToken);
+    return userData;
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // Redirects to Google login
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const { accessToken, refreshToken } = await this.authUseCases.validateGoogleUser(req.user as GoogleProfile);
+
+    this.setAuthCookies(res, accessToken, refreshToken);
+    
+    // Redirect to frontend
+    res.redirect(process.env.FRONTEND_URL + '/auth/success');
+  }
+
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 mins
+    });
+
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+  }
+
+  private clearAuthCookies(res: Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+  }
+}
