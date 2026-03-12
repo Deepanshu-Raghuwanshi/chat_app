@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { authService } from '../services/auth.service';
+import { showToast } from '../../../shared/utils/toast';
+import { CheckCircle, XCircle, Clock, ArrowRight, RotateCcw } from 'lucide-react';
 
 export const VerifyEmail = () => {
   const searchParams = useSearchParams();
@@ -10,56 +12,120 @@ export const VerifyEmail = () => {
   const token = searchParams.get('token');
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      authService.verifyEmail(token)
-        .then(() => {
-          setStatus('success');
-          setMessage('Email verified! You can now log in.');
-        })
-        .catch((err: unknown) => {
-          setStatus('error');
-          const errorMessage = err && typeof err === 'object' && 'response' in err
-            ? (err as { response: { data: { message: string } } }).response?.data?.message
-            : err instanceof Error ? err.message : 'Verification failed. Link may be expired.';
-          setMessage(errorMessage);
-        });
-    } else {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!token) {
       setStatus('error');
       setMessage('Invalid verification link.');
+      showToast.error('Invalid link', 'Verification link is missing');
+      return;
     }
-  }, [token]);
+
+    const verifyEmail = async () => {
+      try {
+        await authService.verifyEmail(token);
+        setStatus('success');
+        setMessage('Email verified! You can now log in.');
+        showToast.success('Email verified', 'Your email has been successfully verified');
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+      } catch (err: unknown) {
+        setStatus('error');
+        const errorMessage = err && typeof err === 'object' && 'response' in err
+          ? (err as { response: { data: { message: string } } }).response?.data?.message
+          : err instanceof Error ? err.message : 'Verification failed. Link may be expired.';
+        setMessage(errorMessage);
+        showToast.error('Verification failed', errorMessage);
+      }
+    };
+
+    verifyEmail();
+  }, [token, router]);
+
+  if (!mounted) return null;
 
   return (
-    <div className="max-w-md w-full mx-auto p-6 bg-white rounded-lg shadow-md text-center">
-      <h2 className="text-2xl font-bold mb-4">Email Verification</h2>
-      
-      {status === 'loading' && <p className="text-gray-600">Verifying your email...</p>}
-      
-      {status === 'success' && (
-        <>
-          <p className="text-green-600 mb-6 font-medium">{message}</p>
-          <button
-            onClick={() => router.push('/login')}
-            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-          >
-            Go to Login
-          </button>
-        </>
-      )}
+    <div className="flex items-center justify-center p-4">
+      <div className="w-full max-w-md animate-in fade-in slide-up duration-500">
+        <div className="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+          {status === 'loading' && (
+            <>
+              <div className="bg-gradient-to-r from-primary to-blue-600 p-8 text-center">
+                <div className="flex justify-center mb-4">
+                  <Clock className="w-16 h-16 text-white animate-spin" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Verifying Email</h2>
+              </div>
+              <div className="p-8 text-center">
+                <p className="text-foreground/70 mb-4">Please wait while we verify your email...</p>
+                <div className="flex justify-center gap-1">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </>
+          )}
 
-      {status === 'error' && (
-        <>
-          <p className="text-red-500 mb-6 font-medium">{message}</p>
-          <button
-            onClick={() => router.push('/signup')}
-            className="w-full py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
-          >
-            Try Signing Up Again
-          </button>
-        </>
-      )}
+          {status === 'success' && (
+            <>
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 text-center">
+                <div className="flex justify-center mb-4">
+                  <CheckCircle className="w-16 h-16 text-white animate-bounce" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Email Verified</h2>
+              </div>
+              <div className="p-8 text-center">
+                <p className="text-foreground/70 mb-2">Great! Your email has been verified.</p>
+                <p className="text-sm text-foreground/60 mb-8">You can now log in to your account.</p>
+                <button
+                  onClick={() => router.push('/login')}
+                  className="w-full py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 font-medium"
+                >
+                  Go to Login
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          )}
+
+          {status === 'error' && (
+            <>
+              <div className="bg-gradient-to-r from-destructive to-red-600 p-8 text-center">
+                <div className="flex justify-center mb-4">
+                  <XCircle className="w-16 h-16 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Verification Failed</h2>
+              </div>
+              <div className="p-8 text-center">
+                <p className="text-foreground/70 mb-2">Something went wrong</p>
+                <p className="text-sm text-foreground/60 mb-8">{message}</p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => router.push('/signup')}
+                    className="w-full py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 font-medium"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Try Signing Up Again
+                  </button>
+                  <button
+                    onClick={() => router.push('/login')}
+                    className="w-full py-3 border-2 border-primary text-primary rounded-lg hover:bg-blue-50 transition-all duration-300 font-medium"
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

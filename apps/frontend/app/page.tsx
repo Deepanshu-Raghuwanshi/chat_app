@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
+    <main className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
       <h1 className="text-4xl font-bold text-blue-600 mb-4">Welcome to Chat App</h1>
       <p className="text-xl text-gray-600 mb-8 max-w-lg">
         Connect with friends and colleagues in real-time. Fast, secure, and easy to use.
