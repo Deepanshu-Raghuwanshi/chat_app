@@ -2,10 +2,7 @@
 
 Strict DDD layered microservices using Nx + pnpm.
 
-## Core Principles
+## Documentation
 
--   Contract-driven development (OpenAPI enforced)
--   DB per service
--   Kafka for async events
--   Shared types generated from OpenAPI
--   Affected CI pipelines via Nx
+- [Global Auth Architecture](./docs/auth-architecture.md)
+- [Development Guide](./DEVELOPMENT_GUIDE.md)

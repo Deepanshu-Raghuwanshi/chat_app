@@ -6,11 +6,17 @@
       "executor": "nx:run-commands",
       "outputs": ["{workspaceRoot}/dist/apps/message-service"],
       "options": {
-          "command": "pnpm tsc -p tsconfig.message-service.json && pnpm tsc-alias -p tsconfig.message-service.json" 
+        "command": "pnpm tsc -p tsconfig.message-service.json && pnpm tsc-alias -p tsconfig.message-service.json"
       }
     },
     "lint": {},
     "test": {},
-    "typecheck": {}
+    "typecheck": {},
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cross-env TS_NODE_PROJECT=tsconfig.message-service.json node -r ts-node/register -r tsconfig-paths/register apps/message-service/src/main.ts"
+      }
+    }
   }
 }

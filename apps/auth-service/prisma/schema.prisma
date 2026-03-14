@@ -2,17 +2,58 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  output          = "../../../node_modules/@prisma/client-auth"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["auth"]
 }
 
 model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String?
+  provider      AuthProvider   @default(LOCAL)
+  googleId      String?        @unique
+  isVerified    Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+
+  @@map("User")
+  @@schema("auth")
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+
+  @@schema("auth")
+}
+
+model RefreshToken {
   id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@map("RefreshToken")
+  @@schema("auth")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("EmailVerification")
+  @@schema("auth")
 }

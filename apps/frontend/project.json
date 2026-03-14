@@ -6,8 +6,26 @@
       "executor": "@nx/next:build",
       "outputs": ["{options.outputPath}"],
       "options": {
-      "outputPath": "dist/apps/frontend",
-       "buildLibsFromSource": true
+        "outputPath": "dist/apps/frontend",
+        "buildLibsFromSource": true
+      },
+      "configurations": {
+        "production": {
+          "outputPath": "dist/apps/frontend"
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/next:server",
+      "options": {
+        "buildTarget": "frontend:build",
+        "dev": true
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "frontend:build:production",
+          "dev": false
+        }
       }
     },
     "test": {

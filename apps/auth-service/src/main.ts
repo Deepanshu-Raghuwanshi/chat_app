@@ -1,15 +1,27 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from '@shared-exceptions/index';
+import { GlobalExceptionFilter } from '@shared-exceptions';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   // Use Pino Logger
   app.useLogger(app.get(Logger));
+
+  // Cookie Parser
+  app.use(cookieParser());
+
+  // CORS
+  const configService = app.get(ConfigService);
+  app.enableCors({
+    origin: configService.get<string>('CORS_ORIGIN'),
+    credentials: true,
+  });
 
   // Global Prefix
   app.setGlobalPrefix('api/v1');
@@ -38,8 +50,8 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`🚀 Auth Service is running on: http://localhost:${port}/api/v1`);
-  console.log(`📖 Swagger docs: http://localhost:${port}/api/docs`);
+  console.log(`Auth Service is running on: http://localhost:${port}/api/v1`);
+  console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();

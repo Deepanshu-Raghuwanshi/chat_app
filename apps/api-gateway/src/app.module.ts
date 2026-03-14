@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { TerminusModule } from '@nestjs/terminus';
 import { validate } from './config/env.validation';
 import { HealthController } from './interfaces/controllers/health.controller';
+import { GatewayController } from './interfaces/controllers/gateway.controller';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { HealthController } from './interfaces/controllers/health.controller';
     }),
     TerminusModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, GatewayController],
   providers: [],
 })
 export class AppModule {}

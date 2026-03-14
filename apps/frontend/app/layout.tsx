@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import TanstackProvider from '../src/core/providers/TanstackProvider';
+import { AnimatedBackground } from '../src/shared/components/AnimatedBackground';
 
 export const metadata: Metadata = {
   title: 'Chat App',
@@ -13,7 +15,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <TanstackProvider>
+          <AnimatedBackground />
+          {children}
+        </TanstackProvider>
+      </body>
     </html>
   );
 }

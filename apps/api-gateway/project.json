@@ -6,7 +6,8 @@
       "executor": "nx:run-commands",
       "outputs": ["{workspaceRoot}/dist/apps/api-gateway"],
       "options": {
-  "command": "pnpm tsc -p tsconfig.api-gateway.json && pnpm tsc-alias -p tsconfig.api-gateway.json"      }
+        "command": "pnpm tsc -p tsconfig.api-gateway.json && pnpm tsc-alias -p tsconfig.api-gateway.json"
+      }
     },
     "lint": {},
     "test": {},
@@ -14,7 +15,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "TS_NODE_PROJECT=tsconfig.api-gateway.json node -r ts-node/register -r tsconfig-paths/register apps/api-gateway/src/main.ts"
+        "command": "cross-env TS_NODE_PROJECT=tsconfig.api-gateway.json node -r ts-node/register -r tsconfig-paths/register apps/api-gateway/src/main.ts"
       }
     }
   }

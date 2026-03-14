@@ -6,12 +6,17 @@
       "executor": "nx:run-commands",
       "outputs": ["{workspaceRoot}/dist/apps/chat-service"],
       "options": {
-                  "command": "pnpm tsc -p tsconfig.chat-service.json && pnpm tsc-alias -p tsconfig.chat-service.json" 
-
+        "command": "pnpm tsc -p tsconfig.chat-service.json && pnpm tsc-alias -p tsconfig.chat-service.json"
       }
     },
     "lint": {},
     "test": {},
-    "typecheck": {}
+    "typecheck": {},
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cross-env TS_NODE_PROJECT=tsconfig.chat-service.json node -r ts-node/register -r tsconfig-paths/register apps/chat-service/src/main.ts"
+      }
+    }
   }
 }

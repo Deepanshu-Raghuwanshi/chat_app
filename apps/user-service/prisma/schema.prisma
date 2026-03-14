@@ -1,18 +1,24 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  output          = "../../../node_modules/@prisma/client-user"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["user_service"]
 }
 
 model UserProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
+  id        String   @id // Universal User ID from auth-service
   username  String   @unique
   fullName  String?
   avatarUrl String?
   bio       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("UserProfile")
+  @@schema("user_service")
 }

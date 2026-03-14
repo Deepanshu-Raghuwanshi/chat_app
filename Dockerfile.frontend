@@ -4,6 +4,10 @@
 FROM node:20-alpine AS deps
 
 WORKDIR /app
+
+# ✅ Install build essentials for native modules
+RUN apk add --no-cache libc6-compat python3 make g++ wget
+
 RUN npm install -g pnpm
 
 # ✅ Copy manifests first for optimal layer caching
@@ -12,8 +16,23 @@ COPY nx.json tsconfig.base.json ./
 
 # ✅ Copy only project.json files (no source) so dep install is cached
 COPY apps/frontend/project.json ./apps/frontend/
+COPY apps/api-gateway/project.json ./apps/api-gateway/
+COPY apps/auth-service/project.json ./apps/auth-service/
+COPY apps/chat-service/project.json ./apps/chat-service/
+COPY apps/message-service/project.json ./apps/message-service/
+COPY apps/notification-service/project.json ./apps/notification-service/
+COPY apps/user-service/project.json ./apps/user-service/
+COPY libs/kafka-events/project.json ./libs/kafka-events/
+COPY libs/shared-exceptions/project.json ./libs/shared-exceptions/
+COPY libs/shared-logger/project.json ./libs/shared-logger/
+COPY libs/shared-types/project.json ./libs/shared-types/
+COPY libs/shared-utils/project.json ./libs/shared-utils/
+COPY libs/shared-validation/project.json ./libs/shared-validation/
 
-RUN pnpm install --frozen-lockfile
+# Use cache mount for pnpm store
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm config set node-linker hoisted && \
+    pnpm install --frozen-lockfile
 
 # =============================================================================
 # Stage 2: Builder
@@ -28,8 +47,12 @@ COPY . .
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=4200
+ENV HOSTNAME="0.0.0.0"
 
-RUN pnpm nx build frontend --configuration=production
+# Use cache mount for Nx
+RUN --mount=type=cache,id=nx,target=/app/.nx/cache \
+    pnpm nx build frontend --configuration=production
 
 # =============================================================================
 # Stage 3: Runtime
@@ -43,19 +66,21 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=4200
+ENV HOSTNAME="0.0.0.0"
 
-# ✅ Copy only standalone output + static assets
-COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
-COPY --from=builder /app/apps/frontend/.next/standalone ./
-COPY --from=builder /app/apps/frontend/.next/static ./apps/frontend/.next/static
-
-# ✅ Run as non-root user
+# ✅ Create user before copying files
 RUN addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 nextjs \
-    && chown -R nextjs:nodejs /app
+    && adduser --system --uid 1001 nextjs
+
+# ✅ Use COPY --chown for instant ownership setting
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
+
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 4200
 
 WORKDIR /app/apps/frontend
 
