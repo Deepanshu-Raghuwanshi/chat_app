@@ -34,6 +34,11 @@ export const authService = {
     return response.data;
   },
 
+  async setPassword(data: Record<string, string>) {
+    const response = await apiClient.post('/auth/set-password', data);
+    return response.data;
+  },
+
   async getProfile() {
     const response = await apiClient.get('/profile');
     return response.data;

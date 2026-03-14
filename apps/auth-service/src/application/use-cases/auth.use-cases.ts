@@ -27,6 +27,18 @@ export class AuthUseCases {
     });
 
     if (existingUser) {
+      if (existingUser.provider === 'GOOGLE') {
+        // Link account by adding password and updating provider
+        const hashedPassword = await bcrypt.hash(dto.password, 12);
+        const user = await this.prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            password: hashedPassword,
+            provider: 'BOTH',
+          },
+        });
+        return { id: user.id, email: user.email };
+      }
       throw new ConflictException('User already exists');
     }
 
@@ -152,13 +164,67 @@ export class AuthUseCases {
           isVerified: true, // Google users are auto-verified
         },
       });
+
       await this.userEventsProducer.emitUserCreated({
         id: user.id,
         email: user.email,
       });
     }
 
+    // If user exists but has no password, ensure they get a password setup email
+    // This handles the case where the user was created but email failed, 
+    // or they're logging in again but haven't set a password yet.
+    if (!user.password) {
+      const token = await this.generatePasswordResetToken(user.id);
+      try {
+        await this.emailService.sendPasswordSetupEmail(user.email, token);
+      } catch (error) {
+        console.error('Failed to send password setup email:', error);
+      }
+    }
+
     return this.login(user);
+  }
+
+  async generatePasswordResetToken(userId: string): Promise<string> {
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 30); // 30 minutes
+
+    await this.prisma.passwordReset.upsert({
+      where: { userId },
+      update: { token, expiresAt },
+      create: { userId, token, expiresAt },
+    });
+
+    return token;
+  }
+
+  async setPassword(token: string, password: string) {
+    const reset = await this.prisma.passwordReset.findUnique({
+      where: { token },
+    });
+
+    if (!reset || reset.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired password setup token');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: reset.userId },
+        data: {
+          password: hashedPassword,
+          provider: 'BOTH',
+        },
+      }),
+      this.prisma.passwordReset.delete({
+        where: { id: reset.id },
+      }),
+    ]);
+
+    return { message: 'Password set successfully' };
   }
 
   async refreshTokens(token: string) {

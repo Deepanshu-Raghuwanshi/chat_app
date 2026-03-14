@@ -26,6 +26,11 @@ async register(@Body() dto: RegisterDto) {
     return this.authUseCases.verifyEmail(token);
   }
 
+  @Post('set-password')
+  async setPassword(@Body() body: { token: string; password: string }) {
+    return this.authUseCases.setPassword(body.token, body.password);
+  }
+
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
   async login(@Res({ passthrough: true }) res: Response, @Body() body: LoginDto) {
