@@ -34,7 +34,14 @@ export class GatewayController {
     }
 
     const path = Array.isArray(routeParam) ? routeParam.join('/') : routeParam || '';
+    
+    // Construct target URL. 
+    // Most services follow: http://service:port/api/v1/service/path
+    // But auth-service controller is @Controller('auth') and has global prefix 'api/v1'
+    // So target is http://localhost:3001/api/v1/auth/...
     const targetUrl = path ? `${targetUrlBase}/api/v1/${service}/${path}` : `${targetUrlBase}/api/v1/${service}`;
+
+    console.log(`[Gateway] Proxying ${req.method} ${req.originalUrl} to ${targetUrl}`);
 
     try {
       const response = await axios({
@@ -53,13 +60,22 @@ export class GatewayController {
 
       // Forward headers
       Object.entries(response.headers).forEach(([key, value]) => {
-        if (key !== 'transfer-encoding') {
+        if (key !== 'transfer-encoding' && key !== 'content-length') {
           res.setHeader(key, value);
         }
       });
 
+      // Ensure CORS headers are handled
+      res.setHeader('Access-Control-Allow-Origin', this.configService.get<string>('CORS_ORIGIN') || 'http://localhost:4200');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+
       return res.status(response.status).send(response.data);
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error(`Gateway Proxy Error (${service}): Status ${error.response.status}`, error.response.data);
+        return res.status(error.response.status).json(error.response.data);
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error(`Gateway Proxy Error (${service}):`, errorMessage);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({

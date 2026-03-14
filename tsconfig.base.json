@@ -45,6 +45,12 @@
       ],
       "@kafka-events/*": [
         "libs/kafka-events/src/*"
+      ],
+      "@prisma/client-auth": [
+        "node_modules/@prisma/client-auth"
+      ],
+      "@prisma/client-user": [
+        "node_modules/@prisma/client-user"
       ]
     }
   }

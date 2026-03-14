@@ -15,7 +15,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "TS_NODE_PROJECT=tsconfig.notification-service.json node --watch -r ts-node/register -r tsconfig-paths/register apps/notification-service/src/main.ts"
+        "command": "cross-env TS_NODE_PROJECT=tsconfig.notification-service.json node -r ts-node/register -r tsconfig-paths/register apps/notification-service/src/main.ts"
       }
     }
   }

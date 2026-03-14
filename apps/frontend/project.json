@@ -8,15 +8,24 @@
       "options": {
         "outputPath": "dist/apps/frontend",
         "buildLibsFromSource": true
+      },
+      "configurations": {
+        "production": {
+          "outputPath": "dist/apps/frontend"
+        }
       }
     },
     "serve": {
       "executor": "@nx/next:server",
       "options": {
         "buildTarget": "frontend:build",
-        "dev": true,
-        "hostname": "0.0.0.0",
-        "port": 4200
+        "dev": true
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "frontend:build:production",
+          "dev": false
+        }
       }
     },
     "test": {

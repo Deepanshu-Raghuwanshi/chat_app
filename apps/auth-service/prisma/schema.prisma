@@ -2,13 +2,15 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  output        = "../../../node_modules/@prisma/client-auth"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  output          = "../../../node_modules/@prisma/client-auth"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["auth"]
 }
 
 model User {
@@ -21,11 +23,16 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
+
+  @@map("User")
+  @@schema("auth")
 }
 
 enum AuthProvider {
   LOCAL
   GOOGLE
+
+  @@schema("auth")
 }
 
 model RefreshToken {
@@ -35,6 +42,9 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  @@map("RefreshToken")
+  @@schema("auth")
 }
 
 model EmailVerification {
@@ -43,4 +53,7 @@ model EmailVerification {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  @@map("EmailVerification")
+  @@schema("auth")
 }
