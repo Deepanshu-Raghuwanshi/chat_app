@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useLogin } from '../hooks/useAuth';
+import { useLogin, useForgotPassword } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { showToast } from '../../../shared/utils/toast';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
@@ -14,6 +14,7 @@ export const LoginForm = () => {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { mutate: login, isPending, error: loginError } = useLogin();
+  const { mutate: forgotPassword, isPending: isForgotPasswordPending } = useForgotPassword();
 
   useEffect(() => {
     setMounted(true);
@@ -40,6 +41,23 @@ export const LoginForm = () => {
   const handleGoogleLogin = () => {
     showToast.loading('Redirecting to Google...');
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'}/auth/google`;
+  };
+
+  const handleForgotPassword = () => {
+    if (!email) {
+      router.push('/forgot-password');
+      return;
+    }
+
+    forgotPassword(email, {
+      onSuccess: () => {
+        showToast.success('Email sent', 'A password reset link has been sent to your email.');
+      },
+      onError: (error: any) => {
+        const msg = error.response?.data?.message || 'Failed to send reset link';
+        showToast.error('Error', msg);
+      }
+    });
   };
 
   if (!mounted) return null;
@@ -78,10 +96,11 @@ export const LoginForm = () => {
                   <label className="block text-sm font-semibold text-foreground">Password</label>
                   <button
                     type="button"
-                    onClick={() => router.push('/forgot-password')}
-                    className="text-xs text-primary hover:underline transition-colors"
+                    onClick={handleForgotPassword}
+                    disabled={isForgotPasswordPending}
+                    className="text-xs text-primary hover:underline transition-colors disabled:opacity-50"
                   >
-                    Forgot?
+                    {isForgotPasswordPending ? 'Sending...' : 'Forgot?'}
                   </button>
                 </div>
                 <div className="relative group">

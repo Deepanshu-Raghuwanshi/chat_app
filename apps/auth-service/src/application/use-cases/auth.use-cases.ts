@@ -227,6 +227,48 @@ export class AuthUseCases {
     return { message: 'Password set successfully' };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Don't leak user existence info, just return success
+      return { message: 'If an account exists for this email, you will receive a password reset link shortly' };
+    }
+
+    const token = await this.generatePasswordResetToken(user.id);
+    await this.emailService.sendPasswordResetEmail(user.email, token);
+
+    return { message: 'If an account exists for this email, you will receive a password reset link shortly' };
+  }
+
+  async resetPassword(token: string, password: string) {
+    const reset = await this.prisma.passwordReset.findUnique({
+      where: { token },
+    });
+
+    if (!reset || reset.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired password reset token');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: reset.userId },
+        data: {
+          password: hashedPassword,
+        },
+      }),
+      this.prisma.passwordReset.delete({
+        where: { id: reset.id },
+      }),
+    ]);
+
+    return { message: 'Password reset successfully' };
+  }
+
   async refreshTokens(token: string) {
     const refreshToken = await this.prisma.refreshToken.findUnique({
       where: { token },

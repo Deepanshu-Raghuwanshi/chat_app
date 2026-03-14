@@ -62,3 +62,15 @@ export const useSetPassword = () => {
     mutationFn: (data: Record<string, string>) => authService.setPassword(data),
   });
 };
+
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: (email: string) => authService.forgotPassword(email),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (data: Record<string, string>) => authService.resetPassword(data),
+  });
+};
