@@ -100,7 +100,13 @@ export class AuthUseCases {
 
   async validateUser(email: string, pass: string): Promise<Partial<User> | null> {
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
+    if (!user) return null;
+
+    if (user.provider === 'GOOGLE' && !user.password) {
+      throw new UnauthorizedException('Please set your password first by clicking "Forgot?" or via the email we sent you');
+    }
+
+    if (user.password && (await bcrypt.compare(pass, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
       return result;
