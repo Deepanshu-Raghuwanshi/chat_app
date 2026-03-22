@@ -10,7 +10,12 @@
       }
     },
     "lint": {},
-    "test": {},
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx cross-env TS_NODE_PROJECT=tsconfig.test.json npx mocha -r ts-node/register/transpile-only -r tsconfig-paths/register apps/auth-service/tests/**/*.spec.ts --timeout 15000"
+      }
+    },
     "typecheck": {},
     "serve": {
       "executor": "nx:run-commands",

@@ -1,2 +1,2 @@
 // Empty entry point for linting and typechecking
-export {};
+export * from './test-constants';

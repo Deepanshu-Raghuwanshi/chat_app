@@ -1,0 +1,19 @@
+{
+  "events": {
+    "userCreated": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "test@example.com",
+      "timestamp": "2023-01-01T00:00:00.000Z",
+      "version": "1.0.0"
+    }
+  },
+  "profiles": {
+    "default": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "username": "test_abc",
+      "fullName": "test",
+      "avatarUrl": null,
+      "bio": null
+    }
+  }
+}
