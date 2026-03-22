@@ -15,7 +15,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "cross-env TS_NODE_PROJECT=tsconfig.message-service.json node -r ts-node/register -r tsconfig-paths/register apps/message-service/src/main.ts"
+        "command": "cross-env TS_NODE_PROJECT=tsconfig.message-service.json ts-node-dev -r tsconfig-paths/register --respawn apps/message-service/src/main.ts"
       }
     }
   }

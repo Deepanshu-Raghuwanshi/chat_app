@@ -31,7 +31,19 @@ model User {
 enum AuthProvider {
   LOCAL
   GOOGLE
+  BOTH
 
+  @@schema("auth")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("PasswordReset")
   @@schema("auth")
 }
 

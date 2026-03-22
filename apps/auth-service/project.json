@@ -15,7 +15,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "cross-env TS_NODE_PROJECT=tsconfig.auth-service.json node -r ts-node/register -r tsconfig-paths/register apps/auth-service/src/main.ts"
+        "command": "cross-env TS_NODE_PROJECT=tsconfig.auth-service.json ts-node-dev -r tsconfig-paths/register --respawn apps/auth-service/src/main.ts"
       }
     }
   }

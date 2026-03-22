@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { TerminusModule } from '@nestjs/terminus';
 import { PassportModule } from '@nestjs/passport';
@@ -44,25 +44,28 @@ import { GoogleStrategy } from './infrastructure/strategies/google.strategy';
       ttl: 60000,
       limit: 100,
     }]),
-    MailerModule.forRoot({
-      transport: {
-        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-        port: Number(process.env.SMTP_PORT) || 587,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+    MailerModule.forRootAsync({
+      useFactory: (config: ConfigService) => ({
+        transport: {
+          host: config.get('SMTP_HOST') || 'smtp.ethereal.email',
+          port: Number(config.get('SMTP_PORT')) || 587,
+          auth: {
+            user: config.get('SMTP_USER'),
+            pass: config.get('SMTP_PASS'),
+          },
         },
-      },
-      defaults: {
-        from: '"No Reply" <noreply@chatapp.com>',
-      },
-      template: {
-        dir: join(__dirname, 'infrastructure/messaging/templates'),
-        adapter: new HandlebarsAdapter(),
-        options: {
-          strict: true,
+        defaults: {
+          from: '"No Reply" <noreply@chatapp.com>',
         },
-      },
+        template: {
+          dir: join(__dirname, 'infrastructure/messaging/templates'),
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [HealthController, AuthController],

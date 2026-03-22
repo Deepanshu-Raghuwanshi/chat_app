@@ -38,3 +38,39 @@ export const useLogout = () => {
     },
   });
 };
+
+export const useRefresh = () => {
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((state) => state.setUser);
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: () => authService.refresh(),
+    onSuccess: (userData: UserProfile) => {
+      setUser(userData);
+      queryClient.setQueryData(['profile'], userData);
+      router.push('/chat');
+    },
+    onError: () => {
+      router.push('/login');
+    },
+  });
+};
+
+export const useSetPassword = () => {
+  return useMutation({
+    mutationFn: (data: Record<string, string>) => authService.setPassword(data),
+  });
+};
+
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: (email: string) => authService.forgotPassword(email),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (data: Record<string, string>) => authService.resetPassword(data),
+  });
+};
