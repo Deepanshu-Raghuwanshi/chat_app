@@ -1,7 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
-import { HealthCheckService, HealthCheck, MemoryHealthIndicator } from '@nestjs/terminus';
+import { Controller, Get } from "@nestjs/common";
+import {
+  HealthCheckService,
+  HealthCheck,
+  MemoryHealthIndicator,
+} from "@nestjs/terminus";
 
-@Controller('health')
+@Controller("health")
 export class HealthController {
   constructor(
     private health: HealthCheckService,
@@ -12,12 +16,12 @@ export class HealthController {
   @HealthCheck()
   check() {
     return this.health.check([
-      () => this.memory.checkHeap('memory_heap', 300 * 1024 * 1024),
+      () => this.memory.checkHeap("memory_heap", 300 * 1024 * 1024),
     ]);
   }
 
-  @Get('status')
+  @Get("status")
   getStatus() {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+    return { status: "ok", timestamp: new Date().toISOString() };
   }
 }

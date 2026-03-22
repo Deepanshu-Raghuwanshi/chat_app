@@ -19,12 +19,17 @@ export class UserEventsConsumer implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     await this.consumer.connect();
-    await this.consumer.subscribe({ topic: UserTopics.USER_CREATED, fromBeginning: true });
+    await this.consumer.subscribe({
+      topic: UserTopics.USER_CREATED,
+      fromBeginning: true,
+    });
 
     await this.consumer.run({
       eachMessage: async ({ message }: EachMessagePayload) => {
         if (!message.value) return;
-        const payload: UserCreatedEventV1 = JSON.parse(message.value.toString());
+        const payload: UserCreatedEventV1 = JSON.parse(
+          message.value.toString(),
+        );
         await this.handleUserCreated(payload);
       },
     });

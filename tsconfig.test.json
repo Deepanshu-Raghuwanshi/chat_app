@@ -1,13 +1,18 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
     "module": "commonjs",
-    "strict": true,
-    "baseUrl": ".",
+    "target": "ES2022",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  }
+    "allowJs": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+  },
+  "ts-node": {
+    "esm": false
+  },
+  "include": [
+    "apps/**/*.ts",
+    "libs/**/*.ts"
+  ]
 }

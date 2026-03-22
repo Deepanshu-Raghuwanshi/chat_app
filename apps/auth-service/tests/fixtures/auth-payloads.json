@@ -1,0 +1,35 @@
+{
+  "users": {
+    "valid": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "test@example.com",
+      "password": "Password123!",
+      "hashedPassword": "$2b$12$LQvPHiU.UvK3E9.B.I0/D.7H5P5F6N7M8O9P0Q1R2S3T4U5V6W7X",
+      "isVerified": true,
+      "provider": "LOCAL"
+    },
+    "unverified": {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "email": "unverified@example.com",
+      "password": "Password123!",
+      "isVerified": false,
+      "provider": "LOCAL"
+    }
+  },
+  "payloads": {
+    "register": {
+      "email": "newuser@example.com",
+      "password": "Password123!"
+    },
+    "login": {
+      "email": "test@example.com",
+      "password": "Password123!"
+    }
+  },
+  "tokens": {
+    "verification": "mock_verification_token",
+    "reset": "mock_reset_token",
+    "access": "mock_access_token",
+    "refresh": "mock_refresh_token"
+  }
+}
