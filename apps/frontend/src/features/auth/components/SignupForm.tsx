@@ -89,7 +89,7 @@ export const SignupForm = () => {
       <div className="w-120 max-w-130 animate-in fade-in slide-up duration-500">
         <div className="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
           <div className="bg-gradient-to-r from-primary to-blue-600 p-8 text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Create Your Account</h1>
             <p className="text-blue-100">Join us and get started</p>
           </div>
 
@@ -97,10 +97,11 @@ export const SignupForm = () => {
             <form onSubmit={handleSignup} className="space-y-5">
               {/* Email Field */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Email Address</label>
+                <label htmlFor="email" className="block text-sm font-semibold text-foreground">Email Address</label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
                   <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -114,10 +115,11 @@ export const SignupForm = () => {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Password</label>
+                <label htmlFor="password" className="block text-sm font-semibold text-foreground">Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -139,10 +141,11 @@ export const SignupForm = () => {
 
               {/* Confirm Password Field */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Confirm Password</label>
+                <label htmlFor="confirm-password" className="block text-sm font-semibold text-foreground">Confirm Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
                   <input
+                    id="confirm-password"
                     type={showConfirm ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}

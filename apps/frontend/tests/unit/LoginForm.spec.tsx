@@ -1,0 +1,194 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import { LoginForm } from "../../src/features/auth/components/LoginForm";
+import { simulate } from "../utils/simulate";
+import { useRouter } from "next/navigation";
+import {
+  useLogin,
+  useForgotPassword,
+} from "../../src/features/auth/hooks/useAuth";
+import { showToast } from "../../src/shared/utils/toast";
+
+// Mock the hooks and utilities
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(),
+}));
+
+vi.mock("../../src/features/auth/hooks/useAuth", () => ({
+  useLogin: vi.fn(),
+  useForgotPassword: vi.fn(),
+}));
+
+vi.mock("../../src/shared/utils/toast", () => ({
+  showToast: {
+    error: vi.fn(),
+    success: vi.fn(),
+    loading: vi.fn(),
+  },
+}));
+
+describe("LoginForm", () => {
+  const mockPush = vi.fn();
+  const mockLogin = vi.fn();
+  const mockForgotPassword = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useRouter).mockReturnValue({
+      push: mockPush,
+    } as unknown as ReturnType<typeof useRouter>);
+    vi.mocked(useLogin).mockReturnValue({
+      mutate: mockLogin,
+      isPending: false,
+      error: null,
+    } as unknown as ReturnType<typeof useLogin>);
+    vi.mocked(useForgotPassword).mockReturnValue({
+      mutate: mockForgotPassword,
+      isPending: false,
+    } as unknown as ReturnType<typeof useForgotPassword>);
+  });
+
+  it("renders login form correctly", () => {
+    render(<LoginForm />);
+    expect(screen.getByText(/Welcome Back/i)).toBeTruthy();
+    expect(screen.getByLabelText(/Email Address/i)).toBeTruthy();
+    expect(screen.getByLabelText(/Password/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Sign In/i })).toBeTruthy();
+  });
+
+  it("updates email and password fields on change", async () => {
+    render(<LoginForm />);
+    const emailInput = screen.getByPlaceholderText(
+      /you@example.com/i,
+    ) as HTMLInputElement;
+    const passwordInput = screen.getByPlaceholderText(
+      /Enter your password/i,
+    ) as HTMLInputElement;
+
+    await simulate.type(emailInput, "test@example.com");
+    await simulate.type(passwordInput, "password123");
+
+    expect(emailInput.value).toBe("test@example.com");
+    expect(passwordInput.value).toBe("password123");
+  });
+
+  it("calls login mutation on form submit", async () => {
+    render(<LoginForm />);
+    const emailInput = screen.getByPlaceholderText(/you@example.com/i);
+    const passwordInput = screen.getByPlaceholderText(/Enter your password/i);
+    const submitButton = screen.getByRole("button", { name: /Sign In/i });
+
+    await simulate.type(emailInput, "test@example.com");
+    await simulate.type(passwordInput, "password123");
+    await simulate.click(submitButton);
+
+    expect(mockLogin).toHaveBeenCalledWith({
+      email: "test@example.com",
+      password: "password123",
+    });
+  });
+
+  it("shows error toast if fields are missing", async () => {
+    render(<LoginForm />);
+    const submitButton = screen.getByRole("button", { name: /Sign In/i });
+
+    await simulate.click(submitButton);
+
+    await waitFor(() => {
+      expect(showToast.error).toHaveBeenCalledWith(
+        "Missing fields",
+        "Please enter both email and password",
+      );
+    });
+    expect(mockLogin).not.toHaveBeenCalled();
+  });
+
+  it("handles forgot password when email is provided", async () => {
+    render(<LoginForm />);
+    const emailInput = screen.getByPlaceholderText(/you@example.com/i);
+    const forgotButton = screen.getByRole("button", { name: /Forgot\?/i });
+
+    await simulate.type(emailInput, "test@example.com");
+    await simulate.click(forgotButton);
+
+    expect(mockForgotPassword).toHaveBeenCalledWith(
+      "test@example.com",
+      expect.any(Object),
+    );
+  });
+
+  it("redirects to forgot password page if email is not provided", async () => {
+    render(<LoginForm />);
+    const forgotButton = screen.getByRole("button", { name: /Forgot\?/i });
+
+    await simulate.click(forgotButton);
+
+    expect(mockPush).toHaveBeenCalledWith("/forgot-password");
+    expect(mockForgotPassword).not.toHaveBeenCalled();
+  });
+
+  it("toggles password visibility", async () => {
+    render(<LoginForm />);
+    const passwordInput = screen.getByPlaceholderText(
+      /Enter your password/i,
+    ) as HTMLInputElement;
+    const toggleButton = screen
+      .getAllByRole("button")
+      .find((b) => b.querySelector("svg") && !b.textContent);
+
+    expect(passwordInput.type).toBe("password");
+
+    if (toggleButton) {
+      await simulate.click(toggleButton);
+      expect(passwordInput.type).toBe("text");
+
+      await simulate.click(toggleButton);
+      expect(passwordInput.type).toBe("password");
+    }
+  });
+
+  it("disables fields and shows spinner when login is pending", () => {
+    vi.mocked(useLogin).mockReturnValue({
+      mutate: mockLogin,
+      isPending: true,
+      error: null,
+    } as unknown as ReturnType<typeof useLogin>);
+
+    render(<LoginForm />);
+
+    expect(
+      (screen.getByPlaceholderText(/you@example.com/i) as HTMLInputElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (screen.getByPlaceholderText(/Enter your password/i) as HTMLInputElement)
+        .disabled,
+    ).toBe(true);
+    expect(screen.getByText(/Signing in.../i)).toBeTruthy();
+    expect(screen.getByRole("status")).toBeTruthy(); // Spinner has role="status"
+  });
+
+  it("navigates to signup page", async () => {
+    render(<LoginForm />);
+    const signupButton = screen.getByRole("button", { name: /Sign Up/i });
+
+    await simulate.click(signupButton);
+
+    expect(mockPush).toHaveBeenCalledWith("/signup");
+  });
+
+  it("handles Google login redirect", async () => {
+    const originalLocation = window.location;
+    vi.stubGlobal("location", { ...originalLocation, href: "" });
+
+    render(<LoginForm />);
+    const googleButton = screen.getByRole("button", { name: /Google/i });
+
+    await simulate.click(googleButton);
+
+    expect(showToast.loading).toHaveBeenCalledWith("Redirecting to Google...");
+    expect(window.location.href).toContain("/auth/google");
+
+    vi.unstubAllGlobals();
+  });
+});

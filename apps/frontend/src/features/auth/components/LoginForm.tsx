@@ -53,8 +53,10 @@ export const LoginForm = () => {
       onSuccess: () => {
         showToast.success('Email sent', 'A password reset link has been sent to your email.');
       },
-      onError: (error: any) => {
-        const msg = error.response?.data?.message || 'Failed to send reset link';
+      onError: (error: unknown) => {
+        const msg = error && typeof error === 'object' && 'response' in error
+          ? (error as { response: { data: { message: string } } }).response?.data?.message
+          : error instanceof Error ? error.message : 'Failed to send reset link';
         showToast.error('Error', msg);
       }
     });
@@ -72,13 +74,14 @@ export const LoginForm = () => {
           </div>
 
           <div className="p-8">
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form onSubmit={handleLogin} className="space-y-5" noValidate>
               {/* Email Field */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Email Address</label>
+                <label htmlFor="email" className="block text-sm font-semibold text-foreground">Email Address</label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
                   <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -93,7 +96,7 @@ export const LoginForm = () => {
               {/* Password Field */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block text-sm font-semibold text-foreground">Password</label>
+                  <label htmlFor="password" className="block text-sm font-semibold text-foreground">Password</label>
                   <button
                     type="button"
                     onClick={handleForgotPassword}
@@ -106,6 +109,7 @@ export const LoginForm = () => {
                 <div className="relative group">
                   <Lock className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

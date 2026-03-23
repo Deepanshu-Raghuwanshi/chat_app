@@ -67,12 +67,13 @@ export const ForgotPasswordForm = () => {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-foreground">Email Address</label>
+                  <label htmlFor="email" className="block text-sm font-semibold text-foreground">Email Address</label>
                   <div className="relative group">
                     <Mail className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
                     <input
+                      id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
