@@ -59,8 +59,12 @@ All services MUST follow this DDD pattern within `src/`:
 
 ## 4. Coding Standards
 - **Naming**: `kebab-case` for files and folders. `PascalCase` for classes/components. `camelCase` for functions/variables.
-- **Types**: Always provide explicit TypeScript types. Avoid `any` at all costs.
+- **Strict Typing**: Always provide explicit TypeScript types.
+  - Avoid `any` at all costs across ALL files (source code, tests, and tools).
+  - Use `unknown` with type guards or `instanceof` checks for dynamic data.
 - **Linting**: Follow `.eslintrc.json` rules strictly.
+  - No `/* eslint-disable */` is permitted. Fix the root cause or use `unknown as T` for necessary casting in tests.
+  - CI/CD will fail on ANY linting error.
 - **Security**: Never log sensitive data (passwords, tokens). Use `class-transformer` to exclude sensitive fields from responses.
 
 ## 5. Deployment & Environment

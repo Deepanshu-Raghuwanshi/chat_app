@@ -1,0 +1,39 @@
+{
+  "proxyResponses": {
+    "auth": {
+      "register": {
+        "status": 201,
+        "body": {
+          "id": "test-user-id",
+          "email": "test@example.com"
+        }
+      },
+      "login": {
+        "status": 200,
+        "body": {
+          "id": "test-user-id",
+          "email": "test@example.com"
+        },
+        "headers": {
+          "set-cookie": ["access_token=mock_access_token; Path=/; HttpOnly", "refresh_token=mock_refresh_token; Path=/; HttpOnly"]
+        }
+      }
+    },
+    "errors": {
+      "notFound": {
+        "status": 404,
+        "body": {
+          "statusCode": 404,
+          "message": "Not Found"
+        }
+      },
+      "serverError": {
+        "status": 500,
+        "body": {
+          "statusCode": 500,
+          "message": "Internal Server Error"
+        }
+      }
+    }
+  }
+}
