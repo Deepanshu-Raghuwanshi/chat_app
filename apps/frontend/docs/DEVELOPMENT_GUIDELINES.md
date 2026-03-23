@@ -8,6 +8,7 @@ This document outlines the coding standards, patterns, and best practices for fr
 - **YAGNI (You Ain't Gonna Need It)**: Don't implement features or abstractions until they are actually needed. Build for today, but keep tomorrow in mind.
 - **KISS (Keep It Simple, Stupid)**: Favor simple, readable code over clever, complex solutions.
 - **Performance First**: Always consider the performance implications of your code (re-renders, bundle size, API calls).
+- **Strict Typing**: Never use `any`. Always use proper TypeScript types or `unknown` with type narrowing. This ensures code reliability and catches errors early.
 
 ## 2. Component Patterns
 

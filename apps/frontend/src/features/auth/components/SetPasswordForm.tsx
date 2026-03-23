@@ -47,8 +47,10 @@ export const SetPasswordForm = () => {
             showToast.success('Success', 'Your password has been set successfully');
             setTimeout(() => router.push('/login'), 3000);
           },
-          onError: (error: any) => {
-            const msg = error.response?.data?.message || 'Failed to set password';
+          onError: (error: unknown) => {
+            const msg = error && typeof error === 'object' && 'response' in error
+              ? (error as { response: { data: { message: string } } }).response?.data?.message
+              : error instanceof Error ? error.message : 'Failed to set password';
             showToast.error('Error', msg);
           }
         }
@@ -82,10 +84,11 @@ export const SetPasswordForm = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <label className="block text-sm font-semibold text-foreground">New Password</label>
+          <label htmlFor="password" className="block text-sm font-semibold text-foreground">New Password</label>
           <div className="relative group">
             <Lock className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
             <input
+              id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -106,10 +109,11 @@ export const SetPasswordForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-semibold text-foreground">Confirm Password</label>
+          <label htmlFor="confirm-password" className="block text-sm font-semibold text-foreground">Confirm Password</label>
           <div className="relative group">
             <Lock className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
             <input
+              id="confirm-password"
               type={showPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

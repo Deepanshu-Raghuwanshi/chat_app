@@ -1,3 +1,4 @@
+/* eslint-env node */
 // apps/frontend/next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {

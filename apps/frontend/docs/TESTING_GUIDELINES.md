@@ -19,6 +19,7 @@ This document provides guidelines and best practices for writing tests in the fr
 3. **Prefer `getByRole`**: Always try to find elements by their accessibility roles first.
 4. **Mock API Calls**: Use MSW (Mock Service Worker) if available, or manual Vitest mocks for data fetching.
 5. **Snapshot Testing**: Use sparingly for stable UI components.
+6. **Strict Typing in Tests**: Avoid using `any` in tests. Use `vi.mocked()` for typed mocks and `ReturnType<typeof hook>` for mocked hook values to ensure tests are type-safe.
 
 ## Simulating User Actions
 To ensure consistency across tests, always use the `simulate` utility located at `apps/frontend/tests/utils/simulate.ts`.
