@@ -6,11 +6,18 @@ export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('access_token');
   const refreshToken = request.cookies.get('refresh_token');
 
-  const protectedPaths = ['/chat', '/profile', '/settings'];
+  const protectedPaths = ['/chat', '/profile', '/settings', '/friends'];
   const authPaths = ['/login', '/signup', '/verify-email'];
 
   const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));
   const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
+
+  if (pathname === '/') {
+    if (accessToken || refreshToken) {
+      return NextResponse.redirect(new URL('/friends', request.url));
+    }
+    return NextResponse.next();
+  }
 
   if (isProtectedPath && !accessToken && !refreshToken) {
     const url = new URL('/login', request.url);
@@ -19,7 +26,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (isAuthPath && (accessToken || refreshToken)) {
-    return NextResponse.redirect(new URL('/chat', request.url));
+    return NextResponse.redirect(new URL('/friends', request.url));
   }
 
   return NextResponse.next();
@@ -27,7 +34,9 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/chat/:path*',
+    '/friends/:path*',
     '/profile/:path*',
     '/settings/:path*',
     '/login',

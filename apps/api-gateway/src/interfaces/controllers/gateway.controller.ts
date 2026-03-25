@@ -11,19 +11,33 @@ export class GatewayController {
     this.serviceMap = {
       auth: this.configService.get<string>("AUTH_SERVICE_URL")!,
       users: this.configService.get<string>("USER_SERVICE_URL")!,
+      friends: this.configService.get<string>("USER_SERVICE_URL")!,
       chat: this.configService.get<string>("CHAT_SERVICE_URL")!,
       messages: this.configService.get<string>("MESSAGE_SERVICE_URL")!,
       notifications: this.configService.get<string>("NOTIFICATION_SERVICE_URL")!,
     };
   }
 
-  @All(":service/*route")
+  @All("*")
   async proxy(
-    @Param("service") service: string,
-    @Param("route") routeParam: string | string[],
     @Req() req: Request,
     @Res() res: Response,
   ) {
+    // Robust path extraction
+    const fullPathRaw = req.params[0] || (req.params as any).path || "";
+    const pathString = Array.isArray(fullPathRaw) ? fullPathRaw.join("/") : fullPathRaw;
+    const segments = (pathString || "").split("/").filter(Boolean);
+    
+    const service = segments[0];
+    const path = segments.slice(1).join("/");
+
+    if (!service) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: 400,
+        message: "Service name is required",
+      });
+    }
+
     const targetUrlBase = this.serviceMap[service];
 
     if (!targetUrlBase) {
@@ -32,10 +46,6 @@ export class GatewayController {
         message: `Service '${service}' not found or not configured in Gateway`,
       });
     }
-
-    const path = Array.isArray(routeParam)
-      ? routeParam.join("/")
-      : routeParam || "";
 
     const targetUrl = path
       ? `${targetUrlBase}/api/v1/${service}/${path}`
@@ -51,7 +61,7 @@ export class GatewayController {
           host: new URL(targetUrlBase).host,
         },
         params: req.query,
-        validateStatus: (status) => status >= 200 && status < 400,
+        validateStatus: (status) => status >= 200 && status < 500, // Allow 404s from services to pass through
         maxRedirects: 0,
         withCredentials: true,
       });

@@ -3,12 +3,14 @@
 import React from 'react';
 import { useLogout } from '../../auth/hooks/useAuth';
 import { useAuthStore } from '../../auth/store/useAuthStore';
-import { LogOut, MessageSquare } from 'lucide-react';
+import { LogOut, MessageSquare, Users } from 'lucide-react';
 import { Spinner } from '../../../shared/components/ui/spinner';
+import { useRouter } from 'next/navigation';
 
 export const ChatDashboard = () => {
   const user = useAuthStore((state) => state.user);
   const { mutate: logout, isPending } = useLogout();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-secondary flex flex-col items-center justify-center p-6 text-center">
@@ -29,6 +31,14 @@ export const ChatDashboard = () => {
         </p>
 
         <div className="space-y-4">
+          <button
+            onClick={() => router.push('/friends')}
+            className="w-full py-3 px-6 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-300 font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+          >
+            <Users className="w-5 h-5" />
+            Go to Friends
+          </button>
+
           <button
             onClick={() => logout()}
             disabled={isPending}
