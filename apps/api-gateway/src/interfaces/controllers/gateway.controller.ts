@@ -1,4 +1,4 @@
-import { Controller, All, Req, Res, HttpStatus, Param } from "@nestjs/common";
+import { Controller, All, Req, Res, HttpStatus } from "@nestjs/common";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
@@ -14,20 +14,21 @@ export class GatewayController {
       friends: this.configService.get<string>("USER_SERVICE_URL")!,
       chat: this.configService.get<string>("CHAT_SERVICE_URL")!,
       messages: this.configService.get<string>("MESSAGE_SERVICE_URL")!,
-      notifications: this.configService.get<string>("NOTIFICATION_SERVICE_URL")!,
+      notifications: this.configService.get<string>(
+        "NOTIFICATION_SERVICE_URL",
+      )!,
     };
   }
 
   @All("*")
-  async proxy(
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
+  async proxy(@Req() req: Request, @Res() res: Response) {
     // Robust path extraction
-    const fullPathRaw = req.params[0] || (req.params as any).path || "";
-    const pathString = Array.isArray(fullPathRaw) ? fullPathRaw.join("/") : fullPathRaw;
+    const fullPathRaw = req.params[0] || req.params["path"] || "";
+    const pathString = Array.isArray(fullPathRaw)
+      ? fullPathRaw.join("/")
+      : fullPathRaw;
     const segments = (pathString || "").split("/").filter(Boolean);
-    
+
     const service = segments[0];
     const path = segments.slice(1).join("/");
 
