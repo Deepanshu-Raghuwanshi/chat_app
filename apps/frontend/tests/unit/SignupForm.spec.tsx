@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { SignupForm } from '../../src/features/auth/components/SignupForm';
@@ -5,6 +7,30 @@ import { simulate } from '../utils/simulate';
 import { useRouter } from 'next/navigation';
 import { useSignup } from '../../src/features/auth/hooks/useAuth';
 import { showToast } from '../../src/shared/utils/toast';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace?: string) => (key: string) => {
+    if (key === 'title' && namespace === 'features.auth.signup') return 'Create Your Account';
+    if (key === 'email_label') return 'Email Address';
+    if (key === 'password_label') return 'Password';
+    if (key === 'confirm_password_label') return 'Confirm Password';
+    if (key === 'create_account') return 'Create Account';
+    if (key === 'email_placeholder') return 'you@example.com';
+    if (key === 'password_placeholder') return 'Minimum 6 characters';
+    if (key === 'confirm_password_placeholder') return 'Confirm your password';
+    if (key === 'success.title') return 'Verify Your Email';
+    if (key === 'success.go_to_login') return 'Go to Login';
+    if (key === 'creating_account') return 'Creating account...';
+    if (key === 'sign_in') return 'Sign In';
+    if (key === 'errors.password_mismatch_title') return 'Password mismatch';
+    if (key === 'errors.password_mismatch') return 'Passwords do not match';
+    if (key === 'errors.weak_password_title') return 'Weak password';
+    if (key === 'errors.weak_password') return 'Password must be at least 6 characters';
+    
+    return namespace ? `${namespace}.${key}` : key;
+  }
+}));
 
 // Mock the hooks and utilities
 vi.mock('next/navigation', () => ({
@@ -29,13 +55,13 @@ describe('SignupForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
     vi.mocked(useSignup).mockReturnValue({
       mutate: mockSignup,
       isPending: false,
       isSuccess: false,
       error: null,
-    } as unknown as ReturnType<typeof useSignup>);
+    } as any);
   });
 
   it('renders signup form correctly', () => {
@@ -118,7 +144,7 @@ describe('SignupForm', () => {
       isPending: false,
       isSuccess: true,
       error: null,
-    } as unknown as ReturnType<typeof useSignup>);
+    } as any);
 
     render(<SignupForm />);
 
@@ -132,7 +158,7 @@ describe('SignupForm', () => {
       isPending: false,
       isSuccess: true,
       error: null,
-    } as unknown as ReturnType<typeof useSignup>);
+    } as any);
 
     render(<SignupForm />);
     const loginButton = screen.getByRole('button', { name: /Go to Login/i });
@@ -157,7 +183,7 @@ describe('SignupForm', () => {
       isPending: true,
       isSuccess: false,
       error: null,
-    } as unknown as ReturnType<typeof useSignup>);
+    } as any);
 
     render(<SignupForm />);
     

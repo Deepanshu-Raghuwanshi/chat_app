@@ -5,8 +5,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { authService } from '../services/auth.service';
 import { showToast } from '../../../shared/utils/toast';
 import { CheckCircle, XCircle, Clock, ArrowRight, RotateCcw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export const VerifyEmail = () => {
+  const t = useTranslations('features.auth.verify_email');
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
@@ -21,8 +23,8 @@ export const VerifyEmail = () => {
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('Invalid verification link.');
-      showToast.error('Invalid link', 'Verification link is missing');
+      setMessage(t('error.invalid_link'));
+      showToast.error(t('error.invalid_link_title'), t('error.link_missing'));
       return;
     }
 
@@ -30,8 +32,8 @@ export const VerifyEmail = () => {
       try {
         await authService.verifyEmail(token);
         setStatus('success');
-        setMessage('Email verified! You can now log in.');
-        showToast.success('Email verified', 'Your email has been successfully verified');
+        setMessage(t('success.message'));
+        showToast.success(t('success.toast_title'), t('success.toast_desc'));
         setTimeout(() => {
           router.push('/login');
         }, 2000);
@@ -39,14 +41,14 @@ export const VerifyEmail = () => {
         setStatus('error');
         const errorMessage = err && typeof err === 'object' && 'response' in err
           ? (err as { response: { data: { message: string } } }).response?.data?.message
-          : err instanceof Error ? err.message : 'Verification failed. Link may be expired.';
+          : err instanceof Error ? err.message : t('error.generic_error');
         setMessage(errorMessage);
-        showToast.error('Verification failed', errorMessage);
+        showToast.error(t('error.toast_title'), errorMessage);
       }
     };
 
     verifyEmail();
-  }, [token, router]);
+  }, [token, router, t]);
 
   if (!mounted) return null;
 
@@ -60,10 +62,10 @@ export const VerifyEmail = () => {
                 <div className="flex justify-center mb-4">
                   <Clock className="w-16 h-16 text-white animate-spin" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Verifying Email</h2>
+                <h2 className="text-2xl font-bold text-white">{t('loading.title')}</h2>
               </div>
               <div className="p-8 text-center">
-                <p className="text-foreground/70 mb-4">Please wait while we verify your email...</p>
+                <p className="text-foreground/70 mb-4">{t('loading.message')}</p>
                 <div className="flex justify-center gap-1">
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -79,16 +81,16 @@ export const VerifyEmail = () => {
                 <div className="flex justify-center mb-4">
                   <CheckCircle className="w-16 h-16 text-white animate-bounce" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Email Verified</h2>
+                <h2 className="text-2xl font-bold text-white">{t('success.title')}</h2>
               </div>
               <div className="p-8 text-center">
-                <p className="text-foreground/70 mb-2">Great! Your email has been verified.</p>
-                <p className="text-sm text-foreground/60 mb-8">You can now log in to your account.</p>
+                <p className="text-foreground/70 mb-2">{t('success.message')}</p>
+                <p className="text-sm text-foreground/60 mb-8">{t('success.instruction')}</p>
                 <button
                   onClick={() => router.push('/login')}
                   className="w-full py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 font-medium"
                 >
-                  Go to Login
+                  {t('success.button')}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -101,10 +103,10 @@ export const VerifyEmail = () => {
                 <div className="flex justify-center mb-4">
                   <XCircle className="w-16 h-16 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Verification Failed</h2>
+                <h2 className="text-2xl font-bold text-white">{t('error.title')}</h2>
               </div>
               <div className="p-8 text-center">
-                <p className="text-foreground/70 mb-2">Something went wrong</p>
+                <p className="text-foreground/70 mb-2">{t('error.message')}</p>
                 <p className="text-sm text-foreground/60 mb-8">{message}</p>
                 <div className="space-y-3">
                   <button
@@ -112,13 +114,13 @@ export const VerifyEmail = () => {
                     className="w-full py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 font-medium"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    Try Signing Up Again
+                    {t('error.button_retry')}
                   </button>
                   <button
                     onClick={() => router.push('/login')}
                     className="w-full py-3 border-2 border-primary text-primary rounded-lg hover:bg-blue-50 transition-all duration-300 font-medium"
                   >
-                    Back to Login
+                    {t('error.button_login')}
                   </button>
                 </div>
               </div>

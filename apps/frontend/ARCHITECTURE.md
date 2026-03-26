@@ -3,6 +3,7 @@
 ## Core Stack
 - **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) for client state, [TanStack Query](https://tanstack.com/query/latest) for server state.
+- **Internationalization**: [next-intl](https://next-intl-docs.vercel.app/) for multi-language support.
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/), [clsx](https://github.com/lukeed/clsx), [tailwind-merge](https://github.com/dcastil/tailwind-merge).
 - **Icons**: [Lucide React](https://lucide.dev/).
 - **Notifications**: [Sonner](https://emilkowalski.com/sonner).
@@ -13,6 +14,7 @@ The frontend follows a **Feature-based organization** within the `src/` director
 - **`src/core/`**: Core providers, global configurations, and initialization logic.
 - **`src/features/`**: Domain-specific logic, components, hooks, and stores (e.g., `auth`, `chat`).
 - **`src/shared/`**: Reusable components, utilities, and hooks shared across features.
+- **`messages/`**: Internationalization translation files (`en.json`, `es.json`, etc.).
 - **`app/`**: Next.js App Router pages and layouts, acting as thin wrappers around feature components.
 
 ## Data Fetching & API

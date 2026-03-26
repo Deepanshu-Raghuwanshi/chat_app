@@ -40,3 +40,22 @@ test('should handle user login', async () => {
   expect(await screen.findByText(/welcome/i)).toBeInTheDocument();
 });
 ```
+
+## 7. Testing i18n Components
+
+When testing components that use `next-intl` (hooks like `useTranslations`), you must use the `renderWithIntl` utility instead of the standard `render` from RTL.
+
+- **Utility Path**: `apps/frontend/tests/utils/render.tsx`
+- **Why**: Standard `render` will fail because `useTranslations` requires a `NextIntlClientProvider` in the component tree.
+- **Messages**: The utility uses `en.json` by default, so you can still use `screen.getByText(/label/i)` in your tests.
+
+Example:
+```typescript
+import { renderWithIntl } from '../utils/render';
+import { MyComponent } from './MyComponent';
+
+test('renders translated text', () => {
+  renderWithIntl(<MyComponent />);
+  expect(screen.getByText(/translated text/i)).toBeInTheDocument();
+});
+```

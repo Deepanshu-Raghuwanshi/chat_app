@@ -5,8 +5,10 @@ import { useFriends, useIncomingRequests, useRespondToRequest, useRecommendation
 import { FriendCard } from './FriendCard';
 import { Users, UserPlus, Sparkles } from 'lucide-react';
 import { Spinner } from '../../../shared/components/ui/spinner';
+import { useTranslations } from 'next-intl';
 
 export const FriendList = () => {
+  const t = useTranslations('features.friends');
   const { data: friends, isLoading: isLoadingFriends } = useFriends();
   const { data: requests, isLoading: isLoadingRequests } = useIncomingRequests();
   const { data: recommendations, isLoading: isLoadingRecs } = useRecommendations();
@@ -28,7 +30,7 @@ export const FriendList = () => {
         <section className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-2 mb-2">
             <UserPlus className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-bold text-gray-900">Incoming Requests</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('sections.incoming_requests')}</h2>
             <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-full">
               {requests.length}
             </span>
@@ -54,7 +56,7 @@ export const FriendList = () => {
       <section className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Users className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-bold text-gray-900">Friends</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('sections.friends')}</h2>
           {friends && friends.length > 0 && (
             <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">
               {friends.length}
@@ -78,7 +80,7 @@ export const FriendList = () => {
         ) : (
           <div className="text-center p-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 font-medium">No friends yet. Start adding people!</p>
+            <p className="text-gray-500 font-medium">{t('placeholders.no_friends')}</p>
           </div>
         )}
       </section>
@@ -87,7 +89,7 @@ export const FriendList = () => {
       <section className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="w-5 h-5 text-amber-500" />
-          <h2 className="text-xl font-bold text-gray-900">Recommended for You</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('sections.recommended')}</h2>
         </div>
         
         {recommendations && recommendations.length > 0 ? (
@@ -111,14 +113,14 @@ export const FriendList = () => {
                   onClick={() => sendRequest(user.id)}
                   className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors shadow-sm"
                 >
-                  Add Friend
+                  {t('buttons.add_friend')}
                 </button>
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center p-8 bg-gray-50 rounded-xl border border-gray-100">
-            <p className="text-gray-500 text-sm italic">No new recommendations right now. Check back later!</p>
+            <p className="text-gray-500 text-sm italic">{t('placeholders.no_recommendations')}</p>
           </div>
         )}
       </section>

@@ -21,7 +21,9 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["{projectRoot}/**/*.ts"]
+        "lintFilePatterns": [
+          "{projectRoot}/**/*.ts"
+        ]
       }
     },
     "test": {
@@ -35,15 +37,24 @@
   "dependencyConstraints": [
     {
       "sourceTag": "layer:domain",
-      "onlyDependOnLibsWithTags": ["layer:domain"]
+      "onlyDependOnLibsWithTags": [
+        "layer:domain"
+      ]
     },
     {
       "sourceTag": "layer:application",
-      "onlyDependOnLibsWithTags": ["layer:domain", "layer:application"]
+      "onlyDependOnLibsWithTags": [
+        "layer:domain",
+        "layer:application"
+      ]
     },
     {
       "sourceTag": "layer:infrastructure",
-      "onlyDependOnLibsWithTags": ["layer:domain", "layer:application", "layer:infrastructure"]
+      "onlyDependOnLibsWithTags": [
+        "layer:domain",
+        "layer:application",
+        "layer:infrastructure"
+      ]
     }
   ],
   "tasksRunnerOptions": {
@@ -58,5 +69,6 @@
         ]
       }
     }
-  }
+  },
+  "analytics": true
 }

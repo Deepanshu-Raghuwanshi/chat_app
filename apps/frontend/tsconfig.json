@@ -13,6 +13,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "types": [
+      "node",
+      "next"
+    ],
     "plugins": [
       {
         "name": "next"

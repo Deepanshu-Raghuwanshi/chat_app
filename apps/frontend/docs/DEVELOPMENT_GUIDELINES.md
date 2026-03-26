@@ -83,9 +83,21 @@ export const Button = ({ label, onClick, variant = 'primary' }: ButtonProps) => 
 - Follow the **Mobile First** approach with responsive utilities (`sm:`, `md:`, `lg:`).
 - Use CSS variables for theme-specific colors or values.
 
-## 8. Accessibility (a11y)
+## 9. Internationalization (i18n)
 
-- Use semantic HTML tags (`<main>`, `<nav>`, `<section>`, `<header>`, `<footer>`).
-- Ensure all interactive elements are keyboard-accessible.
-- Use `aria-*` attributes where necessary.
-- Provide `alt` text for all images.
+We use **next-intl** for internationalization in the App Router.
+
+- **Translation Files**: All user-facing strings must be defined in JSON files inside `apps/frontend/messages/` (e.g., `en.json`).
+- **Keys**: Use a nested structure to organize keys by domain/feature (e.g., `"features": { "auth": { "login": { "title": "Login" } } }`).
+- **Hooks**: Use the `useTranslations` hook from `next-intl` in client components and `getTranslations` in server components.
+- **Common Strings**: Shared strings (e.g., "Submit", "Cancel", "Save") should be placed in a `common` namespace.
+- **Avoid Hardcoding**: Never hardcode user-facing strings in components. Always use a translation key.
+
+```tsx
+import { useTranslations } from 'next-intl';
+
+export const MyComponent = () => {
+  const t = useTranslations('features.my-feature');
+  return <h1>{t('title')}</h1>;
+};
+```
