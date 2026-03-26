@@ -15,8 +15,8 @@
     "start:message-service": "nx serve message-service",
     "start:notification-service": "nx serve notification-service",
     "start:frontend": "nx serve frontend",
-    "prisma:migrate:auth": "pnpm prisma migrate dev --schema apps/auth-service/prisma/schema.prisma --url \"postgresql://postgres:postgres@localhost:5432/chat_db?schema=auth\"",
-    "prisma:migrate:user": "pnpm prisma migrate dev --schema apps/user-service/prisma/schema.prisma --url \"postgresql://postgres:postgres@localhost:5432/chat_db?schema=user_service\"",
+    "prisma:migrate:auth": "pnpm prisma migrate dev --name auth_migration --schema apps/auth-service/prisma/schema.prisma --url \"postgresql://postgres:postgres@localhost:5432/chat_db?schema=auth\"",
+    "prisma:migrate:user": "pnpm prisma migrate dev --name user_migration --schema apps/user-service/prisma/schema.prisma --url \"postgresql://postgres:postgres@localhost:5432/chat_db?schema=user_service\"",
     "prisma:migrate:all": "pnpm prisma:migrate:auth && pnpm prisma:migrate:user",
     "prisma:generate": "pnpm prisma generate --schema apps/auth-service/prisma/schema.prisma && pnpm prisma generate --schema apps/user-service/prisma/schema.prisma",
     "db:setup": "pnpm prisma:migrate:all && pnpm prisma:generate"

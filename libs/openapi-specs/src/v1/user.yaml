@@ -26,3 +26,52 @@ paths:
       responses:
         '200':
           description: User profile
+  /api/v1/friends:
+    get:
+      summary: List all friends
+      responses:
+        '200':
+          description: List of friend IDs
+  /api/v1/friends/requests:
+    post:
+      summary: Send friend request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiverId:
+                  type: string
+      responses:
+        '201':
+          description: Request sent
+  /api/v1/friends/requests/incoming:
+    get:
+      summary: Get incoming friend requests
+      responses:
+        '200':
+          description: List of incoming requests
+  /api/v1/friends/requests/{requestId}/respond:
+    post:
+      summary: Respond to friend request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [ACCEPT, REJECT]
+      responses:
+        '200':
+          description: Response recorded

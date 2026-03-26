@@ -22,3 +22,38 @@ model UserProfile {
   @@map("UserProfile")
   @@schema("user_service")
 }
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+
+  @@schema("user_service")
+}
+
+model FriendRequest {
+  id          String              @id @default(uuid())
+  senderId    String              // UUID from auth-service
+  receiverId  String              // UUID from auth-service
+  status      FriendRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([senderId, receiverId]) // Prevent duplicate requests
+  @@index([receiverId, status])    // Speed up fetching incoming requests
+  @@map("FriendRequest")
+  @@schema("user_service")
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userId1   String   // Always the smaller UUID lexicographically
+  userId2   String   // Always the larger UUID lexicographically
+  createdAt DateTime @default(now())
+
+  @@unique([userId1, userId2]) // Prevent duplicate friendship entries
+  @@index([userId1])
+  @@index([userId2])
+  @@map("Friendship")
+  @@schema("user_service")
+}

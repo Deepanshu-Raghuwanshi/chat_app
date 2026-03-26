@@ -13,7 +13,7 @@ export const useLogin = () => {
     onSuccess: (userData: UserProfile) => {
       setUser(userData);
       queryClient.setQueryData(['profile'], userData);
-      router.push('/chat');
+      router.push('/friends');
     },
   });
 };
@@ -49,7 +49,7 @@ export const useRefresh = () => {
     onSuccess: (userData: UserProfile) => {
       setUser(userData);
       queryClient.setQueryData(['profile'], userData);
-      router.push('/chat');
+      router.push('/friends');
     },
     onError: () => {
       router.push('/login');
