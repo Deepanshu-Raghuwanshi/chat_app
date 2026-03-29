@@ -168,49 +168,49 @@
       "auth_success": {
         "title": "Completing login...",
         "message": "Please wait while we set up your session."
+      }
+    },
+    "friends": {
+      "sections": {
+        "incoming_requests": "Incoming Requests",
+        "friends": "Friends",
+        "recommended": "Recommended for You"
       },
-      "friends": {
-        "sections": {
-          "incoming_requests": "Incoming Requests",
-          "friends": "Friends",
-          "recommended": "Recommended for You"
-        },
-        "placeholders": {
-          "no_friends": "No friends yet. Start adding people!",
-          "no_recommendations": "No new recommendations right now. Check back later!"
-        },
-        "buttons": {
-          "add_friend": "Add Friend",
-          "accept": "Accept",
-          "reject": "Reject",
-          "remove": "Remove Friend"
-        }
+      "placeholders": {
+        "no_friends": "No friends yet. Start adding people!",
+        "no_recommendations": "No new recommendations right now. Check back later!"
       },
-      "chat": {
-        "dashboard": {
-          "title": "Welcome to Chat App!",
-          "greeting": "Hello, {name}!",
-          "message": "We are currently setting things up. The full chat experience will be starting soon.",
-          "button_friends": "Go to Friends",
-          "coming_soon": "Coming Soon • Version 2.0"
-        }
+      "buttons": {
+        "add_friend": "Add Friend",
+        "accept": "Accept",
+        "reject": "Reject",
+        "remove": "Remove Friend"
+      }
+    },
+    "chat": {
+      "dashboard": {
+        "title": "Welcome to Chat App!",
+        "greeting": "Hello, {name}!",
+        "message": "We are currently setting things up. The full chat experience will be starting soon.",
+        "button_friends": "Go to Friends",
+        "coming_soon": "Coming Soon • Version 2.0"
+      }
+    },
+    "navbar": {
+      "app_name": "Chat App",
+      "status": {
+        "online": "Online"
       },
-      "navbar": {
-        "app_name": "Chat App",
-        "status": {
-          "online": "Online"
-        },
-        "buttons": {
-          "logout": "Logout"
-        }
-      },
-      "home": {
-        "title": "Welcome to Chat App",
-        "description": "Connect with friends and colleagues in real-time. Fast, secure, and easy to use.",
-        "buttons": {
-          "login": "Login",
-          "signup": "Sign Up"
-        }
+      "buttons": {
+        "logout": "Logout"
+      }
+    },
+    "home": {
+      "title": "Welcome to Chat App",
+      "description": "Connect with friends and colleagues in real-time. Fast, secure, and easy to use.",
+      "buttons": {
+        "login": "Login",
+        "signup": "Sign Up"
       }
     }
   }
