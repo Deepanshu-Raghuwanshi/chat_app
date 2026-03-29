@@ -37,7 +37,6 @@ export const FriendCard: React.FC<FriendCardProps> = ({
         </div>
         <div>
           <p className="font-semibold text-gray-900">{fullName || username || userId}</p>
-          {fullName && username && <p className="text-sm text-gray-500">@{username}</p>}
         </div>
       </div>
 

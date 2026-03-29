@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
 
   if (pathname === '/' || pathname === '/en') {
     if (accessToken || refreshToken) {
-      return NextResponse.redirect(new URL('/friends', request.url));
+      return NextResponse.redirect(new URL('/chat', request.url));
     }
   }
 
@@ -43,7 +43,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (isAuthPath && (accessToken || refreshToken)) {
-    return NextResponse.redirect(new URL('/friends', request.url));
+    return NextResponse.redirect(new URL('/chat', request.url));
   }
 
   return intlMiddleware(request);
