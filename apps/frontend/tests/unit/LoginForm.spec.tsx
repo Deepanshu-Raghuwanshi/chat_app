@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { LoginForm } from "../../src/features/auth/components/LoginForm";
@@ -8,6 +9,35 @@ import {
   useForgotPassword,
 } from "../../src/features/auth/hooks/useAuth";
 import { showToast } from "../../src/shared/utils/toast";
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace?: string) => (key: string) => {
+    // Simple mock that returns the key or a portion of it
+    if (key === 'title') return 'Welcome Back';
+    if (key === 'subtitle') return 'Sign in to your account';
+    if (key === 'email_label') return 'Email Address';
+    if (key === 'password_label') return 'Password';
+    if (key === 'forgot_password') return 'Forgot?';
+    if (key === 'sign_in') return 'Sign In';
+    if (key === 'signing_in') return 'Signing in...';
+    if (key === 'or_continue_with') return 'Or continue with';
+    if (key === 'google_login') return 'Google';
+    if (key === 'no_account') return "Don't have an account?";
+    if (key === 'sign_up') return 'Sign Up';
+    if (key === 'email_placeholder') return 'you@example.com';
+    if (key === 'password_placeholder') return 'Enter your password';
+    if (key === 'buttons.sending') return 'Sending...';
+    if (key === 'errors.missing_fields') return 'Missing fields';
+    if (key === 'errors.error') return 'Error';
+    if (key === 'toasts.login_failed') return 'Login failed';
+    if (key === 'toasts.email_sent') return 'Email sent';
+    if (key === 'toasts.google_redirect') return 'Redirecting to Google...';
+
+    // If namespace is provided, return full key
+    return namespace ? `${namespace}.${key}` : key;
+  }
+}));
 
 // Mock the hooks and utilities
 vi.mock("next/navigation", () => ({
@@ -36,7 +66,12 @@ describe("LoginForm", () => {
     vi.clearAllMocks();
     vi.mocked(useRouter).mockReturnValue({
       push: mockPush,
-    } as unknown as ReturnType<typeof useRouter>);
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+    });
     vi.mocked(useLogin).mockReturnValue({
       mutate: mockLogin,
       isPending: false,
@@ -97,7 +132,7 @@ describe("LoginForm", () => {
     await waitFor(() => {
       expect(showToast.error).toHaveBeenCalledWith(
         "Missing fields",
-        "Please enter both email and password",
+        "features.auth.login.toasts.missing_fields_desc",
       );
     });
     expect(mockLogin).not.toHaveBeenCalled();

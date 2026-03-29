@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, UserX, Check, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface FriendCardProps {
   userId: string;
@@ -22,6 +23,8 @@ export const FriendCard: React.FC<FriendCardProps> = ({
   onReject,
   onRemove,
 }) => {
+  const t = useTranslations('features.friends.buttons');
+
   return (
     <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
@@ -44,14 +47,14 @@ export const FriendCard: React.FC<FriendCardProps> = ({
             <button
               onClick={onAccept}
               className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
-              title="Accept"
+              title={t('accept')}
             >
               <Check className="w-5 h-5" />
             </button>
             <button
               onClick={onReject}
               className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-              title="Reject"
+              title={t('reject')}
             >
               <X className="w-5 h-5" />
             </button>
@@ -60,7 +63,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
           <button
             onClick={onRemove}
             className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-gray-100 hover:text-red-500 transition-colors"
-            title="Remove Friend"
+            title={t('remove')}
           >
             <UserX className="w-5 h-5" />
           </button>

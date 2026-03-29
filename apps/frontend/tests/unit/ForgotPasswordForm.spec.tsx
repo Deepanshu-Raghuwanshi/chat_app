@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { ForgotPasswordForm } from '../../src/features/auth/components/ForgotPasswordForm';
@@ -5,6 +6,26 @@ import { simulate } from '../utils/simulate';
 import { useRouter } from 'next/navigation';
 import { useForgotPassword } from '../../src/features/auth/hooks/useAuth';
 import { showToast } from '../../src/shared/utils/toast';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace?: string) => (key: string) => {
+    if (namespace === 'features.auth.forgot_password') {
+      if (key === 'title') return 'Reset Password';
+      if (key === 'subtitle') return "We'll send you a link to reset your password";
+      if (key === 'email_label') return 'Email Address';
+      if (key === 'email_placeholder') return 'you@example.com';
+      if (key === 'send_link') return 'Send Reset Link';
+      if (key === 'sending_link') return 'Sending Link...';
+      if (key === 'back_to_login') return 'Back to Login';
+      if (key === 'success.message') return 'Check your inbox for a password reset link. It will expire in 30 minutes.';
+      if (key === 'errors.missing_field_title') return 'Missing field';
+      if (key === 'errors.missing_email') return 'Please enter your email address';
+      if (key === 'errors.request_failed') return 'Request failed';
+    }
+    return namespace ? `${namespace}.${key}` : key;
+  }
+}));
 
 // Mock the hooks and utilities
 vi.mock('next/navigation', () => ({
@@ -29,7 +50,14 @@ describe('ForgotPasswordForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
+    vi.mocked(useRouter).mockReturnValue({
+      push: mockPush,
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+    });
     vi.mocked(useForgotPassword).mockReturnValue({
       mutate: mockForgotPassword,
       isPending: false,

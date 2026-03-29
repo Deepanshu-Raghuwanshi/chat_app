@@ -1,0 +1,217 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "submit": "Submit",
+      "sending": "Sending...",
+      "loading": "Loading..."
+    },
+    "errors": {
+      "generic": "Something went wrong",
+      "missing_fields": "Missing fields",
+      "error": "Error"
+    }
+  },
+  "features": {
+    "auth": {
+      "login": {
+        "title": "Welcome Back",
+        "subtitle": "Sign in to your account",
+        "email_label": "Email Address",
+        "email_placeholder": "you@example.com",
+        "password_label": "Password",
+        "password_placeholder": "Enter your password",
+        "forgot_password": "Forgot?",
+        "sign_in": "Sign In",
+        "signing_in": "Signing in...",
+        "or_continue_with": "Or continue with",
+        "google_login": "Google",
+        "no_account": "Don't have an account?",
+        "sign_up": "Sign Up",
+        "toasts": {
+          "login_failed": "Login failed",
+          "email_sent": "Email sent",
+          "reset_link_sent": "A password reset link has been sent to your email.",
+          "missing_fields_desc": "Please enter both email and password",
+          "google_redirect": "Redirecting to Google..."
+        }
+      },
+      "signup": {
+        "title": "Create Your Account",
+        "subtitle": "Join us and get started",
+        "email_label": "Email Address",
+        "email_placeholder": "you@example.com",
+        "password_label": "Password",
+        "password_placeholder": "Minimum 6 characters",
+        "confirm_password_label": "Confirm Password",
+        "confirm_password_placeholder": "Confirm your password",
+        "create_account": "Create Account",
+        "creating_account": "Creating account...",
+        "already_have_account": "Already have an account?",
+        "sign_in": "Sign In",
+        "success": {
+          "title": "Verify Your Email",
+          "sent_to": "A verification link has been sent to",
+          "instruction": "Click the link in the email to activate your account and sign in.",
+          "go_to_login": "Go to Login"
+        },
+        "errors": {
+          "password_mismatch": "Passwords do not match",
+          "password_mismatch_title": "Password mismatch",
+          "weak_password": "Password must be at least 6 characters",
+          "weak_password_title": "Weak password"
+        },
+        "toasts": {
+          "account_created": "Account created!",
+          "verification_sent": "Verification email sent to {email}",
+          "signup_failed": "Signup failed"
+        }
+      },
+      "forgot_password": {
+        "title": "Reset Password",
+        "subtitle": "We'll send you a link to reset your password",
+        "email_label": "Email Address",
+        "email_placeholder": "you@example.com",
+        "send_link": "Send Reset Link",
+        "sending_link": "Sending Link...",
+        "back_to_login": "Back to Login",
+        "success": {
+          "message": "Check your inbox for a password reset link. It will expire in 30 minutes.",
+          "toast_title": "Email sent",
+          "toast_desc": "If an account exists, you will receive a reset link."
+        },
+        "errors": {
+          "request_failed": "Request failed",
+          "missing_email": "Please enter your email address",
+          "missing_field_title": "Missing field"
+        }
+      },
+      "reset_password": {
+        "title": "Reset Your Password",
+        "subtitle": "Enter a new password for your account",
+        "password_label": "New Password",
+        "password_placeholder": "••••••••",
+        "confirm_password_label": "Confirm Password",
+        "confirm_password_placeholder": "••••••••",
+        "submit": "Reset Password",
+        "submitting": "Resetting password...",
+        "success": {
+          "title": "Password Reset!",
+          "message": "Your password has been successfully updated. You can now log in with your new password.",
+          "redirecting": "Redirecting to login...",
+          "toast_title": "Success",
+          "toast_desc": "Your password has been reset successfully"
+        },
+        "errors": {
+          "invalid_link": "Invalid link",
+          "no_token": "No token provided in the URL",
+          "password_mismatch": "Passwords do not match",
+          "password_mismatch_title": "Passwords mismatch",
+          "weak_password": "Password must be at least 8 characters long",
+          "weak_password_title": "Weak password",
+          "failed": "Failed to reset password"
+        }
+      },
+      "set_password": {
+        "title": "Set Your Password",
+        "subtitle": "Choose a strong password for your account",
+        "password_label": "New Password",
+        "password_placeholder": "••••••••",
+        "confirm_password_label": "Confirm Password",
+        "confirm_password_placeholder": "••••••••",
+        "submit": "Set Password",
+        "submitting": "Setting password...",
+        "success": {
+          "title": "Password Set!",
+          "message": "Your password has been updated. You can now log in using your email and the new password.",
+          "redirecting": "Redirecting to login...",
+          "toast_title": "Success",
+          "toast_desc": "Your password has been set successfully"
+        },
+        "errors": {
+          "invalid_link": "Invalid link",
+          "no_token": "No token provided in the URL",
+          "password_mismatch": "Passwords do not match",
+          "password_mismatch_title": "Passwords mismatch",
+          "weak_password": "Password must be at least 8 characters long",
+          "weak_password_title": "Weak password",
+          "failed": "Failed to set password"
+        }
+      },
+      "verify_email": {
+        "loading": {
+          "title": "Verifying Email",
+          "message": "Please wait while we verify your email..."
+        },
+        "success": {
+          "title": "Email Verified",
+          "message": "Great! Your email has been verified.",
+          "instruction": "You can now log in to your account.",
+          "button": "Go to Login",
+          "toast_title": "Email verified",
+          "toast_desc": "Your email has been successfully verified"
+        },
+        "error": {
+          "title": "Verification Failed",
+          "message": "Something went wrong",
+          "button_retry": "Try Signing Up Again",
+          "button_login": "Back to Login",
+          "toast_title": "Verification failed",
+          "invalid_link": "Invalid verification link.",
+          "link_missing": "Verification link is missing",
+          "invalid_link_title": "Invalid link",
+          "generic_error": "Verification failed. Link may be expired."
+        }
+      },
+      "auth_success": {
+        "title": "Completing login...",
+        "message": "Please wait while we set up your session."
+      }
+    },
+    "friends": {
+      "sections": {
+        "incoming_requests": "Incoming Requests",
+        "friends": "Friends",
+        "recommended": "Recommended for You"
+      },
+      "placeholders": {
+        "no_friends": "No friends yet. Start adding people!",
+        "no_recommendations": "No new recommendations right now. Check back later!"
+      },
+      "buttons": {
+        "add_friend": "Add Friend",
+        "accept": "Accept",
+        "reject": "Reject",
+        "remove": "Remove Friend"
+      }
+    },
+    "chat": {
+      "dashboard": {
+        "title": "Welcome to Chat App!",
+        "greeting": "Hello, {name}!",
+        "message": "We are currently setting things up. The full chat experience will be starting soon.",
+        "button_friends": "Go to Friends",
+        "coming_soon": "Coming Soon • Version 2.0"
+      }
+    },
+    "navbar": {
+      "app_name": "Chat App",
+      "status": {
+        "online": "Online"
+      },
+      "buttons": {
+        "logout": "Logout"
+      }
+    },
+    "home": {
+      "title": "Welcome to Chat App",
+      "description": "Connect with friends and colleagues in real-time. Fast, secure, and easy to use.",
+      "buttons": {
+        "login": "Login",
+        "signup": "Sign Up"
+      }
+    }
+  }
+}

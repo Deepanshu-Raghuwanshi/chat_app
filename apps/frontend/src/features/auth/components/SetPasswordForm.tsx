@@ -6,8 +6,10 @@ import { useSetPassword } from '../hooks/useAuth';
 import { showToast } from '../../../shared/utils/toast';
 import { Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { Spinner } from '../../../shared/components/ui/spinner';
+import { useTranslations } from 'next-intl';
 
 export const SetPasswordForm = () => {
+  const t = useTranslations('features.auth.set_password');
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
@@ -20,21 +22,21 @@ export const SetPasswordForm = () => {
 
   useEffect(() => {
     if (!token) {
-      showToast.error('Invalid link', 'No token provided in the URL');
+      showToast.error(t('errors.invalid_link'), t('errors.no_token'));
       router.push('/login');
     }
-  }, [token, router]);
+  }, [token, router, t]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      showToast.error('Passwords mismatch', 'Passwords do not match');
+      showToast.error(t('errors.password_mismatch_title'), t('errors.password_mismatch'));
       return;
     }
 
     if (password.length < 8) {
-      showToast.error('Weak password', 'Password must be at least 8 characters long');
+      showToast.error(t('errors.weak_password_title'), t('errors.weak_password'));
       return;
     }
 
@@ -44,14 +46,14 @@ export const SetPasswordForm = () => {
         {
           onSuccess: () => {
             setIsSuccess(true);
-            showToast.success('Success', 'Your password has been set successfully');
+            showToast.success(t('success.toast_title'), t('success.toast_desc'));
             setTimeout(() => router.push('/login'), 3000);
           },
           onError: (error: unknown) => {
             const msg = error && typeof error === 'object' && 'response' in error
               ? (error as { response: { data: { message: string } } }).response?.data?.message
-              : error instanceof Error ? error.message : 'Failed to set password';
-            showToast.error('Error', msg);
+              : error instanceof Error ? error.message : t('errors.failed');
+            showToast.error(t('common.errors.error'), msg);
           }
         }
       );
@@ -66,11 +68,11 @@ export const SetPasswordForm = () => {
             <CheckCircle2 className="w-10 h-10 text-green-600" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Password Set!</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{t('success.title')}</h2>
         <p className="text-foreground/60 mb-6">
-          Your password has been updated. You can now log in using your email and the new password.
+          {t('success.message')}
         </p>
-        <p className="text-sm text-primary animate-pulse">Redirecting to login...</p>
+        <p className="text-sm text-primary animate-pulse">{t('success.redirecting')}</p>
       </div>
     );
   }
@@ -78,13 +80,13 @@ export const SetPasswordForm = () => {
   return (
     <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-blue-100 animate-in fade-in slide-up duration-500">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Set Your Password</h1>
-        <p className="text-foreground/60">Choose a strong password for your account</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">{t('title')}</h1>
+        <p className="text-foreground/60">{t('subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-semibold text-foreground">New Password</label>
+          <label htmlFor="password" className="block text-sm font-semibold text-foreground">{t('password_label')}</label>
           <div className="relative group">
             <Lock className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
             <input
@@ -92,7 +94,7 @@ export const SetPasswordForm = () => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder={t('password_placeholder')}
               className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-white"
               required
               disabled={isPending}
@@ -109,7 +111,7 @@ export const SetPasswordForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="confirm-password" className="block text-sm font-semibold text-foreground">Confirm Password</label>
+          <label htmlFor="confirm-password" className="block text-sm font-semibold text-foreground">{t('confirm_password_label')}</label>
           <div className="relative group">
             <Lock className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
             <input
@@ -117,7 +119,7 @@ export const SetPasswordForm = () => {
               type={showPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder={t('confirm_password_placeholder')}
               className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-white"
               required
               disabled={isPending}
@@ -133,10 +135,10 @@ export const SetPasswordForm = () => {
           {isPending ? (
             <>
               <Spinner className="w-4 h-4" />
-              Setting password...
+              {t('submitting')}
             </>
           ) : (
-            'Set Password'
+            t('submit')
           )}
         </button>
       </form>

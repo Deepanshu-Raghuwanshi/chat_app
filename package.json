@@ -49,12 +49,14 @@
     "clsx": "^2.1.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "handlebars": "^4.7.8",
     "kafkajs": "^2.2.4",
     "lucide-react": "^0.577.0",
     "mongoose": "^9.2.3",
     "nestjs-pino": "^4.6.0",
     "next": "^15.5.0",
+    "next-intl": "^4.8.3",
     "nodemailer": "^8.0.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
@@ -100,7 +102,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/passport-google-oauth20": "^2.0.17",
     "@types/passport-jwt": "^4.0.1",
-    "@types/pg": "^8.11.11",
+    "@types/pg": "8.11.11",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@types/sinon": "^21.0.0",
@@ -137,6 +139,9 @@
     "vitest": "^4.0.18"
   },
   "pnpm": {
+    "overrides": {
+      "@types/pg": "8.11.11"
+    },
     "onlyBuiltDependencies": [
       "@prisma/engines",
       "prisma",

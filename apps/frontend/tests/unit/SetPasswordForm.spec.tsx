@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { SetPasswordForm } from '../../src/features/auth/components/SetPasswordForm';
@@ -5,6 +7,31 @@ import { simulate } from '../utils/simulate';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSetPassword } from '../../src/features/auth/hooks/useAuth';
 import { showToast } from '../../src/shared/utils/toast';
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace?: string) => (key: string) => {
+    if (namespace === 'features.auth.set_password') {
+      if (key === 'title') return 'Set Your Password';
+      if (key === 'subtitle') return 'Choose a strong password for your account';
+      if (key === 'password_label') return 'New Password';
+      if (key === 'confirm_password_label') return 'Confirm Password';
+      if (key === 'password_placeholder') return '••••••••';
+      if (key === 'confirm_password_placeholder') return '••••••••';
+      if (key === 'submit') return 'Set Password';
+      if (key === 'submitting') return 'Setting password...';
+      if (key === 'success.title') return 'Password Set!';
+      if (key === 'success.message') return 'Your password has been updated. You can now log in using your email and the new password.';
+      if (key === 'errors.invalid_link') return 'Invalid link';
+      if (key === 'errors.no_token') return 'No token provided in the URL';
+      if (key === 'errors.password_mismatch_title') return 'Passwords mismatch';
+      if (key === 'errors.password_mismatch') return 'Passwords do not match';
+      if (key === 'errors.weak_password_title') return 'Weak password';
+      if (key === 'errors.weak_password') return 'Password must be at least 8 characters long';
+    }
+    return namespace ? `${namespace}.${key}` : key;
+  }
+}));
 
 // Mock the hooks and utilities
 vi.mock('next/navigation', () => ({
@@ -31,13 +58,13 @@ describe('SetPasswordForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
-    vi.mocked(useSearchParams).mockReturnValue({ get: mockGet } as unknown as ReturnType<typeof useSearchParams>);
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
+    vi.mocked(useSearchParams).mockReturnValue({ get: mockGet } as any);
     mockGet.mockReturnValue('valid-token');
     vi.mocked(useSetPassword).mockReturnValue({
       mutate: mockSetPassword,
       isPending: false,
-    } as unknown as ReturnType<typeof useSetPassword>);
+    } as any);
   });
 
   it('renders set password form correctly', () => {
@@ -139,7 +166,7 @@ describe('SetPasswordForm', () => {
     vi.mocked(useSetPassword).mockReturnValue({
       mutate: mockSetPassword,
       isPending: true,
-    } as unknown as ReturnType<typeof useSetPassword>);
+    } as any);
 
     render(<SetPasswordForm />);
     

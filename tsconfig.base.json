@@ -4,6 +4,7 @@
     "module": "commonjs",
     "strict": true,
     "baseUrl": ".",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
@@ -11,6 +12,9 @@
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
     "paths": {
+      "next-intl/server": [
+        "node_modules/next-intl/dist/types/server.react-server.d.ts"
+      ],
       "@shared-types": [
         "libs/shared-types/src/index"
       ],

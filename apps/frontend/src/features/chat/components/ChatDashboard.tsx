@@ -4,10 +4,12 @@ import React from 'react';
 import { useAuthStore } from '../../auth/store/useAuthStore';
 import { MessageSquare, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 export const ChatDashboard = () => {
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
+  const t = useTranslations('features.chat.dashboard');
 
   return (
     <div className="min-h-screen bg-secondary flex flex-col items-center justify-center p-6 text-center">
@@ -19,12 +21,13 @@ export const ChatDashboard = () => {
         </div>
 
         <h1 className="text-3xl font-bold text-foreground mb-4">
-          Welcome to Chat App!
+          {t('title')}
         </h1>
         
         <p className="text-foreground/70 mb-8 leading-relaxed">
-          Hello, <span className="font-semibold text-primary">{user?.fullName || user?.username || user?.email || 'there'}</span>! 
-          We are currently setting things up. The full chat experience will be starting soon.
+          {t('greeting', { name: user?.fullName || user?.username || user?.email || 'there' })} 
+          <br />
+          {t('message')}
         </p>
 
         <div className="space-y-4">
@@ -33,13 +36,13 @@ export const ChatDashboard = () => {
             className="w-full py-3 px-6 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-300 font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
           >
             <Users className="w-5 h-5" />
-            Go to Friends
+            {t('button_friends')}
           </button>
         </div>
       </div>
       
       <p className="mt-8 text-sm text-foreground/40 font-medium tracking-wide uppercase">
-        Coming Soon • Version 2.0
+        {t('coming_soon')}
       </p>
     </div>
   );

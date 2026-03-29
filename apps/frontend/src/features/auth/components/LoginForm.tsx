@@ -6,8 +6,11 @@ import { useRouter } from 'next/navigation';
 import { showToast } from '../../../shared/utils/toast';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import { Spinner } from '../../../shared/components/ui/spinner';
+import { useTranslations } from 'next-intl';
 
 export const LoginForm = () => {
+  const t = useTranslations('features.auth.login');
+  const tCommon = useTranslations('common');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -24,22 +27,22 @@ export const LoginForm = () => {
     if (loginError) {
       const errorMsg = loginError && typeof loginError === 'object' && 'response' in loginError
         ? (loginError as { response: { data: { message: string } } }).response?.data?.message 
-        : loginError instanceof Error ? loginError.message : 'Login failed';
-      showToast.error('Login failed', errorMsg);
+        : loginError instanceof Error ? loginError.message : t('toasts.login_failed');
+      showToast.error(t('toasts.login_failed'), errorMsg);
     }
-  }, [loginError]);
+  }, [loginError, t]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      showToast.error('Missing fields', 'Please enter both email and password');
+      showToast.error(tCommon('errors.missing_fields'), t('toasts.missing_fields_desc'));
       return;
     }
     login({ email, password });
   };
 
   const handleGoogleLogin = () => {
-    showToast.loading('Redirecting to Google...');
+    showToast.loading(t('toasts.google_redirect'));
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'}/auth/google`;
   };
 
@@ -51,13 +54,13 @@ export const LoginForm = () => {
 
     forgotPassword(email, {
       onSuccess: () => {
-        showToast.success('Email sent', 'A password reset link has been sent to your email.');
+        showToast.success(t('toasts.email_sent'), t('toasts.reset_link_sent'));
       },
       onError: (error: unknown) => {
         const msg = error && typeof error === 'object' && 'response' in error
           ? (error as { response: { data: { message: string } } }).response?.data?.message
-          : error instanceof Error ? error.message : 'Failed to send reset link';
-        showToast.error('Error', msg);
+          : error instanceof Error ? error.message : tCommon('errors.generic');
+        showToast.error(tCommon('errors.error'), msg);
       }
     });
   };
@@ -69,15 +72,15 @@ export const LoginForm = () => {
       <div className="w-120 max-w-130 animate-in fade-in slide-up duration-500">
         <div className="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
           <div className="bg-gradient-to-r from-primary to-blue-600 p-8 text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-blue-100">Sign in to your account</p>
+            <h1 className="text-3xl font-bold text-white mb-2">{t('title')}</h1>
+            <p className="text-blue-100">{t('subtitle')}</p>
           </div>
 
           <div className="p-8">
             <form onSubmit={handleLogin} className="space-y-5" noValidate>
               {/* Email Field */}
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-semibold text-foreground">Email Address</label>
+                <label htmlFor="email" className="block text-sm font-semibold text-foreground">{t('email_label')}</label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-3.5 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
                   <input
@@ -85,7 +88,7 @@ export const LoginForm = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder={t('email_placeholder')}
                     className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-white"
                     required
                     disabled={isPending}
@@ -96,14 +99,14 @@ export const LoginForm = () => {
               {/* Password Field */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="block text-sm font-semibold text-foreground">Password</label>
+                  <label htmlFor="password" className="block text-sm font-semibold text-foreground">{t('password_label')}</label>
                   <button
                     type="button"
                     onClick={handleForgotPassword}
                     disabled={isForgotPasswordPending}
                     className="text-xs text-primary hover:underline transition-colors disabled:opacity-50"
                   >
-                    {isForgotPasswordPending ? 'Sending...' : 'Forgot?'}
+                    {isForgotPasswordPending ? tCommon('buttons.sending') : t('forgot_password')}
                   </button>
                 </div>
                 <div className="relative group">
@@ -113,7 +116,7 @@ export const LoginForm = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={t('password_placeholder')}
                     className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-white"
                     required
                     disabled={isPending}
@@ -138,11 +141,11 @@ export const LoginForm = () => {
                 {isPending ? (
                   <>
                     <Spinner className="w-4 h-4" />
-                    Signing in...
+                    {t('signing_in')}
                   </>
                 ) : (
                   <>
-                    Sign In
+                    {t('sign_in')}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -155,7 +158,7 @@ export const LoginForm = () => {
                 <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-white text-foreground/60">Or continue with</span>
+                <span className="px-3 bg-white text-foreground/60">{t('or_continue_with')}</span>
               </div>
             </div>
 
@@ -172,17 +175,17 @@ export const LoginForm = () => {
                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Google
+              {t('google_login')}
             </button>
 
             {/* Sign Up Link */}
             <p className="text-center text-sm text-foreground/60 mt-6">
-              Don't have an account?{' '}
+              {t('no_account')}{' '}
               <button
                 onClick={() => router.push('/signup')}
                 className="text-primary font-semibold hover:underline transition-colors"
               >
-                Sign Up
+                {t('sign_up')}
               </button>
             </p>
           </div>
