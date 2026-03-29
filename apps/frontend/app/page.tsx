@@ -13,7 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/friends');
+      router.push('/chat');
     }
   }, [isAuthenticated, router]);
 

@@ -198,11 +198,17 @@
     },
     "navbar": {
       "app_name": "Chat App",
-      "status": {
-        "online": "Online"
-      },
+      "home": "Home",
+      "friends": "Friends",
       "buttons": {
         "logout": "Logout"
+      }
+    },
+    "sub_navbar": {
+      "friends": {
+        "friends_recs": "Friends",
+        "requests": "Requests",
+        "no_requests": "No incoming requests"
       }
     },
     "home": {
