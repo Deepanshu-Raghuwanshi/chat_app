@@ -16,7 +16,8 @@ async function bootstrap() {
   const redisIoAdapter = new RedisIoAdapter(app);
   const redisHost = process.env.REDIS_HOST || 'localhost';
   const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
-  await redisIoAdapter.connectToRedis(redisHost, redisPort);
+  const redisPassword = process.env.REDIS_PASSWORD;
+  await redisIoAdapter.connectToRedis(redisHost, redisPort, redisPassword);
   app.useWebSocketAdapter(redisIoAdapter);
 
   app.useGlobalFilters(new GlobalExceptionFilter());

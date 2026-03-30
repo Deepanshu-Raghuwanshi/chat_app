@@ -7,6 +7,7 @@ interface FriendCardProps {
   username?: string;
   fullName?: string;
   avatarUrl?: string;
+  isOnline?: boolean;
   isIncomingRequest?: boolean;
   onAccept?: () => void;
   onReject?: () => void;
@@ -18,6 +19,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
   username,
   fullName,
   avatarUrl,
+  isOnline,
   isIncomingRequest,
   onAccept,
   onReject,
@@ -28,11 +30,21 @@ export const FriendCard: React.FC<FriendCardProps> = ({
   return (
     <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
-          ) : (
-            <User className="w-6 h-6 text-primary" />
+        <div className="relative">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-6 h-6 text-primary" />
+            )}
+          </div>
+          {isOnline !== undefined && (
+            <div 
+              className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-white rounded-full ${
+                isOnline ? 'bg-green-500' : 'bg-gray-400'
+              }`}
+              title={isOnline ? 'Online' : 'Offline'}
+            />
           )}
         </div>
         <div>

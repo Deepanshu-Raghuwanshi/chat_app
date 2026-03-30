@@ -2,33 +2,33 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import { GetFriendsUseCase } from "../../src/application/use-cases/get-friends.use-case";
 import { FriendshipRepository } from "../../src/application/ports/friendship.repository";
-import { UserProfileRepository } from "apps/user-service/src/application/ports/user-profile.repository";
+import { UserProfileRepository } from "../../src/application/ports/user-profile.repository";
+import { PresenceRepository } from "../../src/application/ports/presence.repository";
+import { PresenceStatus } from "@kafka-events";
 
 describe("GetFriendsUseCase (Unit)", () => {
   let useCase: GetFriendsUseCase;
   let friendshipRepoMock: Record<string, sinon.SinonStub>;
   let userProfileRepoMock: Record<string, sinon.SinonStub>;
+  let presenceRepoMock: Record<string, sinon.SinonStub>;
 
   beforeEach(() => {
     friendshipRepoMock = {
       findByUserId: sinon.stub(),
-      create: sinon.stub(),
-      findByUsers: sinon.stub(),
-      delete: sinon.stub(),
-      deleteByUsers: sinon.stub(),
-      findByUserIdAndFriendId: sinon.stub(),
     } as unknown as Record<string, sinon.SinonStub>;
 
     userProfileRepoMock = {
       findById: sinon.stub(),
-      findByUsername: sinon.stub(),
-      findAllExcept: sinon.stub(),
-      upsert: sinon.stub(),
+    } as unknown as Record<string, sinon.SinonStub>;
+
+    presenceRepoMock = {
+      getStatuses: sinon.stub(),
     } as unknown as Record<string, sinon.SinonStub>;
 
     useCase = new GetFriendsUseCase(
       friendshipRepoMock as unknown as FriendshipRepository,
       userProfileRepoMock as unknown as UserProfileRepository,
+      presenceRepoMock as unknown as PresenceRepository,
     );
   });
 
@@ -50,15 +50,24 @@ describe("GetFriendsUseCase (Unit)", () => {
     userProfileRepoMock.findById.withArgs("user2").resolves(profile2);
     userProfileRepoMock.findById.withArgs("user3").resolves(profile3);
 
+    presenceRepoMock.getStatuses.resolves(new Map([
+      ["user2", PresenceStatus.ONLINE],
+      ["user3", PresenceStatus.OFFLINE]
+    ]));
+
     const result = await useCase.execute(userId);
 
-    expect(result).to.deep.equal([profile2, profile3]);
+    expect(result).to.deep.equal([
+      { ...profile2, isOnline: true },
+      { ...profile3, isOnline: false }
+    ]);
     expect(friendshipRepoMock.findByUserId.calledWith("user1")).to.equal(true);
   });
 
   it("should return empty list if no friends", async () => {
     const userId = "user1";
     friendshipRepoMock.findByUserId.resolves([]);
+    presenceRepoMock.getStatuses.resolves(new Map());
 
     const result = await useCase.execute(userId);
 

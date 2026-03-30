@@ -12,5 +12,6 @@ export interface UserProfileRepository {
     username: string;
     fullName?: string;
     avatarUrl?: string;
+    isOnline?: boolean;
   }): Promise<UserProfile>;
 }
