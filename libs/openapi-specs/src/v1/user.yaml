@@ -75,3 +75,43 @@ paths:
       responses:
         '200':
           description: Response recorded
+
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        fullName:
+          type: string
+        avatarUrl:
+          type: string
+        bio:
+          type: string
+        isOnline:
+          type: boolean
+    FriendRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        senderId:
+          type: string
+        receiverId:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, REJECTED]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        sender:
+          $ref: '#/components/schemas/UserProfile'
+        receiver:
+          $ref: '#/components/schemas/UserProfile'

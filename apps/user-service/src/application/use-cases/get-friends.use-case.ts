@@ -1,6 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { FriendshipRepository } from '../ports/friendship.repository';
 import { UserProfileRepository } from '../ports/user-profile.repository';
+import { PresenceRepository } from '../ports/presence.repository';
+import { PresenceStatus } from '@kafka-events';
 
 @Injectable()
 export class GetFriendsUseCase {
@@ -8,7 +10,9 @@ export class GetFriendsUseCase {
     @Inject('FriendshipRepository')
     private readonly friendshipRepository: FriendshipRepository,
     @Inject('UserProfileRepository')
-    private readonly userProfileRepository: UserProfileRepository
+    private readonly userProfileRepository: UserProfileRepository,
+    @Inject('PresenceRepository')
+    private readonly presenceRepository: PresenceRepository
   ) {}
 
   async execute(userId: string) {
@@ -22,7 +26,16 @@ export class GetFriendsUseCase {
       friendIds.map(id => this.userProfileRepository.findById(id))
     );
 
-    // Filter out null profiles (if any)
-    return profiles.filter(p => p !== null);
+    // Filter out null profiles
+    const validProfiles = profiles.filter(p => p !== null);
+    
+    // Fetch presence status for all friends
+    const presences = await this.presenceRepository.getStatuses(validProfiles.map(p => p.id));
+
+    // Map presence status to profiles
+    return validProfiles.map(profile => ({
+      ...profile,
+      isOnline: presences.get(profile.id) === PresenceStatus.ONLINE
+    }));
   }
 }

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useFriends, useIncomingRequests, useRespondToRequest, useRecommendations, useSendFriendRequest } from '../hooks/useFriends';
+import { usePresence } from '../hooks/usePresence';
 import { FriendCard } from './FriendCard';
 import { RecommendationList } from './RecommendationList';
 import { Users, UserPlus } from 'lucide-react';
@@ -15,6 +16,10 @@ interface FriendListProps {
 export const FriendList = ({ activeTab }: FriendListProps) => {
   const t = useTranslations('features.friends');
   const tSub = useTranslations('features.sub_navbar.friends');
+  
+  // Register presence listener
+  usePresence();
+  
   const { data: friends, isLoading: isLoadingFriends } = useFriends();
   const { data: requests, isLoading: isLoadingRequests } = useIncomingRequests();
   const { data: recommendations, isLoading: isLoadingRecs } = useRecommendations();
@@ -99,6 +104,7 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
                     username={friend.username}
                     fullName={friend.fullName}
                     avatarUrl={friend.avatarUrl}
+                    isOnline={friend.isOnline}
                     onRemove={() => console.log('Remove friend', friend.id)}
                   />
                 ))}

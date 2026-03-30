@@ -13,6 +13,7 @@ import { KafkaProducerService } from './infrastructure/messaging/kafka-producer.
 import { PrismaFriendRequestRepository } from './infrastructure/persistence/prisma-friend-request.repository';
 import { PrismaFriendshipRepository } from './infrastructure/persistence/prisma-friendship.repository';
 import { PrismaUserProfileRepository } from './infrastructure/persistence/prisma-user-profile.repository';
+import { RedisPresenceRepository } from './infrastructure/cache/redis-presence.repository';
 import { SendFriendRequestUseCase } from './application/use-cases/send-friend-request.use-case';
 import { RespondToFriendRequestUseCase } from './application/use-cases/respond-to-friend-request.use-case';
 import { GetFriendsUseCase } from './application/use-cases/get-friends.use-case';
@@ -56,6 +57,10 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
     {
       provide: 'UserProfileRepository',
       useClass: PrismaUserProfileRepository,
+    },
+    {
+      provide: 'PresenceRepository',
+      useClass: RedisPresenceRepository,
     },
     SendFriendRequestUseCase,
     RespondToFriendRequestUseCase,

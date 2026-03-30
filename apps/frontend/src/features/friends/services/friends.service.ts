@@ -6,6 +6,7 @@ export interface UserProfile {
   fullName?: string;
   avatarUrl?: string;
   bio?: string;
+  isOnline?: boolean;
 }
 
 export interface FriendRequest {

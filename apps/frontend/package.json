@@ -1,5 +1,12 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.3"
+  }
 }

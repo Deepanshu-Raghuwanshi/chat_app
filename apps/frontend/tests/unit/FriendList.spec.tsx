@@ -1,12 +1,14 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FriendList } from '../../src/features/friends/components/FriendList';
 import { renderWithIntl } from '../utils/render';
 import { useFriends, useIncomingRequests, useRecommendations, useRespondToRequest, useSendFriendRequest } from '../../src/features/friends/hooks/useFriends';
+import { usePresence } from '../../src/features/friends/hooks/usePresence';
 
 // Mock the dependencies
 vi.mock('../../src/features/friends/hooks/useFriends');
+vi.mock('../../src/features/friends/hooks/usePresence');
 
 describe('FriendList Component', () => {
   const mockFriends = [
@@ -20,6 +22,10 @@ describe('FriendList Component', () => {
   const mockRecommendations = [
     { id: 'rec1', username: 'bob_brown', fullName: 'Bob Brown', avatarUrl: null }
   ];
+
+  beforeEach(() => {
+    vi.mocked(usePresence).mockReturnValue(undefined);
+  });
 
   it('should render Friends and Recommendations in "friends" tab', () => {
     vi.mocked(useFriends).mockReturnValue({ data: mockFriends, isLoading: false } as unknown as ReturnType<typeof useFriends>);
