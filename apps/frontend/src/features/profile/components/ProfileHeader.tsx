@@ -3,46 +3,62 @@ import { Camera } from 'lucide-react';
 import { Avatar } from '../../../shared/components/ui/Avatar';
 import { Spinner } from '../../../shared/components/ui/spinner';
 import { useProfile } from '../hooks/useProfile';
+import { cn } from '../../../shared/utils/cn';
 
-const ProfileHeader = () => {
-  const { profile, uploadAvatar, isUploading } = useProfile();
+const ProfileHeader = ({ userId }: { userId?: string }) => {
+  const { profile, uploadAvatar, isUploading, isOwnProfile } = useProfile(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarClick = () => {
-    fileInputRef.current?.click();
+    if (isOwnProfile) {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && isOwnProfile) {
       uploadAvatar(file);
     }
   };
 
   return (
     <div className="flex flex-col items-center gap-4 py-8">
-      <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+      <div 
+        className={cn(
+          "relative group",
+          isOwnProfile && "cursor-pointer"
+        )} 
+        onClick={handleAvatarClick}
+      >
         <Avatar
           avatarUrl={profile?.avatarUrl}
           fullName={profile?.fullName}
           username={profile?.username}
           size="xl"
-          className="ring-4 ring-white shadow-lg transition-transform group-hover:scale-105"
-        />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-          {isUploading ? (
-            <Spinner className="text-white w-8 h-8" />
-          ) : (
-            <Camera className="text-white w-8 h-8" />
+          className={cn(
+            "ring-4 ring-white shadow-lg transition-transform",
+            isOwnProfile && "group-hover:scale-105"
           )}
-        </div>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          accept="image/*"
-          className="hidden"
         />
+        {isOwnProfile && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+            {isUploading ? (
+              <Spinner className="text-white w-8 h-8" />
+            ) : (
+              <Camera className="text-white w-8 h-8" />
+            )}
+          </div>
+        )}
+        {isOwnProfile && (
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+          />
+        )}
       </div>
       <div className="text-center">
         <h1 className="text-2xl font-bold text-gray-900">{profile?.fullName || profile?.username}</h1>

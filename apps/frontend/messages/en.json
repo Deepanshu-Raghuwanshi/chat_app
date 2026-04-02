@@ -4,6 +4,7 @@
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete",
+      "close": "Close",
       "submit": "Submit",
       "sending": "Sending...",
       "loading": "Loading..."
@@ -223,6 +224,8 @@
     "profile": {
       "title": "Profile Settings",
       "subtitle": "Manage your profile information and account security",
+      "other_title": "User Profile",
+      "other_subtitle": "Viewing user information",
       "sections": {
         "basic_info": "Basic Information",
         "contact": "Contact Information",

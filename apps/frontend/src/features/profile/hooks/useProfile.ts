@@ -4,43 +4,49 @@ import { useAuthStore } from '../../auth/store/useAuthStore';
 import { UserProfile } from '@shared-types';
 import { toast } from 'sonner';
 
-export const useProfile = () => {
-  const setUser = useAuthStore((state) => state.setUser);
+export const useProfile = (userId?: string) => {
+  const { user: currentUser, setUser } = useAuthStore();
   const queryClient = useQueryClient();
+  const isOwnProfile = !userId || userId === currentUser?.id;
 
   const profileQuery = useQuery({
-    queryKey: ['profile'],
-    queryFn: () => profileService.getProfile(),
+    queryKey: ['profile', userId || currentUser?.id],
+    queryFn: () => profileService.getProfile(userId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 3,
+    enabled: !!(userId || currentUser?.id),
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: (data: Parameters<typeof profileService.updateProfile>[0]) =>
-      profileService.updateProfile(data),
+    mutationFn: (data: Parameters<typeof profileService.updateProfile>[0]) => {
+      if (!isOwnProfile) throw new Error('Cannot update another user\'s profile');
+      return profileService.updateProfile(data);
+    },
     onSuccess: (updatedUser: UserProfile) => {
       setUser(updatedUser);
-      queryClient.setQueryData(['profile'], updatedUser);
+      queryClient.setQueryData(['profile', currentUser?.id], updatedUser);
       toast.success('Profile updated successfully');
     },
-    onError: () => {
-      toast.error('Failed to update profile');
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update profile');
     },
   });
 
   const uploadAvatarMutation = useMutation({
-    mutationFn: (file: File) => profileService.uploadAvatar(file),
+    mutationFn: (file: File) => {
+      if (!isOwnProfile) throw new Error('Cannot update another user\'s avatar');
+      return profileService.uploadAvatar(file);
+    },
     onSuccess: (data) => {
-      const currentUser = useAuthStore.getState().user;
       if (currentUser) {
         const updatedUser = { ...currentUser, avatarUrl: data.avatarUrl };
         setUser(updatedUser);
-        queryClient.setQueryData(['profile'], updatedUser);
+        queryClient.setQueryData(['profile', currentUser.id], updatedUser);
       }
       toast.success('Avatar updated successfully');
     },
-    onError: () => {
-      toast.error('Failed to upload avatar');
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to upload avatar');
     },
   });
 
@@ -78,5 +84,6 @@ export const useProfile = () => {
     isChangingEmail: changeEmailMutation.isPending,
     verifyEmailChange: verifyEmailChangeMutation.mutate,
     isVerifyingEmailChange: verifyEmailChangeMutation.isPending,
+    isOwnProfile,
   };
 };

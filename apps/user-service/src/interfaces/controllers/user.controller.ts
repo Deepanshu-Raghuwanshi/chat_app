@@ -44,6 +44,13 @@ export class UserController {
     return this.getProfileUseCase.execute(req.user.id);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get user profile by ID' })
+  async getProfileById(@Req() req: RequestWithUser) {
+    const id = req.params.id as string;
+    return this.getProfileUseCase.execute(id);
+  }
+
   @Patch()
   @ApiOperation({ summary: 'Update user profile' })
   async updateProfile(@Req() req: RequestWithUser, @Body() updateProfileDto: UpdateProfileDto) {

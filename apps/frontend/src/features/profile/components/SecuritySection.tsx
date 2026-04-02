@@ -6,21 +6,26 @@ import { useAuthStore } from '../../auth/store/useAuthStore';
 import { Shield, Mail, Lock, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
-const SecuritySection = () => {
+const SecuritySection = ({ userId }: { userId?: string }) => {
   const t = useTranslations('features.profile');
   const { user } = useAuthStore();
-  const { changeEmail, isChangingEmail } = useProfile();
+  const { changeEmail, isChangingEmail, isOwnProfile } = useProfile(userId);
   const [newEmail, setNewEmail] = useState('');
   const [isChanging, setIsChanging] = useState(false);
 
   const handleEmailChange = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newEmail && newEmail !== user?.email) {
-      changeEmail(newEmail);
+    const trimmedEmail = newEmail.trim();
+    if (trimmedEmail && trimmedEmail !== user?.email) {
+      changeEmail(trimmedEmail);
       setIsChanging(false);
       setNewEmail('');
     }
   };
+
+  const isEmailDirty = newEmail.trim() !== '' && newEmail.trim() !== user?.email;
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim());
+  const canSubmitEmail = isEmailDirty && isEmailValid && !isChangingEmail;
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
@@ -61,14 +66,17 @@ const SecuritySection = () => {
               />
               <button
                 type="submit"
-                disabled={isChangingEmail}
-                className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
+                disabled={!canSubmitEmail}
+                className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isChangingEmail ? <Spinner className="w-4 h-4 text-white" /> : t('common.buttons.submit')}
               </button>
               <button
                 type="button"
-                onClick={() => setIsChanging(false)}
+                onClick={() => {
+                  setIsChanging(false);
+                  setNewEmail('');
+                }}
                 className="px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 {t('common.buttons.cancel')}

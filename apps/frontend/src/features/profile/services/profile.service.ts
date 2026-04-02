@@ -2,8 +2,9 @@ import apiClient from '../../auth/services/auth.service';
 import { UserProfile } from '@shared-types';
 
 export const profileService = {
-  async getProfile(): Promise<UserProfile> {
-    const response = await apiClient.get<UserProfile>('/profile');
+  async getProfile(userId?: string): Promise<UserProfile> {
+    const url = userId ? `/profile/${userId}` : '/profile';
+    const response = await apiClient.get<UserProfile>(url);
     return response.data;
   },
 

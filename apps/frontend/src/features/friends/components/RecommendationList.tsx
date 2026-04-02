@@ -3,6 +3,7 @@
 import React from 'react';
 import { Sparkles, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 interface UserRecommendation {
   id: string;
@@ -29,9 +30,9 @@ export const RecommendationList = ({ recommendations, onSendRequest }: Recommend
       {recommendations && recommendations.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {recommendations.map((user) => (
-            <div key={user.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+            <div key={user.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+              <Link href={`/profile/${user.id}`} className="flex items-center gap-3 group cursor-pointer">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
                   ) : (
@@ -39,9 +40,9 @@ export const RecommendationList = ({ recommendations, onSendRequest }: Recommend
                   )}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">{user.fullName || user.username}</p>
+                  <p className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{user.fullName || user.username}</p>
                 </div>
-              </div>
+              </Link>
               <button
                 onClick={() => onSendRequest(user.id)}
                 className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors shadow-sm"
