@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Producer } from 'kafkajs';
-import { UserTopics, UserCreatedEventV1 } from '@kafka-events/index';
+import { UserTopics, UserCreatedEventV1, UserUpdatedEventV1 } from '@kafka-events/index';
 
 @Injectable()
 export class UserEventsProducer implements OnModuleInit, OnModuleDestroy {
@@ -26,6 +26,18 @@ export class UserEventsProducer implements OnModuleInit, OnModuleDestroy {
   async emitUserCreated(event: UserCreatedEventV1) {
     await this.producer.send({
       topic: UserTopics.USER_CREATED,
+      messages: [
+        {
+          key: event.id,
+          value: JSON.stringify(event),
+        },
+      ],
+    });
+  }
+
+  async emitUserUpdated(event: UserUpdatedEventV1) {
+    await this.producer.send({
+      topic: UserTopics.USER_UPDATED,
       messages: [
         {
           key: event.id,

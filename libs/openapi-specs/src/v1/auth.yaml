@@ -10,15 +10,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginDto'
       responses:
         '200':
           description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
   /api/v1/auth/register:
     post:
       summary: Register user
@@ -26,12 +25,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/RegisterDto'
       responses:
         '201':
           description: User registered
@@ -47,6 +41,40 @@ paths:
       responses:
         '200':
           description: Email verified
+  /api/v1/auth/change-email:
+    post:
+      summary: Request email change
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Verification code sent to new email
+  /api/v1/auth/verify-email-change:
+    post:
+      summary: Verify and complete email change
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                newEmail:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email updated successfully
   /api/v1/auth/refresh:
     post:
       summary: Refresh access token
@@ -71,3 +99,53 @@ paths:
       responses:
         '302':
           description: Redirect to frontend
+
+components:
+  schemas:
+    LoginDto:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    RegisterDto:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+        - user
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          type: object
+          required:
+            - id
+            - email
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            username:
+              type: string
+            fullName:
+              type: string
+            avatarUrl:
+              type: string

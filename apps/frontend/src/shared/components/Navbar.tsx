@@ -5,6 +5,7 @@ import { useLogout } from '../../features/auth/hooks/useAuth';
 import { useAuthStore } from '../../features/auth/store/useAuthStore';
 import { LogOut, MessageSquare, Home, Users } from 'lucide-react';
 import { Spinner } from './ui/spinner';
+import { Avatar } from './ui/Avatar';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
@@ -56,12 +57,15 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div 
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 font-bold text-sm uppercase"
-            title={user?.fullName || user?.username || user?.email}
-          >
-            {(user?.email || user?.username || user?.fullName || '?')[0]}
-          </div>
+          <Link href="/profile" title={t('profile')}>
+            <Avatar 
+              avatarUrl={user?.avatarUrl} 
+              fullName={user?.fullName} 
+              username={user?.username} 
+              size="sm"
+              className="border border-primary/20 hover:ring-2 hover:ring-primary/20 transition-all"
+            />
+          </Link>
           
           <button
             onClick={() => logout()}

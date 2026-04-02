@@ -50,4 +50,18 @@ export class EmailService {
       },
     });
   }
+
+  async sendEmailChangeVerification(email: string, token: string) {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const url = `${frontendUrl}/verify-email-change?token=${token}&email=${encodeURIComponent(email)}`;
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Verify your New Email - Chat App',
+      template: './email-change',
+      context: {
+        url,
+      },
+    });
+  }
 }

@@ -1,13 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  username?: string;
-  fullName?: string;
-  avatarUrl?: string;
-}
+import { UserProfile } from '@shared-types';
 
 interface AuthState {
   user: UserProfile | null;

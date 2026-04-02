@@ -3,11 +3,15 @@ import { z } from 'zod';
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3002),
-  DATABASE_URL: z.string().url(),
+  USER_DATABASE_URL: z.string().url(),
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASSWORD: z.string().optional(),
   KAFKA_BROKERS: z.string().default('localhost:9092'),
+  JWT_ACCESS_SECRET: z.string().min(32),
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string(),
 });
 
 export type Env = z.infer<typeof envSchema>;

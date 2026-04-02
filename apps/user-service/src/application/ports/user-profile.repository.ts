@@ -12,6 +12,23 @@ export interface UserProfileRepository {
     username: string;
     fullName?: string;
     avatarUrl?: string;
+    bio?: string;
+    phoneNumber?: string;
+    countryCode?: string;
+    status?: string;
     isOnline?: boolean;
   }): Promise<UserProfile>;
+
+  update(
+    id: string,
+    data: {
+      fullName?: string;
+      avatarUrl?: string;
+      bio?: string;
+      phoneNumber?: string;
+      countryCode?: string;
+      status?: string;
+      isOnline?: boolean;
+    },
+  ): Promise<UserProfile>;
 }

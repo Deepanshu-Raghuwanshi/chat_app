@@ -11,9 +11,49 @@ paths:
           description: User profile
     patch:
       summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                bio:
+                  type: string
+                phoneNumber:
+                  type: string
+                countryCode:
+                  type: string
+                status:
+                  type: string
       responses:
         '200':
           description: Profile updated
+  /api/v1/profile/avatar:
+    post:
+      summary: Upload profile picture
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatarUrl:
+                    type: string
   /api/v1/users/{userId}:
     get:
       summary: Get user profile by ID
@@ -80,16 +120,27 @@ components:
   schemas:
     UserProfile:
       type: object
+      required:
+        - id
+        - username
       properties:
         id:
           type: string
         username:
+          type: string
+        email:
           type: string
         fullName:
           type: string
         avatarUrl:
           type: string
         bio:
+          type: string
+        phoneNumber:
+          type: string
+        countryCode:
+          type: string
+        status:
           type: string
         isOnline:
           type: boolean

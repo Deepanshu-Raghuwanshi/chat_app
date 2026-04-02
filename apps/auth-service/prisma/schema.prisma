@@ -69,3 +69,15 @@ model EmailVerification {
   @@map("EmailVerification")
   @@schema("auth")
 }
+
+model EmailChange {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  newEmail  String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("EmailChange")
+  @@schema("auth")
+}

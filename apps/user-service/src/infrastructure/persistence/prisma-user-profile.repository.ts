@@ -35,6 +35,11 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     username: string;
     fullName?: string;
     avatarUrl?: string;
+    bio?: string;
+    phoneNumber?: string;
+    countryCode?: string;
+    status?: string;
+    isOnline?: boolean;
   }): Promise<UserProfile> {
     return this.prisma.userProfile.upsert({
       where: { id: data.id },
@@ -42,13 +47,41 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
         username: data.username,
         fullName: data.fullName,
         avatarUrl: data.avatarUrl,
+        bio: data.bio,
+        phoneNumber: data.phoneNumber,
+        countryCode: data.countryCode,
+        status: data.status,
+        isOnline: data.isOnline,
       },
       create: {
         id: data.id,
         username: data.username,
         fullName: data.fullName,
         avatarUrl: data.avatarUrl,
+        bio: data.bio,
+        phoneNumber: data.phoneNumber,
+        countryCode: data.countryCode,
+        status: data.status,
+        isOnline: data.isOnline,
       },
+    });
+  }
+
+  async update(
+    id: string,
+    data: {
+      fullName?: string;
+      avatarUrl?: string;
+      bio?: string;
+      phoneNumber?: string;
+      countryCode?: string;
+      status?: string;
+      isOnline?: boolean;
+    },
+  ): Promise<UserProfile> {
+    return this.prisma.userProfile.update({
+      where: { id },
+      data,
     });
   }
 }

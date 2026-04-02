@@ -12,6 +12,7 @@ export class GatewayController {
       auth: this.configService.get<string>("AUTH_SERVICE_URL")!,
       users: this.configService.get<string>("USER_SERVICE_URL")!,
       friends: this.configService.get<string>("USER_SERVICE_URL")!,
+      profile: this.configService.get<string>("USER_SERVICE_URL")!,
       chat: this.configService.get<string>("CHAT_SERVICE_URL")!,
       messages: this.configService.get<string>("MESSAGE_SERVICE_URL")!,
       notifications: this.configService.get<string>(
@@ -52,25 +53,45 @@ export class GatewayController {
       ? `${targetUrlBase}/api/v1/${service}/${path}`
       : `${targetUrlBase}/api/v1/${service}`;
 
+    // Handle multipart/form-data for file uploads
+    const isMultipart = req.headers['content-type']?.includes('multipart/form-data');
+    
     try {
-      const response = await axios({
+      const axiosConfig: any = {
         method: req.method,
         url: targetUrl,
-        data: req.body,
         headers: {
           ...req.headers,
           host: new URL(targetUrlBase).host,
         },
         params: req.query,
-        validateStatus: (status) => status >= 200 && status < 500, // Allow 404s from services to pass through
+        validateStatus: (status: number) => status >= 200 && status < 500,
         maxRedirects: 0,
         withCredentials: true,
-      });
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 30000, // 30s timeout to prevent infinite pending
+      };
+
+      if (isMultipart) {
+        axiosConfig.data = req;
+      } else if (req.body && Object.keys(req.body).length > 0) {
+        axiosConfig.data = req.body;
+      }
+
+      // Remove content-length if we are passing the body/stream to let axios recalculate it
+      if (axiosConfig.data) {
+        delete axiosConfig.headers['content-length'];
+      }
+
+      const response = await axios(axiosConfig);
 
       // Forward headers
       Object.entries(response.headers).forEach(([key, value]) => {
-        if (key !== "transfer-encoding" && key !== "content-length") {
+        if (key === 'set-cookie' && Array.isArray(value)) {
           res.setHeader(key, value);
+        } else if (key !== "transfer-encoding" && key !== "content-length") {
+          res.setHeader(key, value as string);
         }
       });
 
