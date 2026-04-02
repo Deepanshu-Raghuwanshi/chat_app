@@ -61,13 +61,14 @@ A production-grade, microservices-based chat application built using an **Nx Mon
 
 Detailed architectural specifications for each service:
 
-- **[API Gateway Architecture](./apps/api-gateway/ARCHITECTURE.md)**
-- **[Auth Service Architecture](./apps/auth-service/ARCHITECTURE.md)** ([Implementation Details](./apps/auth-service/docs/auth-implementation.md))
-- **[Chat Service Architecture](./apps/chat-service/ARCHITECTURE.md)**
-- **[Message Service Architecture](./apps/message-service/ARCHITECTURE.md)**
-- **[User Service Architecture](./apps/user-service/ARCHITECTURE.md)** ([Implementation Details](./apps/user-service/docs/user-implementation.md))
-- **[Notification Service Architecture](./apps/notification-service/ARCHITECTURE.md)**
-- **[Frontend Architecture](./apps/frontend/ARCHITECTURE.md)** ([Auth Implementation](./apps/frontend/docs/auth-implementation.md))
+- **[API Gateway Architecture](./apps/api-gateway/architecture-api-gateway.md)**
+- **[Auth Service Architecture](./apps/auth-service/architecture-auth-service.md)** ([Implementation Details](./apps/auth-service/docs/auth-implementation.md))
+- **[Chat Service Architecture](./apps/chat-service/architecture-chat-service.md)**
+- **[Message Service Architecture](./apps/message-service/architecture-message-service.md)**
+- **[User Service Architecture](./apps/user-service/architecture-user-service.md)** ([Implementation Details](./apps/user-service/docs/user-implementation.md))
+- **[Notification Service Architecture](./apps/notification-service/architecture-notification-service.md)**
+- **[Frontend Architecture](./apps/frontend/architecture-frontend.md)** ([Auth Implementation](./apps/frontend/docs/auth-implementation.md))
+- **[Frontend Development Guidelines](./apps/frontend/docs/development-frontend.md)**
 
 ---
 
@@ -75,19 +76,19 @@ Detailed architectural specifications for each service:
 
 Architecture patterns for common utilities and services:
 
-- **[Kafka Events Architecture](./libs/kafka-events/ARCHITECTURE.md)**
-- **[OpenAPI Specs Architecture](./libs/openapi-specs/ARCHITECTURE.md)**
-- **[Shared Config Architecture](./libs/shared-config/ARCHITECTURE.md)**
-- **[Shared Logger Architecture](./libs/shared-logger/ARCHITECTURE.md)**
-- **[Shared Types Architecture](./libs/shared-types/ARCHITECTURE.md)**
-- **[Shared Utils Architecture](./libs/shared-utils/ARCHITECTURE.md)**
-- **[Shared Validation Architecture](./libs/shared-validation/ARCHITECTURE.md)**
+- **[Kafka Events Architecture](./libs/kafka-events/architecture-kafka-events.md)**
+- **[OpenAPI Specs Architecture](./libs/openapi-specs/architecture-openapi-specs.md)**
+- **[Shared Config Architecture](./libs/shared-config/architecture-shared-config.md)**
+- **[Shared Logger Architecture](./libs/shared-logger/architecture-shared-logger.md)**
+- **[Shared Types Architecture](./libs/shared-types/architecture-shared-types.md)**
+- **[Shared Utils Architecture](./libs/shared-utils/architecture-shared-utils.md)**
+- **[Shared Validation Architecture](./libs/shared-validation/architecture-shared-validation.md)**
 
 ---
 
 ## 7. Key Documentation References
 
-- **[Development Guide](./DEVELOPMENT_GUIDE.md)**: Detailed coding standards, DDD layer structure, and setup instructions.
+- **[Development Guide](./development-backend.md)**: Detailed coding standards, DDD layer structure, and setup instructions.
 - **[Global Auth Architecture](./docs/auth-architecture.md)**: Deep dive into the identity strategy and JWT rotation.
 - **[Infrastructure Configuration](./docker-compose.yml)**: Root Docker Compose for local development (Postgres, Mongo, Kafka, Redis).
 - **[Initial Setup Plan](./INITIAL_SETUP_PLAN.md)**: Historical context on the project's evolution.
