@@ -242,6 +242,7 @@
       },
       "buttons": {
         "update": "Update",
+        "edit": "Edit Profile",
         "upload_avatar": "Change Avatar",
         "change_email": "Change Email",
         "change_password": "Change Password"

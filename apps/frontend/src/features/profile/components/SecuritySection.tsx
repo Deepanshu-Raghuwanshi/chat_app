@@ -9,7 +9,7 @@ import Link from 'next/link';
 const SecuritySection = ({ userId }: { userId?: string }) => {
   const t = useTranslations('features.profile');
   const { user } = useAuthStore();
-  const { changeEmail, isChangingEmail, isOwnProfile } = useProfile(userId);
+  const { changeEmail, isChangingEmail } = useProfile(userId);
   const [newEmail, setNewEmail] = useState('');
   const [isChanging, setIsChanging] = useState(false);
 

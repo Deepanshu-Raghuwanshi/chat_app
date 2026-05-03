@@ -18,9 +18,9 @@ interface ProfileFeatureProps {
 export const ProfileFeature = ({ userId, backUrl = '/chat' }: ProfileFeatureProps) => {
   const t = useTranslations('features.profile');
   const tc = useTranslations('common.buttons');
-  const { isLoading, isOwnProfile } = useProfile(userId);
+  const { isPending, isOwnProfile } = useProfile(userId);
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center pt-16">
         <Spinner className="w-12 h-12 text-primary" />

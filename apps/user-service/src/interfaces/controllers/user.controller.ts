@@ -47,7 +47,7 @@ export class UserController {
   @Get(':id')
   @ApiOperation({ summary: 'Get user profile by ID' })
   async getProfileById(@Req() req: RequestWithUser) {
-    const id = req.params.id as string;
+    const id = String(req.params.id);
     return this.getProfileUseCase.execute(id);
   }
 

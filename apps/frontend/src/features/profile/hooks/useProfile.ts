@@ -27,7 +27,7 @@ export const useProfile = (userId?: string) => {
       queryClient.setQueryData(['profile', currentUser?.id], updatedUser);
       toast.success('Profile updated successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to update profile');
     },
   });
@@ -45,7 +45,7 @@ export const useProfile = (userId?: string) => {
       }
       toast.success('Avatar updated successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to upload avatar');
     },
   });
@@ -75,8 +75,10 @@ export const useProfile = (userId?: string) => {
   return {
     profile: profileQuery.data,
     isLoading: profileQuery.isLoading,
+    isPending: profileQuery.isPending,
     isError: profileQuery.isError,
     updateProfile: updateProfileMutation.mutate,
+    updateProfileAsync: updateProfileMutation.mutateAsync,
     isUpdating: updateProfileMutation.isPending,
     uploadAvatar: uploadAvatarMutation.mutate,
     isUploading: uploadAvatarMutation.isPending,

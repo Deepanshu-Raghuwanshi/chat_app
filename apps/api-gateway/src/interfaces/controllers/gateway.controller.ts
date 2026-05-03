@@ -1,7 +1,7 @@
 import { Controller, All, Req, Res, HttpStatus } from "@nestjs/common";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 @Controller()
 export class GatewayController {
@@ -57,7 +57,7 @@ export class GatewayController {
     const isMultipart = req.headers['content-type']?.includes('multipart/form-data');
     
     try {
-      const axiosConfig: any = {
+      const axiosConfig: AxiosRequestConfig = {
         method: req.method,
         url: targetUrl,
         headers: {
@@ -80,7 +80,7 @@ export class GatewayController {
       }
 
       // Remove content-length if we are passing the body/stream to let axios recalculate it
-      if (axiosConfig.data) {
+      if (axiosConfig.data && axiosConfig.headers) {
         delete axiosConfig.headers['content-length'];
       }
 

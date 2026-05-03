@@ -3,11 +3,16 @@ import { Camera } from 'lucide-react';
 import { Avatar } from '../../../shared/components/ui/Avatar';
 import { Spinner } from '../../../shared/components/ui/spinner';
 import { useProfile } from '../hooks/useProfile';
+import { useAuthStore } from '../../auth/store/useAuthStore';
 import { cn } from '../../../shared/utils/cn';
 
 const ProfileHeader = ({ userId }: { userId?: string }) => {
   const { profile, uploadAvatar, isUploading, isOwnProfile } = useProfile(userId);
+  const { user: currentUser } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Use auth store data as fallback for own profile so initials show immediately
+  // before the profile query resolves (avoids showing '?' on first render)
+  const fallback = isOwnProfile ? currentUser : null;
 
   const handleAvatarClick = () => {
     if (isOwnProfile) {
@@ -32,9 +37,9 @@ const ProfileHeader = ({ userId }: { userId?: string }) => {
         onClick={handleAvatarClick}
       >
         <Avatar
-          avatarUrl={profile?.avatarUrl}
-          fullName={profile?.fullName}
-          username={profile?.username}
+          avatarUrl={profile?.avatarUrl ?? fallback?.avatarUrl}
+          fullName={profile?.fullName ?? fallback?.fullName}
+          username={profile?.username ?? fallback?.username}
           size="xl"
           className={cn(
             "ring-4 ring-white shadow-lg transition-transform",
