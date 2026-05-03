@@ -291,6 +291,57 @@ export class AuthUseCases {
     return this.login(refreshToken.user);
   }
 
+  async changeEmail(userId: string, newEmail: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Email already in use');
+    }
+
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour
+
+    await this.prisma.emailChange.upsert({
+      where: { userId },
+      update: { newEmail, token, expiresAt },
+      create: { userId, newEmail, token, expiresAt },
+    });
+
+    await this.emailService.sendEmailChangeVerification(newEmail, token);
+
+    return { message: 'Verification email sent to new address' };
+  }
+
+  async verifyEmailChange(token: string, newEmail: string) {
+    const changeRequest = await this.prisma.emailChange.findUnique({
+      where: { token },
+    });
+
+    if (!changeRequest || changeRequest.expiresAt < new Date() || changeRequest.newEmail !== newEmail) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    const user = await this.prisma.user.update({
+      where: { id: changeRequest.userId },
+      data: { email: newEmail },
+    });
+
+    await this.prisma.emailChange.delete({
+      where: { id: changeRequest.id },
+    });
+
+    // Notify other services about email change
+    await this.userEventsProducer.emitUserUpdated({
+      id: user.id,
+      email: user.email,
+    });
+
+    return { message: 'Email updated successfully' };
+  }
+
   async logout(token: string) {
     await this.prisma.refreshToken.deleteMany({
       where: { token },

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { UserProfile } from '../store/useAuthStore';
+import { UserProfile } from '@shared-types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 

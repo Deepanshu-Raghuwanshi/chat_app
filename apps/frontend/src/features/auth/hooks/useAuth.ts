@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService } from '../services/auth.service';
-import { useAuthStore, UserProfile } from '../store/useAuthStore';
+import { profileService } from '../../profile/services/profile.service';
+import { useAuthStore } from '../store/useAuthStore';
+import { UserProfile } from '@shared-types';
 import { useRouter } from 'next/navigation';
 
 export const useLogin = () => {
@@ -12,8 +14,13 @@ export const useLogin = () => {
     mutationFn: (credentials: Record<string, string>) => authService.login(credentials),
     onSuccess: (userData: UserProfile) => {
       setUser(userData);
-      queryClient.setQueryData(['profile'], userData);
+      // Navigate immediately, then pre-fetch the full profile in the background
+      // so the auth store has username/fullName before the user visits /profile
       router.push('/friends');
+      profileService.getProfile().then((fullProfile) => {
+        setUser(fullProfile);
+        queryClient.setQueryData(['profile', fullProfile.id], fullProfile);
+      }).catch(() => { /* profile page will re-fetch on demand */ });
     },
   });
 };
@@ -48,8 +55,11 @@ export const useRefresh = () => {
     mutationFn: () => authService.refresh(),
     onSuccess: (userData: UserProfile) => {
       setUser(userData);
-      queryClient.setQueryData(['profile'], userData);
       router.push('/friends');
+      profileService.getProfile().then((fullProfile) => {
+        setUser(fullProfile);
+        queryClient.setQueryData(['profile', fullProfile.id], fullProfile);
+      }).catch(() => { /* profile page will re-fetch on demand */ });
     },
     onError: () => {
       router.push('/login');

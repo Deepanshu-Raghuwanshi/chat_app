@@ -68,5 +68,6 @@ All services MUST follow this DDD pattern within `src/`:
 - **Security**: Never log sensitive data (passwords, tokens). Use `class-transformer` to exclude sensitive fields from responses.
 
 ## 5. Deployment & Environment
-- **Env**: Use Zod-based validation for all environment variables (`env.validation.ts`).
+- **Env**: Environment variables are managed in a single root `.env` file for all services.
+  - Use Zod-based validation for all environment variables (`env.validation.ts`) within each service to ensure correctness.
 - **Compose**: Local development is powered by the root `docker-compose.yml`.

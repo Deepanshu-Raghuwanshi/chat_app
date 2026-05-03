@@ -4,6 +4,7 @@
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete",
+      "close": "Close",
       "submit": "Submit",
       "sending": "Sending...",
       "loading": "Loading..."
@@ -200,6 +201,7 @@
       "app_name": "Chat App",
       "home": "Home",
       "friends": "Friends",
+      "profile": "Profile",
       "buttons": {
         "logout": "Logout"
       }
@@ -217,6 +219,40 @@
       "buttons": {
         "login": "Login",
         "signup": "Sign Up"
+      }
+    },
+    "profile": {
+      "title": "Profile Settings",
+      "subtitle": "Manage your profile information and account security",
+      "other_title": "User Profile",
+      "other_subtitle": "Viewing user information",
+      "sections": {
+        "basic_info": "Basic Information",
+        "contact": "Contact Information",
+        "security": "Security",
+        "status": "Current Status"
+      },
+      "fields": {
+        "fullName": "Full Name",
+        "bio": "Bio",
+        "phoneNumber": "Phone Number",
+        "countryCode": "Country Code",
+        "status": "Status Message",
+        "email": "Email Address"
+      },
+      "buttons": {
+        "update": "Update",
+        "edit": "Edit Profile",
+        "upload_avatar": "Change Avatar",
+        "change_email": "Change Email",
+        "change_password": "Change Password"
+      },
+      "placeholders": {
+        "fullName": "Your full name",
+        "bio": "Tell us something about yourself",
+        "status": "What's on your mind?",
+        "phoneNumber": "e.g. 1234567890",
+        "countryCode": "+1"
       }
     }
   }

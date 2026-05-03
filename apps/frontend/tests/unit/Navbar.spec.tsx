@@ -49,10 +49,10 @@ describe('Navbar Component', () => {
     const logoutBtn = screen.getByTitle(/logout/i);
     expect(logoutBtn).toBeTruthy();
 
-    // Check for Avatar circle with first letter of email
-    const avatar = screen.getByText(/t/i); // First letter of Test User is T
+    // Check for Avatar with initials of fullName
+    const avatar = screen.getByText(/tu/i); // First letters of "Test User" is TU
     expect(avatar).toBeTruthy();
-    expect(avatar.className).toContain('rounded-full');
+    expect(avatar.parentElement?.className).toContain('rounded-full');
 
     // Ensure no "Online" text is present
     expect(screen.queryByText(/online/i)).toBeNull();

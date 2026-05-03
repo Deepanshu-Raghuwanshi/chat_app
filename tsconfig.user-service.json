@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": ".",
-    "types": ["node", "mocha"]
+    "types": ["node", "mocha", "multer", "express"]
   },
   "include": [
     "apps/user-service/src/**/*.ts",

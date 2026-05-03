@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, UserX, Check, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 interface FriendCardProps {
   userId: string;
@@ -29,9 +30,9 @@ export const FriendCard: React.FC<FriendCardProps> = ({
 
   return (
     <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-3">
+      <Link href={`/profile/${userId}`} className="flex items-center gap-3 group cursor-pointer">
         <div className="relative">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
             {avatarUrl ? (
               <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
             ) : (
@@ -48,9 +49,9 @@ export const FriendCard: React.FC<FriendCardProps> = ({
           )}
         </div>
         <div>
-          <p className="font-semibold text-gray-900">{fullName || username || userId}</p>
+          <p className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{fullName || username || userId}</p>
         </div>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-2">
         {isIncomingRequest ? (

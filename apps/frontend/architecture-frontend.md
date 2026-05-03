@@ -33,6 +33,6 @@ For detailed testing guidelines, see [./docs/TESTING_GUIDELINES.md](./docs/TESTI
 
 ## Documentation Links
 - [Authentication Implementation](./docs/auth-implementation.md)
-- [Development Guidelines](./docs/DEVELOPMENT_GUIDELINES.md)
+- [Development Guidelines](./docs/development-frontend.md)
 - [Testing Guidelines](./docs/TESTING_GUIDELINES.md)
-- [Root Development Guide](../../DEVELOPMENT_GUIDE.md)
+- [Root Development Guide](../../development-backend.md)

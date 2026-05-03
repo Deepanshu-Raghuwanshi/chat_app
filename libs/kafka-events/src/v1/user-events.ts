@@ -21,6 +21,7 @@ export interface UserCreatedEventV1 {
 
 export interface UserUpdatedEventV1 {
   id: string;
+  email?: string;
   username?: string;
   fullName?: string;
   avatarUrl?: string;

@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { RegisterDto, LoginDto } from '@shared-types';
+import { User } from '@prisma/client-auth';
 import { AuthUseCases, GoogleProfile } from '../../application/use-cases/auth.use-cases';
 
 @Controller('auth')
@@ -39,6 +40,18 @@ async register(@Body() dto: RegisterDto) {
   @Post('reset-password')
   async resetPassword(@Body() body: { token: string; password: string }) {
     return this.authUseCases.resetPassword(body.token, body.password);
+  }
+
+  @Post('change-email')
+  @UseGuards(AuthGuard('jwt'))
+  async changeEmail(@Req() req: Request, @Body() body: { newEmail: string }) {
+    const user = req.user as User;
+    return this.authUseCases.changeEmail(user.id, body.newEmail);
+  }
+
+  @Post('verify-email-change')
+  async verifyEmailChange(@Body() body: { token: string; newEmail: string }) {
+    return this.authUseCases.verifyEmailChange(body.token, body.newEmail);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
