@@ -60,4 +60,19 @@ describe('UpdateAvatarUseCase', () => {
       expect((error as Error).message).to.equal('User profile not found');
     }
   });
+
+  it('should accept a webp file and return avatarUrl — regression for webp rejection', async () => {
+    const userId = 'user1';
+    const webpFile = { buffer: Buffer.from('webp-data'), mimetype: 'image/webp', originalname: 'photo.webp' } as unknown as Express.Multer.File;
+    const avatarUrl = 'http://cloudinary.com/photo.webp';
+
+    userProfileRepository.findById.resolves({ id: userId, username: 'test1' } as unknown as UserProfile);
+    cloudinaryService.uploadImage.resolves({ secure_url: avatarUrl } as unknown as UploadApiResponse);
+    userProfileRepository.update.resolves({ id: userId, username: 'test1', avatarUrl } as unknown as UserProfile);
+
+    const result = await updateAvatarUseCase.execute(userId, webpFile);
+
+    expect(result).to.deep.equal({ avatarUrl });
+    expect(cloudinaryService.uploadImage.calledWith(webpFile)).to.equal(true);
+  });
 });

@@ -60,7 +60,7 @@ const ProfileHeader = ({ userId }: { userId?: string }) => {
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept="image/*"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
             className="hidden"
           />
         )}

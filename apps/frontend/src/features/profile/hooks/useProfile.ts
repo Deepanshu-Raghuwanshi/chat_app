@@ -45,8 +45,8 @@ export const useProfile = (userId?: string) => {
       }
       toast.success('Avatar updated successfully');
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to upload avatar');
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      toast.error(error.response?.data?.message || 'Failed to upload avatar');
     },
   });
 
