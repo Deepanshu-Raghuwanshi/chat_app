@@ -548,5 +548,7 @@ components:
 
 # Kafka Events
 # Produces: message.sent.v1
+# Produces: message.edited.v1
+# Produces: message.deleted.v1
 # Produces: message.read.v1
 # Consumes: friend.request.accepted.v1

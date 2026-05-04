@@ -1,7 +1,7 @@
 const { execSync } = require('child_process');
 
 console.log('Generating OpenAPI types...');
-const services = ['auth', 'user', 'chat', 'message'];
+const services = ['auth', 'user', 'chat'];
 
 services.forEach(service => {
   console.log(`Generating types for ${service}...`);

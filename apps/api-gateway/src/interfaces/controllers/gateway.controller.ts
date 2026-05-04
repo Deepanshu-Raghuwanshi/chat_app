@@ -14,7 +14,6 @@ export class GatewayController {
       friends: this.configService.get<string>("USER_SERVICE_URL")!,
       profile: this.configService.get<string>("USER_SERVICE_URL")!,
       chat: this.configService.get<string>("CHAT_SERVICE_URL")!,
-      messages: this.configService.get<string>("MESSAGE_SERVICE_URL")!,
       notifications: this.configService.get<string>(
         "NOTIFICATION_SERVICE_URL",
       )!,
