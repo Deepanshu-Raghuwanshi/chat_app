@@ -10,7 +10,7 @@ Read the following files before doing anything else:
 - apps/user-service/src/config/env.validation.ts (env validation pattern)
 - apps/auth-service/src/main.ts (bootstrap pattern)
 
-You are implementing the spec for: **$ARGUMENTS**
+You are implementing the backend spec for: **$ARGUMENTS**
 
 ---
 
@@ -27,6 +27,23 @@ First, identify:
 ---
 
 ## Implementation Order (follow this exactly)
+
+### Step 0 — Check for Existing Reusables (ALWAYS do this before creating anything)
+
+Before writing a single new file, scan the target service for existing code that can be reused:
+
+1. **Entities** — search `src/domain/entities/` for any entity that already models this domain object (fully or partially). If it exists, extend or reuse it — do NOT create a duplicate.
+2. **Value Objects** — search `src/domain/value-objects/` for existing validated types that cover fields in this feature.
+3. **Repository Ports** — search `src/application/ports/` for an existing repository interface that already declares the methods you need. Add missing methods to it rather than creating a new interface.
+4. **DTOs** — search `src/application/dto/` for DTOs that share the same shape. Extend or reuse before creating new ones.
+5. **Use Cases** — search `src/application/use-cases/` to confirm no equivalent operation already exists.
+6. **Repository Implementations** — search `src/infrastructure/persistence/` for an existing Prisma/Mongoose repository for this model.
+7. **Modules** — check if the relevant NestJS module (`src/<name>.module.ts` or `src/app.module.ts`) already imports the required infrastructure. Register into the existing module rather than creating a new one if a suitable one exists.
+8. **Shared Types / Enums** — check `libs/shared-types/src/index.ts` for types or enums that already model this data.
+
+**Rule:** Only create a new file if nothing reusable exists. When in doubt, grep for the entity name, DTO name, or topic name across the service before creating.
+
+---
 
 ### Step 1 — Domain Layer (`src/domain/`)
 
@@ -232,6 +249,7 @@ pnpm prisma:generate
 
 ## Quality Checklist Before Finishing
 
+- [ ] Checked for existing entities, ports, DTOs, use cases, and repositories before creating new ones — no duplicates introduced
 - [ ] Domain layer has no infra imports
 - [ ] Use case throws named NestJS exceptions (not generic `Error`)
 - [ ] Kafka topic strings come from `@kafka-events` enum (never hardcoded)
