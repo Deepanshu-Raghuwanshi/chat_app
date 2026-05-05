@@ -1,6 +1,6 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { MessageStatus, MessageType } from '@kafka-events';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+import { MessageStatus, MessageType } from "@kafka-events";
 
 @Schema({ timestamps: true })
 export class Message extends Document {

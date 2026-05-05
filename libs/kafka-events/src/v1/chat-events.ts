@@ -1,18 +1,18 @@
 export enum ChatTopics {
-  MESSAGE_SENT    = 'message.sent.v1',
-  MESSAGE_EDITED  = 'message.edited.v1',
-  MESSAGE_DELETED = 'message.deleted.v1',
-  MESSAGE_READ    = 'message.read.v1',
+  MESSAGE_SENT = "message.sent.v1",
+  MESSAGE_EDITED = "message.edited.v1",
+  MESSAGE_DELETED = "message.deleted.v1",
+  MESSAGE_READ = "message.read.v1",
 }
 
 export enum MessageType {
-  TEXT = 'TEXT',
+  TEXT = "TEXT",
 }
 
 export enum MessageStatus {
-  SENT = 'SENT',
-  DELIVERED = 'DELIVERED',
-  READ = 'READ',
+  SENT = "SENT",
+  DELIVERED = "DELIVERED",
+  READ = "READ",
 }
 
 export interface MessageSentEventV1 {

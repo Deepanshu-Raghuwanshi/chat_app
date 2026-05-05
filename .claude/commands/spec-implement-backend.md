@@ -1,4 +1,5 @@
 Read the following files before doing anything else:
+
 - docs/architecture.md
 - docs/auth-architecture.md
 - libs/openapi-specs/src/v1/ (list all files and read the relevant one for this feature)
@@ -19,6 +20,7 @@ You are implementing the backend spec for: **$ARGUMENTS**
 Implement the full backend feature described by the OpenAPI spec for **$ARGUMENTS** following strict DDD layering and the project's established conventions.
 
 First, identify:
+
 1. Which service owns this feature?
 2. Which spec file describes it? (`libs/openapi-specs/src/v1/`)
 3. Does the feature require a new Prisma model, Mongoose model, or uses existing ones?
@@ -48,6 +50,7 @@ Before writing a single new file, scan the target service for existing code that
 ### Step 1 — Domain Layer (`src/domain/`)
 
 **Entities** — if a new domain object is introduced:
+
 ```typescript
 // src/domain/entities/<name>.entity.ts
 export interface <Name>Props {
@@ -78,6 +81,7 @@ export class <Name> {
 ### Step 2 — Application Layer (`src/application/`)
 
 **Port (interface)** — define the repository contract:
+
 ```typescript
 // src/application/ports/<name>.repository.ts
 export interface <Name>Repository {
@@ -89,6 +93,7 @@ export interface <Name>Repository {
 ```
 
 **DTO** — for data entering the use case:
+
 ```typescript
 // src/application/dto/<name>.dto.ts
 export interface <Action><Name>Dto {
@@ -98,6 +103,7 @@ export interface <Action><Name>Dto {
 ```
 
 **Use Case** — one file per business operation:
+
 ```typescript
 // src/application/use-cases/<action>-<name>.use-case.ts
 @Injectable()
@@ -118,6 +124,7 @@ export class <Action><Name>UseCase {
 ```
 
 Rules:
+
 - No infrastructure imports in use cases
 - Throw `BadRequestException`, `NotFoundException`, `ConflictException`, `ForbiddenException` from `@nestjs/common`
 - Emit Kafka events using topic constants from `@kafka-events`, never hardcode topic strings
@@ -127,6 +134,7 @@ Rules:
 ### Step 3 — Infrastructure Layer (`src/infrastructure/`)
 
 **Persistence** — implement the port:
+
 ```typescript
 // src/infrastructure/persistence/prisma-<name>.repository.ts
 @Injectable()
@@ -141,6 +149,7 @@ export class Prisma<Name>Repository implements <Name>Repository {
 ```
 
 For MongoDB (chat/message services):
+
 ```typescript
 // src/infrastructure/persistence/mongoose-<name>.repository.ts
 @Injectable()
@@ -151,6 +160,7 @@ export class Mongoose<Name>Repository implements <Name>Repository {
 ```
 
 **Kafka Producer** (if the feature emits events):
+
 ```typescript
 await this.kafkaProducer.emit(TopicEnum.TOPIC_NAME, {
   // payload matching the interface from @kafka-events
@@ -158,6 +168,7 @@ await this.kafkaProducer.emit(TopicEnum.TOPIC_NAME, {
 ```
 
 **Kafka Consumer** (if the feature consumes events):
+
 ```typescript
 @Injectable()
 export class <Name>Consumer implements OnModuleInit {
@@ -200,6 +211,7 @@ export class <Name>Controller {
 ```
 
 Rules:
+
 - Controllers are thin — no business logic
 - Always type `req` as `RequestWithUser` (extends `Request` with `user: UserProfile`)
 - Add Swagger decorators (`@ApiTags`, `@ApiOperation`, `@ApiBody`, `@ApiResponse`)
@@ -210,6 +222,7 @@ Rules:
 ### Step 5 — Module Registration
 
 Register everything in the service's NestJS module:
+
 ```typescript
 @Module({
   imports: [/* Prisma/Mongoose modules, KafkaModule */],
@@ -230,6 +243,7 @@ export class <Name>Module {}
 ### Step 6 — API Gateway Routing
 
 If this is a new route prefix, add it to the gateway's service map:
+
 - File: `apps/api-gateway/src/interfaces/controllers/gateway.controller.ts`
 - Add the route pattern → service URL mapping
 
@@ -238,6 +252,7 @@ If this is a new route prefix, add it to the gateway's service map:
 ### Step 7 — Database (if new model needed)
 
 **Prisma** — add to `apps/<service>/prisma/schema.prisma` then run:
+
 ```bash
 pnpm prisma:migrate:<service>
 pnpm prisma:generate

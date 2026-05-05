@@ -26,18 +26,18 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Paginated list of conversations
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConversationListResponse'
-        '401':
+                $ref: "#/components/schemas/ConversationListResponse"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
     post:
       summary: Create or retrieve a conversation
@@ -49,44 +49,44 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateConversationDto'
+              $ref: "#/components/schemas/CreateConversationDto"
       responses:
-        '200':
+        "200":
           description: Existing conversation returned
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation'
-        '201':
+                $ref: "#/components/schemas/Conversation"
+        "201":
           description: New conversation created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation'
-        '400':
+                $ref: "#/components/schemas/Conversation"
+        "400":
           description: Invalid request (e.g. targetUserId is the requester's own ID)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Users are not friends
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Target user not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/chat/conversations/{conversationId}:
     get:
@@ -94,32 +94,32 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/conversationId'
+        - $ref: "#/components/parameters/conversationId"
       responses:
-        '200':
+        "200":
           description: Conversation details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation'
-        '401':
+                $ref: "#/components/schemas/Conversation"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Authenticated user is not a participant
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Conversation not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/chat/conversations/{conversationId}/messages:
     get:
@@ -128,7 +128,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/conversationId'
+        - $ref: "#/components/parameters/conversationId"
         - name: limit
           in: query
           schema:
@@ -143,74 +143,74 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Paginated list of messages
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageListResponse'
-        '401':
+                $ref: "#/components/schemas/MessageListResponse"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Authenticated user is not a participant
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Conversation not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
     post:
       summary: Send a message
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/conversationId'
+        - $ref: "#/components/parameters/conversationId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendMessageDto'
+              $ref: "#/components/schemas/SendMessageDto"
       responses:
-        '201':
+        "201":
           description: Message sent
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
-        '400':
+                $ref: "#/components/schemas/Message"
+        "400":
           description: Invalid request (e.g. empty content)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Authenticated user is not a participant
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Conversation not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/chat/conversations/{conversationId}/messages/{messageId}:
     patch:
@@ -219,45 +219,45 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/conversationId'
-        - $ref: '#/components/parameters/messageId'
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EditMessageDto'
+              $ref: "#/components/schemas/EditMessageDto"
       responses:
-        '200':
+        "200":
           description: Updated message
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
-        '400':
+                $ref: "#/components/schemas/Message"
+        "400":
           description: Invalid request (e.g. empty content)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Authenticated user did not send this message
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Conversation or message not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
     delete:
       summary: Delete a message
@@ -265,33 +265,33 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/conversationId'
-        - $ref: '#/components/parameters/messageId'
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
       responses:
-        '200':
+        "200":
           description: Message deleted (tombstoned)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
-        '401':
+                $ref: "#/components/schemas/Message"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Authenticated user did not send this message
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Conversation or message not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/chat/conversations/{conversationId}/read:
     post:
@@ -300,9 +300,9 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/conversationId'
+        - $ref: "#/components/parameters/conversationId"
       responses:
-        '200':
+        "200":
           description: Read cursor updated
           content:
             application/json:
@@ -314,30 +314,30 @@ paths:
                   lastReadAt:
                     type: string
                     format: date-time
-        '400':
+        "400":
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Authenticated user is not a participant
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Conversation not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   securitySchemes:
@@ -422,11 +422,11 @@ components:
         participants:
           type: array
           items:
-            $ref: '#/components/schemas/ConversationParticipant'
+            $ref: "#/components/schemas/ConversationParticipant"
           minItems: 2
           maxItems: 2
         lastMessage:
-          $ref: '#/components/schemas/Message'
+          $ref: "#/components/schemas/Message"
         unreadCount:
           type: integer
           minimum: 0
@@ -446,7 +446,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Conversation'
+            $ref: "#/components/schemas/Conversation"
         hasMore:
           type: boolean
         nextCursor:
@@ -504,7 +504,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Message'
+            $ref: "#/components/schemas/Message"
         hasMore:
           type: boolean
         nextCursor:

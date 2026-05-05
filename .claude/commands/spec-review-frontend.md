@@ -1,4 +1,5 @@
 Read the following files before doing anything else:
+
 - apps/frontend/src/features/auth/components/LoginForm.tsx (component pattern reference)
 - apps/frontend/src/features/auth/hooks/useAuth.ts (hook pattern reference)
 - apps/frontend/src/features/auth/services/auth.service.ts (service pattern reference)
@@ -11,6 +12,7 @@ Read the following files before doing anything else:
 - libs/openapi-specs/src/v1/ (list all files and read the relevant one for this feature)
 
 Then gather all local changes:
+
 - Run `git status` to see all modified, added, and staged files
 - Run `git diff HEAD --name-only` to list every changed file (filter to `apps/frontend/`)
 - Read each changed frontend file in full
@@ -55,6 +57,7 @@ Flag anything partially implemented or missing entirely.
 Compare each new file against the pattern reference files loaded above. Flag deviations:
 
 **Service files** — must follow `auth.service.ts` pattern:
+
 - Plain object with async methods (not a class)
 - All calls use `withCredentials: true`
 - Base URL from `process.env.NEXT_PUBLIC_API_URL`
@@ -62,6 +65,7 @@ Compare each new file against the pattern reference files loaded above. Flag dev
 - One service file per feature in `src/features/<feature>/services/`
 
 **Hook files** — must follow `useAuth.ts` pattern:
+
 - `useQuery` for reads, `useMutation` for writes
 - Mutations invalidate relevant query keys on `onSuccess`
 - `showToast.success/error` used for user feedback — never Sonner directly
@@ -69,6 +73,7 @@ Compare each new file against the pattern reference files loaded above. Flag dev
 - One hook file per feature in `src/features/<feature>/hooks/`
 
 **Component files** — must follow `FriendList.tsx` / `LoginForm.tsx` pattern:
+
 - `'use client'` directive on components that use hooks or state
 - `useTranslations` for every user-visible string
 - `cn()` for all `className` values — never string concatenation
@@ -78,6 +83,7 @@ Compare each new file against the pattern reference files loaded above. Flag dev
 - Shared/reusable primitives in `src/shared/components/ui/`
 
 **Page files** — thin wrappers in `app/<route>/page.tsx`:
+
 - Server components unless browser APIs are needed
 - Import and render one feature component — nothing else
 
@@ -96,6 +102,7 @@ Compare each new file against the pattern reference files loaded above. Flag dev
 ### 4. Test Coverage — Are all tests written?
 
 For every new component and hook added, verify:
+
 - [ ] Test file exists at `apps/frontend/tests/` or alongside the component
 - [ ] Tests follow the same structure and tooling as existing frontend tests
 - [ ] Component tests cover: render, user interactions, loading state, error state
@@ -183,9 +190,11 @@ Write the review to `reviews/frontend-<branch>-<YYYY-MM-DD>.md` using exactly th
 ## Summary
 
 ### What Is Implemented
+
 - Bullet list of everything fully complete and working as intended
 
 ### What Is Pending / Incomplete
+
 - Bullet list of missing pieces, partial implementations, or leftover TODOs
 - Write "Nothing pending" if everything is complete
 
@@ -193,19 +202,19 @@ Write the review to `reviews/frontend-<branch>-<YYYY-MM-DD>.md` using exactly th
 
 ## Automated Checks
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| `pnpm nx typecheck frontend` | ✅ Pass / ❌ Fail | error summary if failed |
-| `pnpm nx lint frontend` | ✅ Pass / ❌ Fail | error summary if failed |
+| Check                           | Result            | Notes                   |
+| ------------------------------- | ----------------- | ----------------------- |
+| `pnpm nx typecheck frontend`    | ✅ Pass / ❌ Fail | error summary if failed |
+| `pnpm nx lint frontend`         | ✅ Pass / ❌ Fail | error summary if failed |
 | `pnpm nx format:check frontend` | ✅ Pass / ❌ Fail | error summary if failed |
-| `pnpm nx test frontend` | ✅ Pass / ❌ Fail | error summary if failed |
+| `pnpm nx test frontend`         | ✅ Pass / ❌ Fail | error summary if failed |
 
 ---
 
 ## Files Changed
 
-| File | Type | Description |
-|------|------|-------------|
+| File               | Type                       | Description                          |
+| ------------------ | -------------------------- | ------------------------------------ |
 | `path/to/file.tsx` | Added / Modified / Deleted | One-line description of what changed |
 
 ---

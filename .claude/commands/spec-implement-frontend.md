@@ -1,4 +1,5 @@
 Read the following files before doing anything else:
+
 - apps/frontend/src/features/auth/components/LoginForm.tsx (component pattern reference)
 - apps/frontend/src/features/auth/hooks/useAuth.ts (hook pattern reference)
 - apps/frontend/src/features/auth/services/auth.service.ts (service pattern reference)
@@ -18,6 +19,7 @@ You are implementing the frontend spec for: **$ARGUMENTS**
 Implement the full frontend feature for **$ARGUMENTS** following the project's Next.js App Router + feature-based architecture and established conventions.
 
 First, identify:
+
 1. Which feature folder owns this? (`src/features/auth`, `src/features/chat`, `src/features/friends`, `src/features/profile`, or new?)
 2. Which API endpoints does it call? (check the OpenAPI spec in `libs/openapi-specs/src/v1/`)
 3. Does it need client state (Zustand) or only server state (TanStack Query)?
@@ -64,6 +66,7 @@ export const <feature>Service = {
 ```
 
 Rules:
+
 - Always `withCredentials: true` — auth uses HttpOnly cookies
 - Type every response — no `any`
 - All calls for a feature live in one service file
@@ -107,6 +110,7 @@ export const use<Action><Feature> = () => {
 ```
 
 Rules:
+
 - Always invalidate relevant query keys on mutation success
 - Use `showToast` from `src/shared/utils/toast` — never call Sonner directly
 - No business logic in hooks — only data fetching and cache management
@@ -142,6 +146,7 @@ export const <Name> = ({ ... }: <Name>Props) => {
 ```
 
 Rules:
+
 - `'use client'` on every component that uses hooks, state, or browser APIs
 - Use `useTranslations` for ALL user-visible strings — no hardcoded English text
 - Use `cn()` for all `className` values — never string concatenation
@@ -166,6 +171,7 @@ export default function <Route>Page() {
 ```
 
 Rules:
+
 - Pages live in `app/` (Next.js App Router convention)
 - Keep pages as server components unless they directly need hooks
 - All logic lives in `src/features/` — not in `app/`
@@ -190,6 +196,7 @@ Add translation keys under the correct feature namespace:
 ```
 
 Rules:
+
 - Never hardcode user-visible strings in components
 - Nest under `features.<feature>` namespace
 - Add error keys alongside action keys

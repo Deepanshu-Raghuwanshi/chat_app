@@ -1,4 +1,5 @@
 Read the following files before doing anything else:
+
 - docs/architecture.md
 - docs/auth-architecture.md
 - libs/openapi-specs/src/v1/auth.yaml
@@ -60,17 +61,22 @@ The document must follow this exact structure:
 ---
 
 ### 1. Summary
+
 3–5 sentences: what the feature does, who uses it, and why it exists.
 
 ### 2. Current State
+
 What already exists that is relevant to this feature:
+
 - Which services, files, and modules are already in place
 - Which DB models/tables already exist
 - Which Kafka topics or events are already defined
 - Any stub or partial implementations that will be replaced
 
 ### 3. Desired State
+
 What the system looks like once the feature is fully implemented:
+
 - User-facing behaviour (what the user can do)
 - Data flow (client → gateway → service → DB → Kafka)
 - Business rules and constraints (e.g. "only friends can message", "only sender can delete")
@@ -82,6 +88,7 @@ What the system looks like once the feature is fully implemented:
 **Goal**: Define all contracts and database changes before any implementation begins. Nothing is implemented in this phase — only designed and declared.
 
 #### 1.1 OpenAPI Changes
+
 List every endpoint being added or modified, with method, path, and purpose:
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
@@ -90,6 +97,7 @@ List every endpoint being added or modified, with method, path, and purpose:
 #### 1.2 Database Schema Changes
 
 **New Prisma models** (for PostgreSQL services — auth, user):
+
 ```prisma
 model <Name> {
   id        String   @id @default(uuid())
@@ -102,6 +110,7 @@ model <Name> {
 ```
 
 **New Mongoose schemas** (for MongoDB services — chat, message):
+
 ```typescript
 export const <Name>Schema = new Schema({
   // ...all fields
@@ -109,17 +118,20 @@ export const <Name>Schema = new Schema({
 ```
 
 **Changes to existing models** (add fields, relations, indexes):
+
 - `ExistingModel`: add field `x` of type `y`, add index on `[a, b]`
 
 #### 1.3 Kafka Event Contracts
+
 New topics to add to `libs/kafka-events/src/v1/`:
 
-| Direction | Topic | Payload Interface |
-|-----------|-------|-------------------|
-| Produces | `<domain>.<action>.v1` | `{ id, field1, field2, occurredAt }` |
-| Consumes | `<other>.<action>.v1` | existing interface |
+| Direction | Topic                  | Payload Interface                    |
+| --------- | ---------------------- | ------------------------------------ |
+| Produces  | `<domain>.<action>.v1` | `{ id, field1, field2, occurredAt }` |
+| Consumes  | `<other>.<action>.v1`  | existing interface                   |
 
 #### 1.4 Files to Create / Modify in This Phase
+
 ```
 libs/openapi-specs/src/v1/<name>.yaml        — OpenAPI contract (created)
 libs/kafka-events/src/v1/<name>-events.ts    — New event interfaces (created if needed)
@@ -128,6 +140,7 @@ apps/<service>/prisma/schema.prisma          — New models (modified)
 ```
 
 Commands to run after this phase:
+
 ```bash
 pnpm generate:types                          # Regenerate shared-types from OpenAPI
 pnpm prisma:migrate:<service>                # Apply DB migrations
@@ -141,18 +154,22 @@ pnpm prisma:generate                         # Regenerate Prisma client
 **Goal**: Implement all backend use cases, repository, and controller following the DDD layer order.
 
 #### 2.1 Domain Layer (`src/domain/`)
+
 New entities and value objects to create:
 
 **`<Name>` entity** (`src/domain/entities/<name>.entity.ts`):
+
 - Fields: list all with types
 - Business rules enforced here: list any invariants
 
 #### 2.2 Application Layer (`src/application/`)
 
 **Repository port** (`src/application/ports/<name>.repository.ts`):
+
 - Methods needed: `findById`, `create`, `update`, `findByUser`, etc.
 
 **DTOs** (`src/application/dto/`):
+
 - `Create<Name>Dto`: fields required to create
 - `Update<Name>Dto`: fields that can be updated
 
@@ -167,14 +184,17 @@ New entities and value objects to create:
 #### 2.3 Infrastructure Layer (`src/infrastructure/`)
 
 **Repository implementation** (`src/infrastructure/persistence/prisma-<name>.repository.ts` or `mongoose-<name>.repository.ts`):
+
 - Implements the port defined in 2.2
 - List any non-trivial queries (joins, aggregations, compound filters)
 
 **Kafka producer** (if events are emitted):
+
 - Which use cases call the producer
 - Payload mapping
 
 **Kafka consumer** (if events are consumed):
+
 - Topic subscribed to
 - Consumer group: `<service>-group`
 - Which use case it calls
@@ -182,14 +202,17 @@ New entities and value objects to create:
 #### 2.4 Interfaces Layer (`src/interfaces/controllers/`)
 
 **Controller**: `<Name>Controller` at prefix `/<resource>`
+
 - List every route method, its guard, decorator, and which use case it calls
 
 #### 2.5 Module Registration
+
 - New module file: `src/<name>.module.ts`
 - Changes to `AppModule`: import the new module
 - Changes to API Gateway routing: new path prefix → service URL
 
 #### 2.6 Files to Create / Modify in This Phase
+
 ```
 apps/<service>/src/domain/entities/<name>.entity.ts
 apps/<service>/src/application/ports/<name>.repository.ts
@@ -210,6 +233,7 @@ apps/api-gateway/src/interfaces/controllers/gateway.controller.ts       (modifie
 #### 2.7 Test Cases
 
 **Unit — Use Cases** (`apps/<service>/tests/unit/`):
+
 - [ ] `create-<name>`: happy path returns created entity
 - [ ] `create-<name>`: throws `BadRequestException` when — describe condition
 - [ ] `create-<name>`: throws `ConflictException` when — describe condition
@@ -221,6 +245,7 @@ apps/api-gateway/src/interfaces/controllers/gateway.controller.ts       (modifie
 - [ ] Kafka event NOT emitted when operation fails
 
 Commands to verify this phase:
+
 ```bash
 pnpm nx typecheck <service-name>
 pnpm nx lint <service-name>
@@ -234,15 +259,18 @@ pnpm nx test <service-name>
 **Goal**: Wire the frontend to the completed backend endpoints.
 
 #### 3.1 Routes / Pages
+
 New or modified pages in `apps/frontend/app/`:
 
-| Route | Page File | Purpose |
-|-------|-----------|---------|
+| Route           | Page File                   | Purpose     |
+| --------------- | --------------------------- | ----------- |
 | `/feature/[id]` | `app/feature/[id]/page.tsx` | View detail |
-| `/feature/new` | `app/feature/new/page.tsx` | Create form |
+| `/feature/new`  | `app/feature/new/page.tsx`  | Create form |
 
 #### 3.2 API Service (`src/features/<feature>/services/<feature>.service.ts`)
+
 New axios functions to add (all use `withCredentials: true`):
+
 ```typescript
 create<Name>(dto: Create<Name>Dto): Promise<<Name>>
 get<Name>(id: string): Promise<<Name>>
@@ -254,29 +282,33 @@ Types come from `@shared-types` (auto-generated from the OpenAPI spec in Phase 1
 
 #### 3.3 Hooks (`src/features/<feature>/hooks/use<Feature>.ts`)
 
-| Hook | Type | Query Key | Purpose |
-|------|------|-----------|---------|
-| `useGet<Name>` | `useQuery` | `['<name>', id]` | Fetch single |
-| `useList<Name>` | `useQuery` | `['<name>s']` | Fetch list |
-| `useCreate<Name>` | `useMutation` | — | Create, then invalidate `['<name>s']` |
-| `useUpdate<Name>` | `useMutation` | — | Update, then invalidate `['<name>', id]` |
-| `useDelete<Name>` | `useMutation` | — | Delete, then invalidate `['<name>s']` |
+| Hook              | Type          | Query Key        | Purpose                                  |
+| ----------------- | ------------- | ---------------- | ---------------------------------------- |
+| `useGet<Name>`    | `useQuery`    | `['<name>', id]` | Fetch single                             |
+| `useList<Name>`   | `useQuery`    | `['<name>s']`    | Fetch list                               |
+| `useCreate<Name>` | `useMutation` | —                | Create, then invalidate `['<name>s']`    |
+| `useUpdate<Name>` | `useMutation` | —                | Update, then invalidate `['<name>', id]` |
+| `useDelete<Name>` | `useMutation` | —                | Delete, then invalidate `['<name>s']`    |
 
 #### 3.4 Zustand Store Changes (`src/features/<feature>/store/`)
+
 Describe any client state that needs to live in Zustand (not server state — that goes in TanStack Query):
+
 - State field: type, default value, purpose
 - Actions needed
 
 #### 3.5 Components (`src/features/<feature>/components/`)
+
 List UI components to create, with their props and responsibility:
 
-| Component | Props | Responsibility |
-|-----------|-------|----------------|
-| `<Name>Card` | `item: <Name>` | Display a single item |
-| `<Name>Form` | `onSubmit`, `defaultValues?` | Create / edit form |
-| `<Name>List` | `items: <Name>[]` | Render list of cards |
+| Component    | Props                        | Responsibility        |
+| ------------ | ---------------------------- | --------------------- |
+| `<Name>Card` | `item: <Name>`               | Display a single item |
+| `<Name>Form` | `onSubmit`, `defaultValues?` | Create / edit form    |
+| `<Name>List` | `items: <Name>[]`            | Render list of cards  |
 
 #### 3.6 Files to Create / Modify in This Phase
+
 ```
 apps/frontend/app/<feature>/page.tsx                              (created)
 apps/frontend/app/<feature>/[id]/page.tsx                        (created if needed)
@@ -292,16 +324,19 @@ apps/frontend/src/shared/components/Navbar.tsx                    (modified if n
 #### 3.7 Test Cases
 
 **Hook tests** (`apps/frontend/src/features/<feature>/hooks/`):
+
 - [ ] `useGet<Name>`: returns data when query succeeds
 - [ ] `useCreate<Name>`: invalidates `['<name>s']` on success
 - [ ] `useCreate<Name>`: shows error toast on failure
 
 **Component tests** (`apps/frontend/src/features/<feature>/components/`):
+
 - [ ] `<Name>Form`: submits with correct payload
 - [ ] `<Name>Form`: shows validation error when required field is empty
 - [ ] `<Name>List`: renders empty state when list is empty
 
 Commands to verify this phase:
+
 ```bash
 pnpm nx typecheck frontend
 pnpm nx lint frontend
@@ -311,6 +346,7 @@ pnpm nx test frontend
 ---
 
 ### 4. Open Questions
+
 List any decisions not yet made or assumptions needing confirmation before implementation starts.
 
 ---

@@ -1,5 +1,5 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
 
 @Schema({ timestamps: true })
 export class ConversationParticipant extends Document {
@@ -13,6 +13,11 @@ export class ConversationParticipant extends Document {
   lastReadAt?: Date;
 }
 
-export const ConversationParticipantSchema = SchemaFactory.createForClass(ConversationParticipant);
+export const ConversationParticipantSchema = SchemaFactory.createForClass(
+  ConversationParticipant,
+);
 
-ConversationParticipantSchema.index({ conversationId: 1, userId: 1 }, { unique: true });
+ConversationParticipantSchema.index(
+  { conversationId: 1, userId: 1 },
+  { unique: true },
+);

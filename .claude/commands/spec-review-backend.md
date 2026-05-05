@@ -1,4 +1,5 @@
 Read the following files before doing anything else:
+
 - docs/architecture.md
 - docs/auth-architecture.md
 - libs/openapi-specs/src/v1/ (list all files and read the relevant one for this feature)
@@ -10,6 +11,7 @@ Read the following files before doing anything else:
 - apps/user-service/src/config/env.validation.ts (env validation pattern)
 
 Then gather all local changes:
+
 - Run `git status` to see all modified, added, and staged files
 - Run `git diff HEAD --name-only` to list every changed file
 - Read each changed file in full
@@ -54,12 +56,14 @@ Flag anything that is partially implemented or missing entirely.
 Compare each new file against the pattern reference files loaded above. Flag deviations:
 
 **Entities** — must follow `friend-request.entity.ts` pattern:
+
 - Interface `<Name>Props` with all fields including `createdAt`/`updatedAt`
 - Class with private `props`, typed getters for every field
 - Static `create()` factory method
 - Zero imports from outside the domain layer
 
 **Use Cases** — must follow `send-friend-request.use-case.ts` pattern:
+
 - `@Injectable()` decorator
 - Repository injected via `@Inject('<Name>Repository')` string token
 - `execute(dto)` as the only public method
@@ -67,6 +71,7 @@ Compare each new file against the pattern reference files loaded above. Flag dev
 - Kafka events emitted using `TopicEnum` constants from `@kafka-events`
 
 **Controllers** — must follow `user.controller.ts` pattern:
+
 - `@ApiTags`, `@ApiBearerAuth`, `@UseGuards(JwtAuthGuard)` on the class
 - `@ApiOperation`, `@ApiResponse` on every method
 - `req` typed as `RequestWithUser`
@@ -80,13 +85,13 @@ Compare each new file against the pattern reference files loaded above. Flag dev
 
 Check imports in each changed file:
 
-| Layer | Must NOT import from |
-|-------|----------------------|
-| `src/domain/` | NestJS, Prisma, Mongoose, Kafka, application, infrastructure |
-| `src/application/use-cases/` | Prisma, Mongoose, infrastructure layer |
-| `src/application/ports/` | Anything outside domain |
-| `src/infrastructure/` | Other services directly |
-| `src/interfaces/controllers/` | Domain layer, infrastructure layer directly |
+| Layer                         | Must NOT import from                                         |
+| ----------------------------- | ------------------------------------------------------------ |
+| `src/domain/`                 | NestJS, Prisma, Mongoose, Kafka, application, infrastructure |
+| `src/application/use-cases/`  | Prisma, Mongoose, infrastructure layer                       |
+| `src/application/ports/`      | Anything outside domain                                      |
+| `src/infrastructure/`         | Other services directly                                      |
+| `src/interfaces/controllers/` | Domain layer, infrastructure layer directly                  |
 
 Flag every import that crosses a boundary.
 
@@ -103,6 +108,7 @@ Flag every import that crosses a boundary.
 ### 5. Test Coverage — Are all tests written?
 
 For every new use case added, verify:
+
 - [ ] Test file exists at `apps/<service>/tests/unit/<name>.use-case.spec.ts`
 - [ ] Uses sinon stubs for all repository and Kafka dependencies (no real DB)
 - [ ] Tests the success path
@@ -186,9 +192,11 @@ Write the review to `reviews/backend-<branch>-<YYYY-MM-DD>.md` using exactly thi
 ## Summary
 
 ### What Is Implemented
+
 - Bullet list of everything fully complete and working as intended
 
 ### What Is Pending / Incomplete
+
 - Bullet list of missing pieces, partial implementations, or leftover TODOs
 - Write "Nothing pending" if everything is complete
 
@@ -196,19 +204,19 @@ Write the review to `reviews/backend-<branch>-<YYYY-MM-DD>.md` using exactly thi
 
 ## Automated Checks
 
-| Check | Result | Notes |
-|-------|--------|-------|
-| `pnpm nx typecheck <service>` | ✅ Pass / ❌ Fail | error summary if failed |
-| `pnpm nx lint <service>` | ✅ Pass / ❌ Fail | error summary if failed |
+| Check                            | Result            | Notes                   |
+| -------------------------------- | ----------------- | ----------------------- |
+| `pnpm nx typecheck <service>`    | ✅ Pass / ❌ Fail | error summary if failed |
+| `pnpm nx lint <service>`         | ✅ Pass / ❌ Fail | error summary if failed |
 | `pnpm nx format:check <service>` | ✅ Pass / ❌ Fail | error summary if failed |
-| `pnpm nx test <service>` | ✅ Pass / ❌ Fail | error summary if failed |
+| `pnpm nx test <service>`         | ✅ Pass / ❌ Fail | error summary if failed |
 
 ---
 
 ## Files Changed
 
-| File | Type | Description |
-|------|------|-------------|
+| File              | Type                       | Description                          |
+| ----------------- | -------------------------- | ------------------------------------ |
 | `path/to/file.ts` | Added / Modified / Deleted | One-line description of what changed |
 
 ---
