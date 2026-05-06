@@ -46,6 +46,7 @@ export class PresenceGateway
     }
 
     this.logger.debug(`User connected: ${userId}`);
+    await client.join(`user:${userId}`);
     await this.presenceRepository.setStatus(userId, PresenceStatus.ONLINE);
 
     const event: UserPresenceUpdatedEventV1 = {
@@ -75,6 +76,10 @@ export class PresenceGateway
     this.server.emit("presence.updated", event);
   }
 
+  emitToRoom(room: string, event: string, payload: unknown): void {
+    this.server?.to(room).emit(event, payload);
+  }
+
   private getUserId(client: Socket): string | null {
     const token = client.handshake.auth?.token || client.handshake.query?.token;
 
@@ -88,9 +93,10 @@ export class PresenceGateway
       }
     }
 
-    // For development/debugging: check if userId is explicitly provided in query
+    // Allow direct userId override only in non-production environments for debugging
     const directUserId = client.handshake.query?.userId;
-    if (directUserId) return directUserId as string;
+    if (process.env.NODE_ENV !== "production" && directUserId)
+      return directUserId as string;
 
     if (!accessToken) return null;
 

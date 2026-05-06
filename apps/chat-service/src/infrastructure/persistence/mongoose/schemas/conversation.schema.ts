@@ -27,6 +27,9 @@ export class Conversation extends Document {
 
   @Prop({ default: Date.now, index: true })
   lastActivityAt!: Date;
+
+  readonly createdAt!: Date;
+  readonly updatedAt!: Date;
 }
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);

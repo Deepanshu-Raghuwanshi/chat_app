@@ -521,6 +521,24 @@ components:
           type: string
           format: uuid
           description: UUID of the friend to start a conversation with
+        targetUsername:
+          type: string
+          description: Display username of the target user (profile hint, avoids a round-trip to user-service)
+        targetFullName:
+          type: string
+          description: Full name of the target user (profile hint)
+        targetAvatarUrl:
+          type: string
+          description: Avatar URL of the target user (profile hint)
+        callerUsername:
+          type: string
+          description: Display username of the requesting user (profile hint)
+        callerFullName:
+          type: string
+          description: Full name of the requesting user (profile hint)
+        callerAvatarUrl:
+          type: string
+          description: Avatar URL of the requesting user (profile hint)
 
     SendMessageDto:
       type: object

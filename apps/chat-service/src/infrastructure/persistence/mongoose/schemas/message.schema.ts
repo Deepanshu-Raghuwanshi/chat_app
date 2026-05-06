@@ -24,6 +24,9 @@ export class Message extends Document {
 
   @Prop({ default: false })
   isEdited!: boolean;
+
+  readonly createdAt!: Date;
+  readonly updatedAt!: Date;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

@@ -1,0 +1,51 @@
+export interface MessageProps {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  type: string;
+  status: string;
+  isDeleted: boolean;
+  isEdited: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class MessageEntity {
+  constructor(private readonly props: MessageProps) {}
+
+  get id() {
+    return this.props.id;
+  }
+  get conversationId() {
+    return this.props.conversationId;
+  }
+  get senderId() {
+    return this.props.senderId;
+  }
+  get content() {
+    return this.props.content;
+  }
+  get type() {
+    return this.props.type;
+  }
+  get status() {
+    return this.props.status;
+  }
+  get isDeleted() {
+    return this.props.isDeleted;
+  }
+  get isEdited() {
+    return this.props.isEdited;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
+
+  static create(props: MessageProps): MessageEntity {
+    return new MessageEntity(props);
+  }
+}
