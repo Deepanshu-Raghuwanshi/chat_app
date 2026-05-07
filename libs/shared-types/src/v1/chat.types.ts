@@ -4,654 +4,654 @@
  */
 
 export interface paths {
-    "/api/v1/chat/conversations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all conversations
-         * @description Returns all direct-message conversations for the authenticated user, ordered by most recent message. Cursor-based — pass `before` to fetch older pages.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    limit?: number;
-                    /** @description Return conversations whose last message was older than this conversation ID (cursor) */
-                    before?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Paginated list of conversations */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ConversationListResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Create or retrieve a conversation
-         * @description Creates a new direct-message conversation with a friend, or returns the existing one. Both users must be friends.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateConversationDto"];
-                };
-            };
-            responses: {
-                /** @description Existing conversation returned */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Conversation"];
-                    };
-                };
-                /** @description New conversation created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Conversation"];
-                    };
-                };
-                /** @description Invalid request (e.g. targetUserId is the requester's own ID) */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Users are not friends */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Target user not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/api/v1/chat/conversations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/chat/conversations/{conversationId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * List all conversations
+     * @description Returns all direct-message conversations for the authenticated user, ordered by most recent message. Cursor-based — pass `before` to fetch older pages.
+     */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          /** @description Return conversations whose last message was older than this conversation ID (cursor) */
+          before?: string;
         };
-        /** Get a conversation by ID */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    conversationId: components["parameters"]["conversationId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Conversation details */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Conversation"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Authenticated user is not a participant */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Conversation not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Paginated list of conversations */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ConversationListResponse"];
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/api/v1/chat/conversations/{conversationId}/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    put?: never;
+    /**
+     * Create or retrieve a conversation
+     * @description Creates a new direct-message conversation with a friend, or returns the existing one. Both users must be friends.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["CreateConversationDto"];
         };
-        /**
-         * Get messages in a conversation
-         * @description Returns messages in reverse-chronological order (newest first). Pass `before` cursor for pagination.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    limit?: number;
-                    /** @description Return messages sent before this message ID (cursor-based pagination) */
-                    before?: string;
-                };
-                header?: never;
-                path: {
-                    conversationId: components["parameters"]["conversationId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Paginated list of messages */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["MessageListResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Authenticated user is not a participant */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Conversation not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+      };
+      responses: {
+        /** @description Existing conversation returned */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Conversation"];
+          };
         };
-        put?: never;
-        /** Send a message */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    conversationId: components["parameters"]["conversationId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["SendMessageDto"];
-                };
-            };
-            responses: {
-                /** @description Message sent */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Message"];
-                    };
-                };
-                /** @description Invalid request (e.g. empty content) */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Authenticated user is not a participant */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Conversation not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        /** @description New conversation created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Conversation"];
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid request (e.g. targetUserId is the requester's own ID) */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Users are not friends */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Target user not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/api/v1/chat/conversations/{conversationId}/messages/{messageId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete a message
-         * @description Only the original sender may delete their message. Soft-deletes — content is replaced with a tombstone marker.
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    conversationId: components["parameters"]["conversationId"];
-                    messageId: components["parameters"]["messageId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Message deleted (tombstoned) */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Message"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Authenticated user did not send this message */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Conversation or message not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        /**
-         * Edit a message
-         * @description Only the original sender may edit their message.
-         */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    conversationId: components["parameters"]["conversationId"];
-                    messageId: components["parameters"]["messageId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["EditMessageDto"];
-                };
-            };
-            responses: {
-                /** @description Updated message */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Message"];
-                    };
-                };
-                /** @description Invalid request (e.g. empty content) */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Authenticated user did not send this message */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Conversation or message not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/chat/conversations/{conversationId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/chat/conversations/{conversationId}/read": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** Get a conversation by ID */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          conversationId: components["parameters"]["conversationId"];
         };
-        get?: never;
-        put?: never;
-        /**
-         * Mark conversation as read
-         * @description Advances the read cursor for the authenticated user to the latest message.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    conversationId: components["parameters"]["conversationId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Read cursor updated */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** Format: date-time */
-                            lastReadAt: string;
-                        };
-                    };
-                };
-                /** @description Invalid request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Authenticated user is not a participant */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Conversation not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Conversation details */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Conversation"];
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user is not a participant */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/chat/conversations/{conversationId}/messages": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get messages in a conversation
+     * @description Returns messages in reverse-chronological order (newest first). Pass `before` cursor for pagination.
+     */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          /** @description Return messages sent before this message ID (cursor-based pagination) */
+          before?: string;
+        };
+        header?: never;
+        path: {
+          conversationId: components["parameters"]["conversationId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Paginated list of messages */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["MessageListResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user is not a participant */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Send a message */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          conversationId: components["parameters"]["conversationId"];
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["SendMessageDto"];
+        };
+      };
+      responses: {
+        /** @description Message sent */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Message"];
+          };
+        };
+        /** @description Invalid request (e.g. empty content) */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user is not a participant */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/chat/conversations/{conversationId}/messages/{messageId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Delete a message
+     * @description Only the original sender may delete their message. Soft-deletes — content is replaced with a tombstone marker.
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          conversationId: components["parameters"]["conversationId"];
+          messageId: components["parameters"]["messageId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Message deleted (tombstoned) */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Message"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user did not send this message */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation or message not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    /**
+     * Edit a message
+     * @description Only the original sender may edit their message.
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          conversationId: components["parameters"]["conversationId"];
+          messageId: components["parameters"]["messageId"];
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["EditMessageDto"];
+        };
+      };
+      responses: {
+        /** @description Updated message */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Message"];
+          };
+        };
+        /** @description Invalid request (e.g. empty content) */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user did not send this message */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation or message not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
+  "/api/v1/chat/conversations/{conversationId}/read": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Mark conversation as read
+     * @description Advances the read cursor for the authenticated user to the latest message.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          conversationId: components["parameters"]["conversationId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Read cursor updated */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              /** Format: date-time */
+              lastReadAt: string;
+            };
+          };
+        };
+        /** @description Invalid request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user is not a participant */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        ErrorResponse: {
-            statusCode: number;
-            /** Format: date-time */
-            timestamp: string;
-            path: string;
-            method: string;
-            error: string;
-            message: string;
-        };
-        ConversationParticipant: {
-            /** Format: uuid */
-            userId: string;
-            username: string;
-            fullName?: string;
-            avatarUrl?: string;
-            isOnline?: boolean;
-            /** Format: date-time */
-            lastReadAt?: string;
-        };
-        Conversation: {
-            /** Format: uuid */
-            id: string;
-            participants: components["schemas"]["ConversationParticipant"][];
-            lastMessage?: components["schemas"]["Message"];
-            unreadCount?: number;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        ConversationListResponse: {
-            data: components["schemas"]["Conversation"][];
-            hasMore: boolean;
-            /**
-             * Format: uuid
-             * @description ID of the oldest conversation in this page; pass as `before` to fetch older conversations
-             */
-            nextCursor?: string;
-        };
-        Message: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            conversationId: string;
-            /** Format: uuid */
-            senderId: string;
-            content: string;
-            /** @enum {string} */
-            type: "TEXT";
-            /** @enum {string} */
-            status: "SENT" | "DELIVERED" | "READ";
-            isDeleted: boolean;
-            isEdited?: boolean;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        MessageListResponse: {
-            data: components["schemas"]["Message"][];
-            hasMore: boolean;
-            /**
-             * Format: uuid
-             * @description ID of the oldest message in this page; pass as `before` to fetch older messages
-             */
-            nextCursor?: string;
-        };
-        CreateConversationDto: {
-            /**
-             * Format: uuid
-             * @description UUID of the friend to start a conversation with
-             */
-            targetUserId: string;
-            /** @description Display username of the target user (profile hint, avoids a round-trip to user-service) */
-            targetUsername?: string;
-            /** @description Full name of the target user (profile hint) */
-            targetFullName?: string;
-            /** @description Avatar URL of the target user (profile hint) */
-            targetAvatarUrl?: string;
-            /** @description Display username of the requesting user (profile hint) */
-            callerUsername?: string;
-            /** @description Full name of the requesting user (profile hint) */
-            callerFullName?: string;
-            /** @description Avatar URL of the requesting user (profile hint) */
-            callerAvatarUrl?: string;
-        };
-        SendMessageDto: {
-            content: string;
-            /**
-             * @default TEXT
-             * @enum {string}
-             */
-            type: "TEXT";
-        };
-        EditMessageDto: {
-            content: string;
-        };
+  schemas: {
+    ErrorResponse: {
+      statusCode: number;
+      /** Format: date-time */
+      timestamp: string;
+      path: string;
+      method: string;
+      error: string;
+      message: string;
     };
-    responses: never;
-    parameters: {
-        conversationId: string;
-        messageId: string;
+    ConversationParticipant: {
+      /** Format: uuid */
+      userId: string;
+      username: string;
+      fullName?: string;
+      avatarUrl?: string;
+      isOnline?: boolean;
+      /** Format: date-time */
+      lastReadAt?: string;
     };
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    Conversation: {
+      /** Format: uuid */
+      id: string;
+      participants: components["schemas"]["ConversationParticipant"][];
+      lastMessage?: components["schemas"]["Message"];
+      unreadCount?: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    ConversationListResponse: {
+      data: components["schemas"]["Conversation"][];
+      hasMore: boolean;
+      /**
+       * Format: uuid
+       * @description ID of the oldest conversation in this page; pass as `before` to fetch older conversations
+       */
+      nextCursor?: string;
+    };
+    Message: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      conversationId: string;
+      /** Format: uuid */
+      senderId: string;
+      content: string;
+      /** @enum {string} */
+      type: "TEXT";
+      /** @enum {string} */
+      status: "SENT" | "DELIVERED" | "READ";
+      isDeleted: boolean;
+      isEdited?: boolean;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    MessageListResponse: {
+      data: components["schemas"]["Message"][];
+      hasMore: boolean;
+      /**
+       * Format: uuid
+       * @description ID of the oldest message in this page; pass as `before` to fetch older messages
+       */
+      nextCursor?: string;
+    };
+    CreateConversationDto: {
+      /**
+       * Format: uuid
+       * @description UUID of the friend to start a conversation with
+       */
+      targetUserId: string;
+      /** @description Display username of the target user (profile hint, avoids a round-trip to user-service) */
+      targetUsername?: string;
+      /** @description Full name of the target user (profile hint) */
+      targetFullName?: string;
+      /** @description Avatar URL of the target user (profile hint) */
+      targetAvatarUrl?: string;
+      /** @description Display username of the requesting user (profile hint) */
+      callerUsername?: string;
+      /** @description Full name of the requesting user (profile hint) */
+      callerFullName?: string;
+      /** @description Avatar URL of the requesting user (profile hint) */
+      callerAvatarUrl?: string;
+    };
+    SendMessageDto: {
+      content: string;
+      /**
+       * @default TEXT
+       * @enum {string}
+       */
+      type: "TEXT";
+    };
+    EditMessageDto: {
+      content: string;
+    };
+  };
+  responses: never;
+  parameters: {
+    conversationId: string;
+    messageId: string;
+  };
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

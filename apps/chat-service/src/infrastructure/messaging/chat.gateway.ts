@@ -66,10 +66,11 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
 
   private fanOut(topic: string, payload: unknown) {
     if (!payload || typeof payload !== "object") return;
+    const p = payload as Record<string, unknown>;
 
     if (topic === ChatTopics.MESSAGE_SENT) {
-      const event = payload as MessageSentEventV1;
-      if (!event.senderId || !event.receiverId) return;
+      if (!p.senderId || !p.receiverId) return;
+      const event = p as unknown as MessageSentEventV1;
       this.presenceGateway.emitToRoom(
         `user:${event.receiverId}`,
         "message.new",
@@ -81,16 +82,16 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
         event,
       );
     } else if (topic === ChatTopics.MESSAGE_EDITED) {
-      const event = payload as MessageEditedEventV1;
-      if (!event.conversationId) return;
+      if (!p.conversationId) return;
+      const event = p as unknown as MessageEditedEventV1;
       this.presenceGateway.emitToRoom(
         `conversation:${event.conversationId}`,
         "message.updated",
         event,
       );
     } else if (topic === ChatTopics.MESSAGE_DELETED) {
-      const event = payload as MessageDeletedEventV1;
-      if (!event.conversationId) return;
+      if (!p.conversationId) return;
+      const event = p as unknown as MessageDeletedEventV1;
       this.presenceGateway.emitToRoom(
         `conversation:${event.conversationId}`,
         "message.deleted",

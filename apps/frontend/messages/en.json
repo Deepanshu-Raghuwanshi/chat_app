@@ -185,7 +185,8 @@
         "add_friend": "Add Friend",
         "accept": "Accept",
         "reject": "Reject",
-        "remove": "Remove Friend"
+        "remove": "Remove Friend",
+        "message": "Message"
       }
     },
     "chat": {
@@ -195,6 +196,38 @@
         "message": "We are currently setting things up. The full chat experience will be starting soon.",
         "button_friends": "Go to Friends",
         "coming_soon": "Coming Soon • Version 2.0"
+      },
+      "sidebar": {
+        "title": "Messages",
+        "no_conversations": "No conversations yet. Message a friend to get started!"
+      },
+      "composer": {
+        "placeholder": "Type a message...",
+        "send": "Send"
+      },
+      "message": {
+        "deleted": "[deleted]",
+        "edited": "edited",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "conversation": {
+        "online": "Online",
+        "offline": "Offline",
+        "no_messages": "No messages yet",
+        "you": "You"
+      },
+      "empty": {
+        "title": "Select a conversation",
+        "subtitle": "Choose a conversation from the sidebar, or open a chat from your friends list."
+      },
+      "errors": {
+        "send_failed": "Failed to send message",
+        "edit_failed": "Failed to edit message",
+        "delete_failed": "Failed to delete message",
+        "open_failed": "Failed to open conversation",
+        "not_found": "Conversation not found",
+        "back_to_chats": "Back to conversations"
       }
     },
     "navbar": {

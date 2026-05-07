@@ -25,7 +25,9 @@ export class CreateConversationDto {
   @IsString()
   targetAvatarUrl?: string;
 
-  @ApiPropertyOptional({ description: "Display username of the requesting user" })
+  @ApiPropertyOptional({
+    description: "Display username of the requesting user",
+  })
   @IsOptional()
   @IsString()
   callerUsername?: string;

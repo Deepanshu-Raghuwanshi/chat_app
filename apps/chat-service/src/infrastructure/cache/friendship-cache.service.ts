@@ -35,7 +35,7 @@ export class FriendshipCacheService
     await this.consumer.connect();
     await this.consumer.subscribe({
       topic: FriendTopics.FRIEND_REQUEST_ACCEPTED,
-      fromBeginning: false,
+      fromBeginning: true,
     });
 
     await this.consumer.run({

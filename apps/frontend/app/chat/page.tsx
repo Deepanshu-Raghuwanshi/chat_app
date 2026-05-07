@@ -1,11 +1,10 @@
-'use client';
-
-import { ChatDashboard } from '../../src/features/chat/components/ChatDashboard';
+import { ChatLayout } from "../../src/features/chat/components/ChatLayout";
+import { EmptyConversationState } from "../../src/features/chat/components/EmptyConversationState";
 
 export default function ChatPage() {
   return (
-    <div className="min-h-screen">
-      <ChatDashboard />
-    </div>
+    <ChatLayout>
+      <EmptyConversationState />
+    </ChatLayout>
   );
 }

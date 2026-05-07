@@ -1,6 +1,9 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { PassportModule } from "@nestjs/passport";
+import { ClientsModule, Transport } from "@nestjs/microservices";
+import { ConfigService } from "@nestjs/config";
+import { JwtModule } from "@nestjs/jwt";
 import {
   Conversation,
   ConversationSchema,
@@ -29,6 +32,8 @@ import { EditMessageUseCase } from "./application/use-cases/edit-message.use-cas
 import { DeleteMessageUseCase } from "./application/use-cases/delete-message.use-case";
 import { MarkConversationReadUseCase } from "./application/use-cases/mark-conversation-read.use-case";
 import { ConversationViewBuilder } from "./application/services/conversation-view.builder";
+import { PresenceGateway } from "./interfaces/gateways/presence.gateway";
+import { ChatGateway } from "./infrastructure/messaging/chat.gateway";
 
 @Module({
   imports: [
@@ -41,6 +46,33 @@ import { ConversationViewBuilder } from "./application/services/conversation-vie
       { name: Message.name, schema: MessageSchema },
     ]),
     PassportModule.register({ defaultStrategy: "jwt" }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>("JWT_ACCESS_SECRET") || "access-secret",
+        signOptions: { expiresIn: "1h" },
+      }),
+    }),
+    ClientsModule.registerAsync([
+      {
+        name: "KAFKA_SERVICE",
+        inject: [ConfigService],
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: "chat-service",
+              brokers: config.get<string>("KAFKA_BROKERS")?.split(",") || [
+                "localhost:9092",
+              ],
+            },
+            consumer: {
+              groupId: "chat-service-consumer",
+            },
+          },
+        }),
+      },
+    ]),
   ],
   controllers: [ConversationController],
   providers: [
@@ -56,6 +88,10 @@ import { ConversationViewBuilder } from "./application/services/conversation-vie
     EditMessageUseCase,
     DeleteMessageUseCase,
     MarkConversationReadUseCase,
+
+    // Gateways
+    PresenceGateway,
+    ChatGateway,
 
     // Infrastructure
     KafkaProducerService,
