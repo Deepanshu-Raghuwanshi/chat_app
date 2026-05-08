@@ -50,6 +50,13 @@ export const friendsService = {
     return response.data;
   },
 
+  async searchUsers(query: string): Promise<UserProfile[]> {
+    const response = await apiClient.get<UserProfile[]>('/friends/search', {
+      params: { q: query },
+    });
+    return response.data;
+  },
+
   async respondToRequest(requestId: string, action: 'ACCEPT' | 'REJECT'): Promise<FriendRequest | Friendship> {
     const response = await apiClient.post<FriendRequest | Friendship>(`/friends/requests/${requestId}/respond`, {
       action,

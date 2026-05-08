@@ -6,7 +6,7 @@ import { SubNavbar } from '../../src/features/friends/components/SubNavbar';
 import { useIncomingRequests } from '../../src/features/friends/hooks/useFriends';
 
 export default function FriendsPage() {
-  const [activeTab, setActiveTab] = useState<'friends' | 'requests'>('friends');
+  const [activeTab, setActiveTab] = useState<'friends' | 'requests' | 'search'>('friends');
   const { data: requests } = useIncomingRequests();
 
   return (

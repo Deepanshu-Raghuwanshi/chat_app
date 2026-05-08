@@ -11,6 +11,7 @@ import {
 import { usePresence } from "../hooks/usePresence";
 import { FriendCard } from "./FriendCard";
 import { RecommendationList } from "./RecommendationList";
+import { UserSearchPanel } from "./UserSearchPanel";
 import { Users, UserPlus } from "lucide-react";
 import { Spinner } from "../../../shared/components/ui/spinner";
 import { useTranslations } from "next-intl";
@@ -19,7 +20,7 @@ import { useCreateConversation } from "../../chat/hooks/useChat";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 
 interface FriendListProps {
-  activeTab: "friends" | "requests";
+  activeTab: "friends" | "requests" | "search";
 }
 
 export const FriendList = ({ activeTab }: FriendListProps) => {
@@ -64,10 +65,18 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
     );
   };
 
-  if (isLoadingFriends || isLoadingRequests || isLoadingRecs) {
+  if ((isLoadingFriends || isLoadingRequests || isLoadingRecs) && activeTab !== "search") {
     return (
       <div className="flex justify-center p-12">
         <Spinner className="w-8 h-8 text-primary" />
+      </div>
+    );
+  }
+
+  if (activeTab === "search") {
+    return (
+      <div className="max-w-4xl mx-auto p-6 pb-20">
+        <UserSearchPanel onSendRequest={(id) => sendRequest(id)} />
       </div>
     );
   }

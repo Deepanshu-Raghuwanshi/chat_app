@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { friendsService, FriendRequest, UserProfile } from '../services/friends.service';
 
 export const useFriends = () => {
@@ -22,6 +23,22 @@ export const useRecommendations = () => {
   });
 };
 
+export const useSearchUsers = (query: string) => {
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  return useQuery({
+    queryKey: ['user-search', debouncedQuery],
+    queryFn: () => friendsService.searchUsers(debouncedQuery),
+    enabled: debouncedQuery.length >= 2,
+    staleTime: 30_000,
+  });
+};
+
 export const useSendFriendRequest = () => {
   const queryClient = useQueryClient();
 
@@ -33,6 +50,7 @@ export const useSendFriendRequest = () => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['friend-requests', 'outgoing'] });
       await queryClient.cancelQueries({ queryKey: ['friend-recommendations'] });
+      await queryClient.cancelQueries({ queryKey: ['user-search'] });
 
       // Snapshot the previous values
       const previousOutgoing = queryClient.getQueryData<FriendRequest[]>(['friend-requests', 'outgoing']);
@@ -45,6 +63,12 @@ export const useSendFriendRequest = () => {
           previousRecommendations.filter(u => u.id !== receiverId)
         );
       }
+
+      // Optimistically remove from search results
+      queryClient.setQueriesData<UserProfile[]>(
+        { queryKey: ['user-search'], exact: false },
+        (old) => old?.filter((u) => u.id !== receiverId) ?? old,
+      );
 
       return { previousOutgoing, previousRecommendations };
     },
@@ -63,6 +87,7 @@ export const useSendFriendRequest = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['friend-requests', 'outgoing'] });
       queryClient.invalidateQueries({ queryKey: ['friend-recommendations'] });
+      queryClient.invalidateQueries({ queryKey: ['user-search'] });
     },
   });
 };
