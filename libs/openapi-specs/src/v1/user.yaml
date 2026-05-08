@@ -87,6 +87,42 @@ paths:
       responses:
         '201':
           description: Request sent
+  /api/v1/friends/search:
+    get:
+      summary: Search users by username or full name
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query (minimum 2 characters). Matches partial username or full name, case-insensitive.
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+      responses:
+        '200':
+          description: List of matching user profiles (excludes current user, existing friends, and users with pending requests)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Query too short or missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/friends/requests/incoming:
     get:
       summary: Get incoming friend requests
@@ -117,7 +153,30 @@ paths:
           description: Response recorded
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+        method:
+          type: string
+        error:
+          type: string
+        message:
+          type: string
+
     UserProfile:
       type: object
       required:
