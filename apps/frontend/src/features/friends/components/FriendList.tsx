@@ -1,30 +1,68 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useFriends, useIncomingRequests, useRespondToRequest, useRecommendations, useSendFriendRequest } from '../hooks/useFriends';
-import { usePresence } from '../hooks/usePresence';
-import { FriendCard } from './FriendCard';
-import { RecommendationList } from './RecommendationList';
-import { Users, UserPlus } from 'lucide-react';
-import { Spinner } from '../../../shared/components/ui/spinner';
-import { useTranslations } from 'next-intl';
+import React from "react";
+import {
+  useFriends,
+  useIncomingRequests,
+  useRespondToRequest,
+  useRecommendations,
+  useSendFriendRequest,
+} from "../hooks/useFriends";
+import { usePresence } from "../hooks/usePresence";
+import { FriendCard } from "./FriendCard";
+import { RecommendationList } from "./RecommendationList";
+import { Users, UserPlus } from "lucide-react";
+import { Spinner } from "../../../shared/components/ui/spinner";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useCreateConversation } from "../../chat/hooks/useChat";
+import { useAuthStore } from "../../auth/store/useAuthStore";
 
 interface FriendListProps {
-  activeTab: 'friends' | 'requests';
+  activeTab: "friends" | "requests";
 }
 
 export const FriendList = ({ activeTab }: FriendListProps) => {
-  const t = useTranslations('features.friends');
-  const tSub = useTranslations('features.sub_navbar.friends');
-  
+  const t = useTranslations("features.friends");
+  const tSub = useTranslations("features.sub_navbar.friends");
+  const router = useRouter();
+  const currentUser = useAuthStore((state) => state.user);
+
   // Register presence listener
   usePresence();
-  
+
   const { data: friends, isLoading: isLoadingFriends } = useFriends();
-  const { data: requests, isLoading: isLoadingRequests } = useIncomingRequests();
-  const { data: recommendations, isLoading: isLoadingRecs } = useRecommendations();
+  const { data: requests, isLoading: isLoadingRequests } =
+    useIncomingRequests();
+  const { data: recommendations, isLoading: isLoadingRecs } =
+    useRecommendations();
   const { mutate: respondToRequest } = useRespondToRequest();
   const { mutate: sendRequest } = useSendFriendRequest();
+  const { mutate: createConversation } = useCreateConversation();
+
+  const handleMessage = (friend: {
+    id: string;
+    username?: string;
+    fullName?: string;
+    avatarUrl?: string;
+  }) => {
+    createConversation(
+      {
+        targetUserId: friend.id,
+        targetUsername: friend.username,
+        targetFullName: friend.fullName,
+        targetAvatarUrl: friend.avatarUrl,
+        callerUsername: currentUser?.username,
+        callerFullName: currentUser?.fullName,
+        callerAvatarUrl: currentUser?.avatarUrl,
+      },
+      {
+        onSuccess: (conversation) => {
+          router.push(`/chat/${conversation.id}`);
+        },
+      },
+    );
+  };
 
   if (isLoadingFriends || isLoadingRequests || isLoadingRecs) {
     return (
@@ -34,7 +72,7 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
     );
   }
 
-  const showRequests = activeTab === 'requests';
+  const showRequests = activeTab === "requests";
   const hasRequests = requests && requests.length > 0;
 
   return (
@@ -46,7 +84,9 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
             <section className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-2 mb-2">
                 <UserPlus className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900">{t('sections.incoming_requests')}</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {t("sections.incoming_requests")}
+                </h2>
                 <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-full">
                   {requests.length}
                 </span>
@@ -60,8 +100,18 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
                     fullName={request.sender?.fullName}
                     avatarUrl={request.sender?.avatarUrl}
                     isIncomingRequest
-                    onAccept={() => respondToRequest({ requestId: request.id, action: 'ACCEPT' })}
-                    onReject={() => respondToRequest({ requestId: request.id, action: 'REJECT' })}
+                    onAccept={() =>
+                      respondToRequest({
+                        requestId: request.id,
+                        action: "ACCEPT",
+                      })
+                    }
+                    onReject={() =>
+                      respondToRequest({
+                        requestId: request.id,
+                        action: "REJECT",
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -69,15 +119,15 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
           ) : (
             <div className="text-center p-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
               <UserPlus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">{tSub('no_requests')}</p>
+              <p className="text-gray-500 font-medium">{tSub("no_requests")}</p>
             </div>
           )}
 
           {/* Show Recommendations if no requests, as per requirement */}
           {!hasRequests && (
-            <RecommendationList 
-              recommendations={recommendations} 
-              onSendRequest={(userId) => sendRequest(userId)} 
+            <RecommendationList
+              recommendations={recommendations}
+              onSendRequest={(userId) => sendRequest(userId)}
             />
           )}
         </>
@@ -87,14 +137,16 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
           <section className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-bold text-gray-900">{t('sections.friends')}</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                {t("sections.friends")}
+              </h2>
               {friends && friends.length > 0 && (
                 <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">
                   {friends.length}
                 </span>
               )}
             </div>
-            
+
             {friends && friends.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {friends.map((friend) => (
@@ -105,22 +157,25 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
                     fullName={friend.fullName}
                     avatarUrl={friend.avatarUrl}
                     isOnline={friend.isOnline}
-                    onRemove={() => console.log('Remove friend', friend.id)}
+                    onMessage={() => handleMessage(friend)}
+                    onRemove={() => console.log("Remove friend", friend.id)}
                   />
                 ))}
               </div>
             ) : (
               <div className="text-center p-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 font-medium">{t('placeholders.no_friends')}</p>
+                <p className="text-gray-500 font-medium">
+                  {t("placeholders.no_friends")}
+                </p>
               </div>
             )}
           </section>
 
           {/* Recommendations Section */}
-          <RecommendationList 
-            recommendations={recommendations} 
-            onSendRequest={(userId) => sendRequest(userId)} 
+          <RecommendationList
+            recommendations={recommendations}
+            onSendRequest={(userId) => sendRequest(userId)}
           />
         </>
       )}

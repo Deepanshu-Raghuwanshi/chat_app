@@ -1,11 +1,24 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserProfile } from "../services/friends.service";
+import { Message, MessageListResponse } from "@shared-types";
+import { InfiniteData } from "@tanstack/react-query";
 import { io, Socket } from "socket.io-client";
 
 interface PresenceUpdate {
   userId: string;
   status: "ONLINE" | "OFFLINE";
+}
+
+// Shape emitted by ChatGateway (mirrors MessageSentEventV1 from kafka-events)
+interface MessageNewPayload {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  type: string;
+  sentAt: string;
 }
 
 let socket: Socket | null = null;
@@ -22,12 +35,7 @@ export const usePresence = () => {
         transports: ["websocket", "polling"],
       });
 
-      socket.on("connect", () => {
-        console.log("Connected to presence gateway");
-      });
-
       socket.on("presence.updated", (data: PresenceUpdate) => {
-        console.log("Presence update received:", data);
         queryClient.setQueryData<UserProfile[]>(["friends"], (oldFriends) => {
           if (!oldFriends) return oldFriends;
 
@@ -43,18 +51,57 @@ export const usePresence = () => {
         });
       });
 
-      socket.on("disconnect", () => {
-        console.log("Disconnected from presence gateway");
-      });
+      socket.on("message.new", (data: MessageNewPayload) => {
+        // Map the Kafka event shape to the Message schema shape
+        const newMessage: Message = {
+          id: data.messageId,
+          conversationId: data.conversationId,
+          senderId: data.senderId,
+          content: data.content,
+          type: data.type as "TEXT",
+          status: "SENT",
+          isDeleted: false,
+          isEdited: false,
+          createdAt: data.sentAt,
+          updatedAt: data.sentAt,
+        };
 
-      socket.on("connect_error", (error) => {
-        console.error("Presence connection error:", error);
+        // Prepend to the first page of messages cache for that conversation.
+        // If the conversation was never opened, seed a first page so messages
+        // appear instantly when the user clicks it (useInfiniteQuery will
+        // refetch in background once mounted, since staleTime defaults to 0).
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+          ["messages", data.conversationId],
+          (old) => {
+            if (!old || !old.pages.length) {
+              return {
+                pages: [{ data: [newMessage], hasMore: false, nextCursor: undefined }],
+                pageParams: [undefined],
+              };
+            }
+            // Guard against duplicates: the backend refetch may have already
+            // placed this message in cache before the socket event arrives.
+            const alreadyExists = old.pages.some((page) =>
+              page.data?.some((msg) => msg.id === newMessage.id),
+            );
+            if (alreadyExists) return old;
+
+            const newPages = [...old.pages];
+            const firstPage = newPages[0];
+            newPages[0] = {
+              ...firstPage,
+              data: [newMessage, ...(firstPage.data ?? [])],
+            };
+            return { ...old, pages: newPages };
+          },
+        );
+        // Refresh conversation list to update order and unread counts
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
       });
     }
 
     return () => {
-      // We keep the socket alive across components using FriendList
-      // If we want to disconnect when no one is using it, we'd need a ref counter
+      // Socket stays alive across components — no disconnect on unmount
     };
   }, [queryClient]);
 };

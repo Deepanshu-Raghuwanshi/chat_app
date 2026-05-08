@@ -1,0 +1,91 @@
+import apiClient from "../../../shared/lib/apiClient";
+import {
+  Conversation,
+  ConversationListResponse,
+  Message,
+  MessageListResponse,
+} from "@shared-types";
+
+export const chatService = {
+  async listConversations(params?: {
+    limit?: number;
+    before?: string;
+  }): Promise<ConversationListResponse> {
+    const { data } = await apiClient.get<ConversationListResponse>(
+      "/chat/conversations",
+      { params },
+    );
+    return data;
+  },
+
+  async createOrGetConversation(dto: {
+    targetUserId: string;
+    targetUsername?: string;
+    targetFullName?: string;
+    targetAvatarUrl?: string;
+    callerUsername?: string;
+    callerFullName?: string;
+    callerAvatarUrl?: string;
+  }): Promise<Conversation> {
+    const { data } = await apiClient.post<Conversation>(
+      "/chat/conversations",
+      dto,
+    );
+    return data;
+  },
+
+  async getConversation(conversationId: string): Promise<Conversation> {
+    const { data } = await apiClient.get<Conversation>(
+      `/chat/conversations/${conversationId}`,
+    );
+    return data;
+  },
+
+  async getMessages(
+    conversationId: string,
+    params?: { limit?: number; before?: string },
+  ): Promise<MessageListResponse> {
+    const { data } = await apiClient.get<MessageListResponse>(
+      `/chat/conversations/${conversationId}/messages`,
+      { params },
+    );
+    return data;
+  },
+
+  async sendMessage(conversationId: string, content: string): Promise<Message> {
+    const { data } = await apiClient.post<Message>(
+      `/chat/conversations/${conversationId}/messages`,
+      { content, type: "TEXT" },
+    );
+    return data;
+  },
+
+  async editMessage(
+    conversationId: string,
+    messageId: string,
+    content: string,
+  ): Promise<Message> {
+    const { data } = await apiClient.patch<Message>(
+      `/chat/conversations/${conversationId}/messages/${messageId}`,
+      { content },
+    );
+    return data;
+  },
+
+  async deleteMessage(
+    conversationId: string,
+    messageId: string,
+  ): Promise<Message> {
+    const { data } = await apiClient.delete<Message>(
+      `/chat/conversations/${conversationId}/messages/${messageId}`,
+    );
+    return data;
+  },
+
+  async markRead(conversationId: string): Promise<{ lastReadAt: string }> {
+    const { data } = await apiClient.post<{ lastReadAt: string }>(
+      `/chat/conversations/${conversationId}/read`,
+    );
+    return data;
+  },
+};

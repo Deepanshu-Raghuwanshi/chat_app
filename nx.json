@@ -1,15 +1,11 @@
 {
   "npmScope": "chat",
   "affected": {
-    "defaultBase": "main"
+    "defaultBase": "master"
   },
   "implicitDependencies": {
-    "libs/openapi-specs/**": [
-      "libs/shared-types"
-    ],
-    "libs/shared-types/**": [
-      "apps/frontend"
-    ]
+    "libs/openapi-specs/**": ["libs/shared-types"],
+    "libs/shared-types/**": ["apps/frontend"]
   },
   "targetDefaults": {
     "typecheck": {
@@ -21,9 +17,7 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": [
-          "{projectRoot}/**/*.ts"
-        ]
+        "lintFilePatterns": ["{projectRoot}/**/*.ts"]
       }
     },
     "test": {
@@ -37,16 +31,11 @@
   "dependencyConstraints": [
     {
       "sourceTag": "layer:domain",
-      "onlyDependOnLibsWithTags": [
-        "layer:domain"
-      ]
+      "onlyDependOnLibsWithTags": ["layer:domain"]
     },
     {
       "sourceTag": "layer:application",
-      "onlyDependOnLibsWithTags": [
-        "layer:domain",
-        "layer:application"
-      ]
+      "onlyDependOnLibsWithTags": ["layer:domain", "layer:application"]
     },
     {
       "sourceTag": "layer:infrastructure",
@@ -61,12 +50,7 @@
     "default": {
       "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": [
-          "build",
-          "lint",
-          "test",
-          "typecheck"
-        ]
+        "cacheableOperations": ["build", "lint", "test", "typecheck"]
       }
     }
   },

@@ -13,7 +13,19 @@
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx cross-env TS_NODE_PROJECT=tsconfig.test.json npx mocha -r ts-node/register/transpile-only -r tsconfig-paths/register apps/user-service/tests/**/*.spec.ts --timeout 15000"
+        "command": "npx cross-env TS_NODE_PROJECT=tsconfig.test.json npx mocha -r ts-node/register/transpile-only -r tsconfig-paths/register apps/user-service/tests/unit/**/*.spec.ts --timeout 15000"
+      }
+    },
+    "test:integration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx cross-env TS_NODE_PROJECT=tsconfig.test.json npx mocha -r ts-node/register/transpile-only -r tsconfig-paths/register apps/user-service/tests/integration/**/*.spec.ts --timeout 15000"
+      }
+    },
+    "test:e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx cross-env TS_NODE_PROJECT=tsconfig.test.json npx mocha -r ts-node/register/transpile-only -r tsconfig-paths/register apps/user-service/tests/e2e/**/*.spec.ts --timeout 30000"
       }
     },
     "typecheck": {},
