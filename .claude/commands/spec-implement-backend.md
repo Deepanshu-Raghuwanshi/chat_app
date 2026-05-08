@@ -99,6 +99,7 @@ export class <Name> {
 **Value Objects** — for validated, immutable domain values only (email, phone number, money amounts).
 
 **Domain rules:**
+
 - Zero imports from application, infrastructure, NestJS, Prisma, or Mongoose
 - All domain invariants enforced in `create()` — not scattered in use cases
 
@@ -185,6 +186,7 @@ export class <Action><Name>UseCase {
 ```
 
 **Exception rules:**
+
 - `NotFoundException` — entity does not exist
 - `BadRequestException` — invalid input or violated business rule
 - `ConflictException` — duplicate or already-exists scenario
@@ -236,6 +238,7 @@ export class Prisma<Name>Repository implements <Name>Repository {
 ```
 
 **Repository rules:**
+
 - Map Prisma/Mongoose models to domain entities using a private `toDomain()` method — never leak ORM types into the application layer
 - Use `select` to fetch only the fields the use case needs — never `SELECT *`
 - Use `Promise.all` for parallel independent queries — never sequential awaits that could be parallel
@@ -304,6 +307,7 @@ export class <Name>Controller {
 ```
 
 **Controller rules:**
+
 - Controllers are thin — zero business logic, only delegates to use cases
 - Always type `req` as `RequestWithUser`
 - `@ApiResponse` on every status code the endpoint can return
@@ -343,6 +347,7 @@ Import the new module in `AppModule`. Check for circular dependencies.
 ### Step 7 — Database (if new model needed)
 
 **Prisma:**
+
 - Add model to `apps/<service>/prisma/schema.prisma`
 - Add `@@index` for every field used in WHERE or ORDER BY
 - Add `@@unique` constraints to enforce business uniqueness rules
@@ -354,6 +359,7 @@ pnpm prisma:generate
 ```
 
 **Mongoose:**
+
 - Add schema to `apps/<service>/src/infrastructure/persistence/schemas/`
 - Define indexes in the schema using `.index()` on frequently queried fields
 
@@ -411,6 +417,7 @@ describe('<Action><Name>UseCase', () => {
 ```
 
 **Test rules:**
+
 - One `it` block per distinct behaviour — not one test that checks everything
 - Stubs reset in `afterEach` — no shared state between tests
 - Test every exception the use case can throw — not just the happy path

@@ -146,6 +146,7 @@ export const <feature>Service = {
 ```
 
 **Service rules:**
+
 - Always `withCredentials: true` — auth uses HttpOnly cookies
 - Every response typed — no `any`
 - All calls for a feature live in one service file — no splitting by endpoint
@@ -217,6 +218,7 @@ export const useDelete<Feature> = () => {
 ```
 
 **Hook rules:**
+
 - `useQuery` for reads, `useMutation` for writes — never raw `useEffect` for fetching
 - Invalidate the correct query keys on mutation success — lists must refresh after create/delete/update
 - `showToast` from shared utils — never call Sonner directly
@@ -334,6 +336,7 @@ export const <Name>Form = () => {
 ```
 
 **Component rules:**
+
 - `'use client'` on every component that uses hooks, state, or browser APIs
 - Every user-visible string uses `useTranslations` — zero hardcoded English in JSX
 - `cn()` for all `className` values — never template literals or string concatenation
@@ -364,6 +367,7 @@ export default function <Route>Page() {
 ```
 
 **Page rules:**
+
 - All logic lives in `src/features/` — pages just render the feature component
 - Add `metadata` export for public-facing pages
 - Keep pages as server components unless they directly need browser APIs
@@ -396,6 +400,7 @@ Add all translation keys before writing any JSX that uses them:
 ```
 
 **i18n rules:**
+
 - Every user-visible string — including error messages, empty states, placeholders, button labels, and aria-labels — must have a translation key
 - Nest under `features.<feature>` namespace
 - Add error keys alongside action keys — not as an afterthought
@@ -453,6 +458,7 @@ describe('<Name>', () => {
 ```
 
 **Test rules:**
+
 - Test all four UI states: loading, error, empty, success
 - Test form submission: success path, validation error, mutation error
 - Test mutations: verify query invalidation happens on success

@@ -13,6 +13,7 @@ Before writing a single line of the spec, you must deeply understand the current
 **Read every file listed below. Do not skip any. Do not start writing until this is complete.**
 
 ### Architecture & Contracts
+
 - `docs/architecture.md`
 - `docs/auth-architecture.md`
 - `libs/openapi-specs/src/v1/auth.yaml`
@@ -23,6 +24,7 @@ Before writing a single line of the spec, you must deeply understand the current
 - `libs/shared-types/src/index.ts`
 
 ### Existing Service Code (for the service(s) this feature touches)
+
 - `apps/<service>/src/app.module.ts` — understand what's already registered
 - `apps/<service>/src/interfaces/controllers/` — all existing controllers
 - `apps/<service>/src/application/use-cases/` — all existing use cases
@@ -33,11 +35,13 @@ Before writing a single line of the spec, you must deeply understand the current
 - `apps/api-gateway/src/interfaces/controllers/gateway.controller.ts`
 
 ### Frontend (for the feature area this touches)
+
 - `apps/frontend/src/features/` — list all feature directories
 - Read the entire feature folder for the relevant feature (services, hooks, store, components)
 - `apps/frontend/app/` — read the relevant pages
 
 ### After reading, answer these questions in your head before writing:
+
 1. What already exists that I can reuse instead of recreating?
 2. Which service owns this data — and is that already wired in the gateway?
 3. What DB/cache infrastructure is already in place (Redis, Postgres, Mongo)?
@@ -126,12 +130,15 @@ What the system looks like once the feature is fully implemented:
 **User-facing behaviour**: What the user can do, step by step.
 
 **Data flow**:
+
 ```
 Client → API Gateway → Service → DB/Cache → Kafka → (downstream consumers)
 ```
+
 Write the actual flow for each major operation (create, read, update, delete, real-time event).
 
 **Business rules and constraints** — be specific and exhaustive:
+
 - Access rules (who can do what)
 - Validation rules (what is required, what lengths, what formats)
 - Idempotency rules (what happens if called twice)
@@ -150,9 +157,9 @@ State whether you are editing an existing yaml or creating a new one, and why.
 
 List every endpoint being added or modified:
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| POST | /api/v1/... | JWT | ... |
+| Method | Path        | Auth | Purpose |
+| ------ | ----------- | ---- | ------- |
+| POST   | /api/v1/... | JWT  | ...     |
 
 #### 1.2 Database Schema Changes
 
@@ -192,10 +199,10 @@ If no schema changes are needed, state that explicitly and explain why.
 
 For each event, explain whether it is new or existing, who produces it, and who consumes it.
 
-| Direction | Topic | Producer | Consumer(s) | Payload |
-|-----------|-------|----------|-------------|---------|
-| Produces | `<domain>.<action>.v1` | service | service | `{ id, field1, occurredAt }` |
-| Consumes | `<other>.<action>.v1` | other-service | this service | existing interface |
+| Direction | Topic                  | Producer      | Consumer(s)  | Payload                      |
+| --------- | ---------------------- | ------------- | ------------ | ---------------------------- |
+| Produces  | `<domain>.<action>.v1` | service       | service      | `{ id, field1, occurredAt }` |
+| Consumes  | `<other>.<action>.v1`  | other-service | this service | existing interface           |
 
 If no Kafka events are needed, state that explicitly.
 
@@ -229,6 +236,7 @@ pnpm prisma:generate          # Only if schema changed
 Only create new entities/value objects if this feature introduces genuinely new domain concepts. If you can reuse existing entities, say so and explain how.
 
 **`<Name>` entity** (if needed):
+
 - Fields: list all with types
 - Business invariants enforced at the domain level (not at the controller)
 - Static factory method pattern if applicable
@@ -240,20 +248,23 @@ If no new domain entities are needed, state that and explain which existing enti
 **Repository port** — add methods to an existing port if this feature extends an existing aggregate. Only create a new port file for a genuinely new aggregate.
 
 New methods needed (with exact signatures):
+
 ```typescript
 search(query: string, excludeIds: string[]): Promise<Entity[]>
 ```
 
 **DTOs** — only create what is actually needed:
+
 - `<Action><Name>Dto`: list fields, their types, and validation constraints
 
 **Use cases** — one per user action, following the single-responsibility principle already established in this codebase:
 
-| Use Case Class | HTTP Trigger | Business Rules Enforced | Events Emitted |
-|----------------|-------------|------------------------|----------------|
-| `<Action><Name>UseCase` | METHOD /path | rule 1, rule 2 | `topic.v1` or none |
+| Use Case Class          | HTTP Trigger | Business Rules Enforced | Events Emitted     |
+| ----------------------- | ------------ | ----------------------- | ------------------ |
+| `<Action><Name>UseCase` | METHOD /path | rule 1, rule 2          | `topic.v1` or none |
 
 For each use case, describe the **exact execution sequence**:
+
 1. Guard check (ownership, existence)
 2. Business rule validation
 3. Repository call
@@ -286,14 +297,17 @@ async search(query: string, excludeIds: string[]): Promise<UserProfile[]> {
 Explain any non-obvious query decisions: why `mode: 'insensitive'` over a full-text index, why `take: 20`, why compound `AND`/`OR`.
 
 **Kafka producer** (only if events are emitted):
+
 - Which use case calls it
 - Exact payload mapping
 
 **Kafka consumer** (only if events are consumed):
+
 - Topic, consumer group, which use case it invokes
 - Why this is the right consumer placement (not HTTP, not inline)
 
 **Caching** (only if a performance argument exists):
+
 - What is cached, what key structure, what TTL, what invalidation strategy
 - Why caching is worth the complexity here
 
@@ -301,9 +315,9 @@ Explain any non-obvious query decisions: why `mode: 'insensitive'` over a full-t
 
 State whether you are adding routes to an **existing controller** or creating a new one. Prefer extending an existing controller if the routes belong to the same resource.
 
-| Method | Route | Guard | Use Case Called |
-|--------|-------|-------|----------------|
-| GET | /resource/action | JwtAuthGuard | `<Action>UseCase` |
+| Method | Route            | Guard        | Use Case Called   |
+| ------ | ---------------- | ------------ | ----------------- |
+| GET    | /resource/action | JwtAuthGuard | `<Action>UseCase` |
 
 Include the `@Query()` / `@Body()` / `@Param()` decorators and any validation pipes.
 
@@ -360,9 +374,9 @@ pnpm nx test <service-name>
 
 State whether you are modifying existing pages or adding new ones:
 
-| Route | Page File | New or Modified | Purpose |
-|-------|-----------|-----------------|---------|
-| `/feature` | `app/feature/page.tsx` | modified | Add search tab |
+| Route      | Page File              | New or Modified | Purpose        |
+| ---------- | ---------------------- | --------------- | -------------- |
+| `/feature` | `app/feature/page.tsx` | modified        | Add search tab |
 
 #### 3.2 API Service
 
@@ -381,8 +395,8 @@ async searchUsers(query: string): Promise<UserProfile[]> {
 
 State whether you are adding to an existing hooks file or creating a new one.
 
-| Hook | TQ Type | Query Key | Enabled Condition | Cache Strategy |
-|------|---------|-----------|-------------------|----------------|
+| Hook                    | TQ Type    | Query Key                         | Enabled Condition   | Cache Strategy   |
+| ----------------------- | ---------- | --------------------------------- | ------------------- | ---------------- |
 | `useSearchUsers(query)` | `useQuery` | `['user-search', debouncedQuery]` | `query.length >= 2` | `staleTime: 30s` |
 
 For any hook with debouncing, show the exact debounce pattern used:
@@ -404,18 +418,18 @@ Only add store state if it is genuinely client-side UI state that cannot live in
 
 If no store changes are needed, state that explicitly.
 
-| Field | Type | Default | Purpose |
-|-------|------|---------|---------|
-| `searchQuery` | `string` | `''` | Controlled input value for the search bar |
+| Field         | Type     | Default | Purpose                                   |
+| ------------- | -------- | ------- | ----------------------------------------- |
+| `searchQuery` | `string` | `''`    | Controlled input value for the search bar |
 
 #### 3.5 Components
 
 State whether you are modifying existing components or creating new ones. Prefer extending existing components with new props over creating new ones.
 
-| Component | New or Modified | Props | Responsibility |
-|-----------|-----------------|-------|----------------|
-| `SubNavbar` | modified | add `'search'` to tab union | third tab with Search icon |
-| `UserSearchPanel` | created | `onSendRequest` | search input + debounced results |
+| Component         | New or Modified | Props                       | Responsibility                   |
+| ----------------- | --------------- | --------------------------- | -------------------------------- |
+| `SubNavbar`       | modified        | add `'search'` to tab union | third tab with Search icon       |
+| `UserSearchPanel` | created         | `onSendRequest`             | search input + debounced results |
 
 For each new component, list its exact props interface.
 
@@ -434,11 +448,13 @@ apps/frontend/src/features/<feature>/components/UserSearchPanel.tsx — created
 Write test cases specific to this feature's actual behaviour:
 
 **Hook tests**:
+
 - [ ] `useSearchUsers`: does NOT fire when query is fewer than 2 characters
 - [ ] `useSearchUsers`: debounces — only calls API after 300ms idle
 - [ ] `useSearchUsers`: returns empty array when API returns no results
 
 **Component tests**:
+
 - [ ] `UserSearchPanel`: shows loading spinner while query is in flight
 - [ ] `UserSearchPanel`: shows empty state when results array is empty
 - [ ] `UserSearchPanel`: calls `onSendRequest` with correct userId on button click
@@ -455,11 +471,11 @@ pnpm nx test frontend
 
 For every non-obvious design choice, document the decision and the rationale. This is the most important section for future maintainers.
 
-| # | Decision | Options Considered | Choice | Rationale |
-|---|----------|--------------------|--------|-----------|
-| 1 | Where does this endpoint live? | New service vs extend existing | Extend user-service | Avoids new infra; data is already in user-service |
-| 2 | Cache vs DB for X check? | Redis O(1) vs Postgres query | Redis | Already in stack; O(1) lookup on hot path |
-| 3 | New Kafka topic needed? | Yes vs reuse existing | No — reuse `x.action.v1` | Payload is identical; new topic adds no value |
+| #   | Decision                       | Options Considered             | Choice                   | Rationale                                         |
+| --- | ------------------------------ | ------------------------------ | ------------------------ | ------------------------------------------------- |
+| 1   | Where does this endpoint live? | New service vs extend existing | Extend user-service      | Avoids new infra; data is already in user-service |
+| 2   | Cache vs DB for X check?       | Redis O(1) vs Postgres query   | Redis                    | Already in stack; O(1) lookup on hot path         |
+| 3   | New Kafka topic needed?        | Yes vs reuse existing          | No — reuse `x.action.v1` | Payload is identical; new topic adds no value     |
 
 ### 5. Open Questions
 

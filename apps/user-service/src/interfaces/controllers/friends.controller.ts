@@ -1,12 +1,23 @@
-import { Controller, Get, Post, Body, Param, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
-import { JwtAuthGuard } from '../../infrastructure/guards/jwt-auth.guard';
-import { SendFriendRequestUseCase } from '../../application/use-cases/send-friend-request.use-case';
-import { RespondToFriendRequestUseCase } from '../../application/use-cases/respond-to-friend-request.use-case';
-import { GetFriendsUseCase } from '../../application/use-cases/get-friends.use-case';
-import { GetIncomingRequestsUseCase } from '../../application/use-cases/get-incoming-requests.use-case';
-import { GetOutgoingRequestsUseCase } from '../../application/use-cases/get-outgoing-requests.use-case';
-import { GetRecommendationsUseCase } from '../../application/use-cases/get-recommendations.use-case';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { Request } from "express";
+import { JwtAuthGuard } from "../../infrastructure/guards/jwt-auth.guard";
+import { SendFriendRequestUseCase } from "../../application/use-cases/send-friend-request.use-case";
+import { RespondToFriendRequestUseCase } from "../../application/use-cases/respond-to-friend-request.use-case";
+import { GetFriendsUseCase } from "../../application/use-cases/get-friends.use-case";
+import { GetIncomingRequestsUseCase } from "../../application/use-cases/get-incoming-requests.use-case";
+import { GetOutgoingRequestsUseCase } from "../../application/use-cases/get-outgoing-requests.use-case";
+import { GetRecommendationsUseCase } from "../../application/use-cases/get-recommendations.use-case";
+import { SearchUsersUseCase } from "../../application/use-cases/search-users.use-case";
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -14,7 +25,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-@Controller('friends')
+@Controller("friends")
 @UseGuards(JwtAuthGuard)
 export class FriendsController {
   constructor(
@@ -24,41 +35,60 @@ export class FriendsController {
     private readonly getIncomingRequestsUseCase: GetIncomingRequestsUseCase,
     private readonly getOutgoingRequestsUseCase: GetOutgoingRequestsUseCase,
     private readonly getRecommendationsUseCase: GetRecommendationsUseCase,
+    private readonly searchUsersUseCase: SearchUsersUseCase,
   ) {}
+
+  @Get("search")
+  @ApiOperation({ summary: "Search users by username or full name" })
+  @ApiResponse({
+    status: 200,
+    description:
+      "List of matching user profiles (excludes current user, friends, and pending requests)",
+  })
+  @ApiResponse({ status: 400, description: "Query too short or missing" })
+  async searchUsers(
+    @Req() req: AuthenticatedRequest,
+    @Query("q") query: string | undefined,
+  ) {
+    return this.searchUsersUseCase.execute(req.user.id, query);
+  }
 
   @Get()
   async getFriends(@Req() req: AuthenticatedRequest) {
     return this.getFriendsUseCase.execute(req.user.id);
   }
 
-  @Get('recommendations')
+  @Get("recommendations")
   async getRecommendations(@Req() req: AuthenticatedRequest) {
     return this.getRecommendationsUseCase.execute(req.user.id);
   }
 
-  @Get('requests/incoming')
+  @Get("requests/incoming")
   async getIncomingRequests(@Req() req: AuthenticatedRequest) {
     return this.getIncomingRequestsUseCase.execute(req.user.id);
   }
 
-  @Get('requests/outgoing')
+  @Get("requests/outgoing")
   async getOutgoingRequests(@Req() req: AuthenticatedRequest) {
     return this.getOutgoingRequestsUseCase.execute(req.user.id);
   }
 
-  @Post('requests')
-  async sendRequest(@Req() req: AuthenticatedRequest, @Body() body: { receiverId: string }) {
+  @Post("requests")
+  async sendRequest(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { receiverId: string },
+  ) {
     return this.sendFriendRequestUseCase.execute({
       senderId: req.user.id,
       receiverId: body.receiverId,
     });
   }
 
-  @Post('requests/:requestId/respond')
+  @Post("requests/:requestId/respond")
   async respondToRequest(
     @Req() req: AuthenticatedRequest,
-    @Param('requestId') requestId: string,
-    @Body() body: { action: 'ACCEPT' | 'REJECT' }
+    @Param("requestId") requestId: string,
+    @Body() body: { action: "ACCEPT" | "REJECT" },
   ) {
     return this.respondToFriendRequestUseCase.execute({
       requestId,
