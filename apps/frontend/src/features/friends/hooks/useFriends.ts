@@ -23,6 +23,37 @@ export const useRecommendations = () => {
   });
 };
 
+export const useRemoveFriend = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (friendId: string) => friendsService.removeFriend(friendId),
+
+    onMutate: async (friendId) => {
+      await queryClient.cancelQueries({ queryKey: ['friends'] });
+      const previousFriends = queryClient.getQueryData<UserProfile[]>(['friends']);
+      if (previousFriends) {
+        queryClient.setQueryData(
+          ['friends'],
+          previousFriends.filter((f) => f.id !== friendId),
+        );
+      }
+      return { previousFriends };
+    },
+
+    onError: (_err, _variables, context) => {
+      if (context?.previousFriends) {
+        queryClient.setQueryData(['friends'], context.previousFriends);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['friend-recommendations'] });
+    },
+  });
+};
+
 export const useSearchUsers = (query: string) => {
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 

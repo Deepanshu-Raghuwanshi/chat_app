@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -18,6 +19,7 @@ import { GetIncomingRequestsUseCase } from "../../application/use-cases/get-inco
 import { GetOutgoingRequestsUseCase } from "../../application/use-cases/get-outgoing-requests.use-case";
 import { GetRecommendationsUseCase } from "../../application/use-cases/get-recommendations.use-case";
 import { SearchUsersUseCase } from "../../application/use-cases/search-users.use-case";
+import { RemoveFriendUseCase } from "../../application/use-cases/remove-friend.use-case";
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -36,6 +38,7 @@ export class FriendsController {
     private readonly getOutgoingRequestsUseCase: GetOutgoingRequestsUseCase,
     private readonly getRecommendationsUseCase: GetRecommendationsUseCase,
     private readonly searchUsersUseCase: SearchUsersUseCase,
+    private readonly removeFriendUseCase: RemoveFriendUseCase,
   ) {}
 
   @Get("search")
@@ -56,6 +59,14 @@ export class FriendsController {
   @Get()
   async getFriends(@Req() req: AuthenticatedRequest) {
     return this.getFriendsUseCase.execute(req.user.id);
+  }
+
+  @Delete(":friendId")
+  async removeFriend(
+    @Req() req: AuthenticatedRequest,
+    @Param("friendId") friendId: string,
+  ) {
+    return this.removeFriendUseCase.execute(req.user.id, friendId);
   }
 
   @Get("recommendations")

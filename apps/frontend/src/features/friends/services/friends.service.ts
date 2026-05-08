@@ -50,6 +50,10 @@ export const friendsService = {
     return response.data;
   },
 
+  async removeFriend(friendId: string): Promise<void> {
+    await apiClient.delete(`/friends/${friendId}`);
+  },
+
   async searchUsers(query: string): Promise<UserProfile[]> {
     const response = await apiClient.get<UserProfile[]>('/friends/search', {
       params: { q: query },

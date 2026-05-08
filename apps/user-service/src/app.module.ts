@@ -23,6 +23,7 @@ import { GetIncomingRequestsUseCase } from "./application/use-cases/get-incoming
 import { GetOutgoingRequestsUseCase } from "./application/use-cases/get-outgoing-requests.use-case";
 import { GetRecommendationsUseCase } from "./application/use-cases/get-recommendations.use-case";
 import { SearchUsersUseCase } from "./application/use-cases/search-users.use-case";
+import { RemoveFriendUseCase } from "./application/use-cases/remove-friend.use-case";
 import { GetProfileUseCase } from "./application/use-cases/get-profile.use-case";
 import { UpdateProfileUseCase } from "./application/use-cases/update-profile.use-case";
 import { UpdateAvatarUseCase } from "./application/use-cases/update-avatar.use-case";
@@ -77,6 +78,7 @@ import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
     GetOutgoingRequestsUseCase,
     GetRecommendationsUseCase,
     SearchUsersUseCase,
+    RemoveFriendUseCase,
     GetProfileUseCase,
     UpdateProfileUseCase,
     UpdateAvatarUseCase,

@@ -7,6 +7,7 @@ import {
   useRespondToRequest,
   useRecommendations,
   useSendFriendRequest,
+  useRemoveFriend,
 } from "../hooks/useFriends";
 import { usePresence } from "../hooks/usePresence";
 import { FriendCard } from "./FriendCard";
@@ -39,6 +40,7 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
     useRecommendations();
   const { mutate: respondToRequest } = useRespondToRequest();
   const { mutate: sendRequest } = useSendFriendRequest();
+  const { mutate: removeFriend } = useRemoveFriend();
   const { mutate: createConversation } = useCreateConversation();
 
   const handleMessage = (friend: {
@@ -167,7 +169,7 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
                     avatarUrl={friend.avatarUrl}
                     isOnline={friend.isOnline}
                     onMessage={() => handleMessage(friend)}
-                    onRemove={() => console.log("Remove friend", friend.id)}
+                    onRemove={() => removeFriend(friend.id)}
                   />
                 ))}
               </div>
