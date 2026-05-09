@@ -9,6 +9,8 @@ import { ConfigService } from "@nestjs/config";
 import { PresenceGateway } from "../../interfaces/gateways/presence.gateway";
 import {
   ChatTopics,
+  FriendTopics,
+  FriendRemovedEventV1,
   MessageSentEventV1,
   MessageEditedEventV1,
   MessageDeletedEventV1,
@@ -39,6 +41,7 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
         ChatTopics.MESSAGE_SENT,
         ChatTopics.MESSAGE_EDITED,
         ChatTopics.MESSAGE_DELETED,
+        FriendTopics.FRIEND_REMOVED,
       ],
       fromBeginning: false,
     });
@@ -97,6 +100,12 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
         "message.deleted",
         event,
       );
+    } else if (topic === FriendTopics.FRIEND_REMOVED) {
+      if (!p.userId || !p.friendId) return;
+      const event = p as unknown as FriendRemovedEventV1;
+      // Notify both sides so each user's conversation list updates in real-time.
+      this.presenceGateway.emitToRoom(`user:${event.userId}`, "friendship.removed", event);
+      this.presenceGateway.emitToRoom(`user:${event.friendId}`, "friendship.removed", event);
     }
   }
 }

@@ -2,6 +2,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import { ListConversationsUseCase } from "../../src/application/use-cases/list-conversations.use-case";
 import { ConversationRepository } from "../../src/application/ports/conversation.repository";
+import { FriendshipVerifier } from "../../src/application/ports/friendship-verifier.port";
 import { ConversationViewBuilder } from "../../src/application/services/conversation-view.builder";
 import { ConversationEntity } from "../../src/domain/entities/conversation.entity";
 
@@ -29,11 +30,15 @@ function makeView(id: string) {
 describe("ListConversationsUseCase (Unit)", () => {
   let useCase: ListConversationsUseCase;
   let conversationRepoMock: Record<string, sinon.SinonStub>;
+  let friendshipVerifierMock: Record<string, sinon.SinonStub>;
   let viewBuilderMock: Record<string, sinon.SinonStub>;
 
   beforeEach(() => {
     conversationRepoMock = {
       findByUserId: sinon.stub(),
+    };
+    friendshipVerifierMock = {
+      areFriends: sinon.stub().resolves(true),
     };
     viewBuilderMock = {
       build: sinon.stub(),
@@ -41,6 +46,7 @@ describe("ListConversationsUseCase (Unit)", () => {
 
     useCase = new ListConversationsUseCase(
       conversationRepoMock as unknown as ConversationRepository,
+      friendshipVerifierMock as unknown as FriendshipVerifier,
       viewBuilderMock as unknown as ConversationViewBuilder,
     );
   });
@@ -90,5 +96,24 @@ describe("ListConversationsUseCase (Unit)", () => {
 
     expect(result.hasMore).to.equal(false);
     expect(result.nextCursor).to.equal(undefined);
+  });
+
+  it("should exclude conversations with unfriended users — regression for post-unfriend visibility bug", async () => {
+    conversationRepoMock.findByUserId.resolves([
+      makeConversation("conv1"),
+      makeConversation("conv2"),
+    ]);
+    // conv1 still friends, conv2 unfriended
+    friendshipVerifierMock.areFriends
+      .onFirstCall().resolves(true)
+      .onSecondCall().resolves(false);
+    viewBuilderMock.build.callsFake((conv: ConversationEntity) =>
+      Promise.resolve(makeView(conv.id)),
+    );
+
+    const result = await useCase.execute({ userId: "user1", limit: 20 });
+
+    expect(result.data).to.have.length(1);
+    expect(result.data[0].id).to.equal("conv1");
   });
 });

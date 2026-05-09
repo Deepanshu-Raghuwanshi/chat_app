@@ -9,6 +9,7 @@ import { SendMessageUseCase } from "../../src/application/use-cases/send-message
 import { ConversationRepository } from "../../src/application/ports/conversation.repository";
 import { ConversationParticipantRepository } from "../../src/application/ports/conversation-participant.repository";
 import { MessageRepository } from "../../src/application/ports/message.repository";
+import { FriendshipVerifier } from "../../src/application/ports/friendship-verifier.port";
 import { KafkaProducerService } from "../../src/infrastructure/messaging/kafka-producer.service";
 import { ConversationEntity } from "../../src/domain/entities/conversation.entity";
 import { ConversationParticipantEntity } from "../../src/domain/entities/conversation-participant.entity";
@@ -57,6 +58,7 @@ describe("SendMessageUseCase (Unit)", () => {
   let conversationRepoMock: Record<string, sinon.SinonStub>;
   let participantRepoMock: Record<string, sinon.SinonStub>;
   let messageRepoMock: Record<string, sinon.SinonStub>;
+  let friendshipVerifierMock: Record<string, sinon.SinonStub>;
   let kafkaProducerMock: Record<string, sinon.SinonStub>;
 
   beforeEach(() => {
@@ -70,6 +72,9 @@ describe("SendMessageUseCase (Unit)", () => {
     messageRepoMock = {
       create: sinon.stub(),
     };
+    friendshipVerifierMock = {
+      areFriends: sinon.stub().resolves(true),
+    };
     kafkaProducerMock = {
       emit: sinon.stub().resolves(),
     };
@@ -78,6 +83,7 @@ describe("SendMessageUseCase (Unit)", () => {
       conversationRepoMock as unknown as ConversationRepository,
       participantRepoMock as unknown as ConversationParticipantRepository,
       messageRepoMock as unknown as MessageRepository,
+      friendshipVerifierMock as unknown as FriendshipVerifier,
       kafkaProducerMock as unknown as KafkaProducerService,
     );
   });
@@ -169,5 +175,27 @@ describe("SendMessageUseCase (Unit)", () => {
     } catch {
       expect(kafkaProducerMock.emit.called).to.equal(false);
     }
+  });
+
+  it("should throw ForbiddenException when users are no longer friends — regression for post-unfriend messaging bug", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    friendshipVerifierMock.areFriends.resolves(false);
+
+    try {
+      await useCase.execute({
+        userId: "user1",
+        conversationId: "conv1",
+        content: "hello after unfriend",
+      });
+      expect.fail("Should have thrown ForbiddenException");
+    } catch (error) {
+      expect(error).to.be.instanceOf(ForbiddenException);
+    }
+
+    expect(messageRepoMock.create.called).to.equal(false);
+    expect(kafkaProducerMock.emit.called).to.equal(false);
   });
 });

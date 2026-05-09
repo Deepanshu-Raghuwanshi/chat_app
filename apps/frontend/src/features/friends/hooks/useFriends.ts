@@ -50,6 +50,7 @@ export const useRemoveFriend = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['friends'] });
       queryClient.invalidateQueries({ queryKey: ['friend-recommendations'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });
 };

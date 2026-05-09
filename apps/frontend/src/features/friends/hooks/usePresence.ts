@@ -21,6 +21,11 @@ interface MessageNewPayload {
   sentAt: string;
 }
 
+interface FriendshipRemovedPayload {
+  userId: string;
+  friendId: string;
+}
+
 let socket: Socket | null = null;
 
 export const usePresence = () => {
@@ -49,6 +54,13 @@ export const usePresence = () => {
             return friend;
           });
         });
+      });
+
+      socket.on("friendship.removed", (_data: FriendshipRemovedPayload) => {
+        // Invalidate the conversation list for both the remover and the removed user
+        // so neither sees the stale conversation in their sidebar.
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        queryClient.invalidateQueries({ queryKey: ["friends"] });
       });
 
       socket.on("message.new", (data: MessageNewPayload) => {

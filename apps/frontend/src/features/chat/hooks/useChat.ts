@@ -7,6 +7,8 @@ import {
   useQueryClient,
   InfiniteData,
 } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 import { chatService } from "../services/chat.service";
 import { Conversation, Message, MessageListResponse } from "@shared-types";
 import { showToast } from "../../../shared/utils/toast";
@@ -67,6 +69,7 @@ export const useCreateConversation = () => {
 
 export const useSendMessage = (conversationId: string) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const t = useTranslations("features.chat.errors");
 
@@ -109,14 +112,20 @@ export const useSendMessage = (conversationId: string) => {
 
       return { snapshot };
     },
-    onError: (_err, _content, context) => {
+    onError: (err, _content, context) => {
       if (context?.snapshot) {
         queryClient.setQueryData(
           ["messages", conversationId],
           context.snapshot,
         );
       }
-      showToast.error(t("send_failed"));
+      if (axios.isAxiosError(err) && err.response?.status === 403) {
+        showToast.error(t("no_longer_friends"));
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        router.push("/chat");
+      } else {
+        showToast.error(t("send_failed"));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
