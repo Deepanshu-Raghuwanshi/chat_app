@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { Users, UserPlus } from 'lucide-react';
+import { Users, UserPlus, Search } from 'lucide-react';
 import { cn } from '../../../shared/utils/cn';
 
 interface SubNavbarProps {
-  activeTab: 'friends' | 'requests';
-  onTabChange: (tab: 'friends' | 'requests') => void;
+  activeTab: 'friends' | 'requests' | 'search';
+  onTabChange: (tab: 'friends' | 'requests' | 'search') => void;
   requestCount?: number;
 }
 
@@ -49,6 +49,20 @@ export const SubNavbar = ({ activeTab, onTabChange, requestCount = 0 }: SubNavba
               )}
             </div>
             {activeTab === 'requests' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
+          </button>
+
+          <button
+            onClick={() => onTabChange('search')}
+            title={t('search')}
+            className={cn(
+              "flex items-center justify-center py-4 transition-all relative",
+              activeTab === 'search' ? "text-primary" : "text-gray-500 hover:text-gray-900"
+            )}
+          >
+            <Search className="w-5 h-5" />
+            {activeTab === 'search' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
             )}
           </button>

@@ -46,8 +46,8 @@ export class SendFriendRequestUseCase {
     }
 
     let request;
-    // If there was a REJECTED request, we might want to allow re-sending or update the status back to PENDING
-    if (existingRequest && existingRequest.status === FriendRequestStatus.REJECTED) {
+    // Reuse the existing row (REJECTED or ACCEPTED after unfriend) rather than creating a duplicate
+    if (existingRequest) {
       request = await this.friendRequestRepository.updateStatus(existingRequest.id, FriendRequestStatus.PENDING);
     } else {
       request = await this.friendRequestRepository.create({

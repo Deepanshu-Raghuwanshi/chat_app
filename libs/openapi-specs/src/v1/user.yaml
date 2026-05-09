@@ -7,7 +7,7 @@ paths:
     get:
       summary: Get current user profile
       responses:
-        '200':
+        "200":
           description: User profile
     patch:
       summary: Update user profile
@@ -29,7 +29,7 @@ paths:
                 status:
                   type: string
       responses:
-        '200':
+        "200":
           description: Profile updated
   /api/v1/profile/avatar:
     post:
@@ -45,7 +45,7 @@ paths:
                   type: string
                   format: binary
       responses:
-        '200':
+        "200":
           description: Avatar uploaded
           content:
             application/json:
@@ -64,13 +64,13 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: User profile
   /api/v1/friends:
     get:
       summary: List all friends
       responses:
-        '200':
+        "200":
           description: List of friend IDs
   /api/v1/friends/requests:
     post:
@@ -85,13 +85,53 @@ paths:
                 receiverId:
                   type: string
       responses:
-        '201':
+        "201":
           description: Request sent
+  /api/v1/friends/search:
+    get:
+      summary: Search users by username or full name
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query (minimum 2 characters). Matches partial username or full name, case-insensitive.
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+      responses:
+        "200":
+          description: >
+            List of all matching users (excludes the requesting user only).
+            Each result includes a relationshipStatus field indicating whether
+            the matched user is already a friend, has a pending request in either
+            direction, or has no relationship with the requester.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserSearchResult"
+        "400":
+          description: Query too short or missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/friends/requests/incoming:
     get:
       summary: Get incoming friend requests
       responses:
-        '200':
+        "200":
           description: List of incoming requests
   /api/v1/friends/requests/{requestId}/respond:
     post:
@@ -113,11 +153,52 @@ paths:
                   type: string
                   enum: [ACCEPT, REJECT]
       responses:
-        '200':
+        "200":
           description: Response recorded
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+        method:
+          type: string
+        error:
+          type: string
+        message:
+          type: string
+
+    RelationshipStatus:
+      type: string
+      enum: [friend, pending_incoming, pending_outgoing, none]
+      description: >
+        Relationship between the requesting user and a search result.
+        friend: already connected. pending_outgoing: requester sent a request awaiting response.
+        pending_incoming: the matched user sent a request to the requester. none: no relationship.
+
+    UserSearchResult:
+      allOf:
+        - $ref: "#/components/schemas/UserProfile"
+        - type: object
+          required:
+            - relationshipStatus
+          properties:
+            relationshipStatus:
+              $ref: "#/components/schemas/RelationshipStatus"
+
     UserProfile:
       type: object
       required:
@@ -163,6 +244,6 @@ components:
           type: string
           format: date-time
         sender:
-          $ref: '#/components/schemas/UserProfile'
+          $ref: "#/components/schemas/UserProfile"
         receiver:
-          $ref: '#/components/schemas/UserProfile'
+          $ref: "#/components/schemas/UserProfile"

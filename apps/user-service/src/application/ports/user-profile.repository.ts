@@ -1,4 +1,4 @@
-import { UserProfile } from '@prisma/client-user';
+import { UserProfile } from "@prisma/client-user";
 
 export interface UserProfileRepository {
   findById(id: string): Promise<UserProfile | null>;
@@ -6,6 +6,8 @@ export interface UserProfileRepository {
   findByUsername(username: string): Promise<UserProfile | null>;
 
   findAllExcept(ids: string[]): Promise<UserProfile[]>;
+
+  search(query: string, excludeIds: string[]): Promise<UserProfile[]>;
 
   upsert(data: {
     id: string;

@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
-import { UserProfile } from '@prisma/client-user';
-import { UserProfileRepository } from '../../application/ports/user-profile.repository';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "./prisma.service";
+import { UserProfile } from "@prisma/client-user";
+import { UserProfileRepository } from "../../application/ports/user-profile.repository";
 
 @Injectable()
 export class PrismaUserProfileRepository implements UserProfileRepository {
@@ -27,6 +27,24 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
         },
       },
       take: 20, // Limit recommendations
+    });
+  }
+
+  async search(query: string, excludeIds: string[]): Promise<UserProfile[]> {
+    return this.prisma.userProfile.findMany({
+      where: {
+        AND: [
+          { id: { notIn: excludeIds } },
+          {
+            OR: [
+              { username: { contains: query, mode: "insensitive" } },
+              { fullName: { contains: query, mode: "insensitive" } },
+            ],
+          },
+        ],
+      },
+      orderBy: { username: "asc" },
+      take: 20,
     });
   }
 

@@ -181,8 +181,15 @@
         "no_friends": "No friends yet. Start adding people!",
         "no_recommendations": "No new recommendations right now. Check back later!"
       },
+      "search": {
+        "placeholder": "Search by username or name...",
+        "idle": "Type at least 2 characters to search",
+        "no_results": "No users found"
+      },
       "buttons": {
         "add_friend": "Add Friend",
+        "already_friends": "Friends",
+        "request_pending": "Pending",
         "accept": "Accept",
         "reject": "Reject",
         "remove": "Remove Friend",
@@ -243,6 +250,7 @@
       "friends": {
         "friends_recs": "Friends",
         "requests": "Requests",
+        "search": "Search",
         "no_requests": "No incoming requests"
       }
     },

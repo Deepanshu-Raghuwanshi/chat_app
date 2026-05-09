@@ -15,7 +15,8 @@
     "isolatedModules": true,
     "types": [
       "node",
-      "next"
+      "next",
+      "vitest/globals"
     ],
     "plugins": [
       {
