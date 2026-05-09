@@ -8,6 +8,7 @@ import {
 import { ConversationRepository } from "../ports/conversation.repository";
 import { ConversationParticipantRepository } from "../ports/conversation-participant.repository";
 import { MessageRepository } from "../ports/message.repository";
+import { FriendshipVerifier } from "../ports/friendship-verifier.port";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import { MessageView } from "../interfaces/conversation-view.interface";
 import { MessageEntity } from "../../domain/entities/message.entity";
@@ -29,6 +30,8 @@ export class SendMessageUseCase {
     private readonly participantRepository: ConversationParticipantRepository,
     @Inject("MessageRepository")
     private readonly messageRepository: MessageRepository,
+    @Inject("FriendshipVerifier")
+    private readonly friendshipVerifier: FriendshipVerifier,
     private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
@@ -56,6 +59,16 @@ export class SendMessageUseCase {
       );
     }
 
+    const receiverId =
+      conversation.participant1Id === userId
+        ? conversation.participant2Id
+        : conversation.participant1Id;
+
+    const areFriends = await this.friendshipVerifier.areFriends(userId, receiverId);
+    if (!areFriends) {
+      throw new ForbiddenException("You can no longer message this user");
+    }
+
     const message = await this.messageRepository.create({
       conversationId,
       senderId: userId,
@@ -69,11 +82,6 @@ export class SendMessageUseCase {
       content: content.trim(),
       sentAt: message.createdAt,
     });
-
-    const receiverId =
-      conversation.participant1Id === userId
-        ? conversation.participant2Id
-        : conversation.participant1Id;
 
     await this.kafkaProducer.emit(ChatTopics.MESSAGE_SENT, {
       messageId: message.id,

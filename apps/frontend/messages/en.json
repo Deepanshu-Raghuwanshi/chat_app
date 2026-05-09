@@ -234,7 +234,8 @@
         "delete_failed": "Failed to delete message",
         "open_failed": "Failed to open conversation",
         "not_found": "Conversation not found",
-        "back_to_chats": "Back to conversations"
+        "back_to_chats": "Back to conversations",
+        "no_longer_friends": "You're no longer friends with this user"
       }
     },
     "navbar": {
