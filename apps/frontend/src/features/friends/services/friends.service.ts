@@ -9,6 +9,16 @@ export interface UserProfile {
   isOnline?: boolean;
 }
 
+export type RelationshipStatus =
+  | 'friend'
+  | 'pending_incoming'
+  | 'pending_outgoing'
+  | 'none';
+
+export interface UserSearchResult extends UserProfile {
+  relationshipStatus: RelationshipStatus;
+}
+
 export interface FriendRequest {
   id: string;
   senderId: string;
@@ -54,8 +64,8 @@ export const friendsService = {
     await apiClient.delete(`/friends/${friendId}`);
   },
 
-  async searchUsers(query: string): Promise<UserProfile[]> {
-    const response = await apiClient.get<UserProfile[]>('/friends/search', {
+  async searchUsers(query: string): Promise<UserSearchResult[]> {
+    const response = await apiClient.get<UserSearchResult[]>('/friends/search', {
       params: { q: query },
     });
     return response.data;

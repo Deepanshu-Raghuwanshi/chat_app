@@ -94,7 +94,7 @@ describe("SearchUsersUseCase (Unit)", () => {
   });
 
   describe("happy path", () => {
-    it("should call search with trimmed query and return profiles", async () => {
+    it("should call search with trimmed query and return profiles annotated with relationshipStatus 'none'", async () => {
       const profiles = [makeProfile("u2"), makeProfile("u3")];
       userProfileRepo.search.resolves(profiles);
 
@@ -103,7 +103,10 @@ describe("SearchUsersUseCase (Unit)", () => {
       expect(userProfileRepo.search.calledOnce).to.be.equal(true);
       const [calledQuery] = userProfileRepo.search.firstCall.args;
       expect(calledQuery).to.equal("ali");
-      expect(result).to.deep.equal(profiles);
+      expect(result).to.deep.equal([
+        { ...profiles[0], relationshipStatus: "none" },
+        { ...profiles[1], relationshipStatus: "none" },
+      ]);
     });
 
     it("should return empty array when repository returns empty array", async () => {
@@ -114,7 +117,7 @@ describe("SearchUsersUseCase (Unit)", () => {
   });
 
   describe("exclusion list", () => {
-    it("should always exclude the requesting user", async () => {
+    it("should pass only the requesting user in excludeIds to the repository", async () => {
       userProfileRepo.search.resolves([]);
       await useCase.execute("u1", "ali");
 
@@ -122,83 +125,63 @@ describe("SearchUsersUseCase (Unit)", () => {
         string,
         string[],
       ];
-      expect(excludeIds).to.include("u1");
+      expect(excludeIds).to.deep.equal(["u1"]);
     });
 
-    it("should exclude current friends", async () => {
+    it("should annotate current friends with 'friend' status", async () => {
       friendshipRepo.findByUserId.resolves([{ userId1: "u1", userId2: "u2" }]);
-      userProfileRepo.search.resolves([]);
+      userProfileRepo.search.resolves([makeProfile("u2")]);
 
-      await useCase.execute("u1", "ali");
+      const result = await useCase.execute("u1", "ali");
 
-      const [, excludeIds] = userProfileRepo.search.firstCall.args as [
-        string,
-        string[],
-      ];
-      expect(excludeIds).to.include("u2");
+      expect(result[0].relationshipStatus).to.equal("friend");
     });
 
-    it("should exclude PENDING incoming request senders", async () => {
+    it("should annotate PENDING incoming request senders with 'pending_incoming'", async () => {
       friendRequestRepo.findIncomingByUserId.resolves([
         { senderId: "u3", status: "PENDING" },
       ]);
-      userProfileRepo.search.resolves([]);
+      userProfileRepo.search.resolves([makeProfile("u3")]);
 
-      await useCase.execute("u1", "ali");
+      const result = await useCase.execute("u1", "ali");
 
-      const [, excludeIds] = userProfileRepo.search.firstCall.args as [
-        string,
-        string[],
-      ];
-      expect(excludeIds).to.include("u3");
+      expect(result[0].relationshipStatus).to.equal("pending_incoming");
     });
 
-    it("should exclude PENDING outgoing request receivers", async () => {
+    it("should annotate PENDING outgoing request receivers with 'pending_outgoing'", async () => {
       friendRequestRepo.findOutgoingByUserId.resolves([
         { receiverId: "u4", status: "PENDING" },
       ]);
-      userProfileRepo.search.resolves([]);
+      userProfileRepo.search.resolves([makeProfile("u4")]);
 
-      await useCase.execute("u1", "ali");
+      const result = await useCase.execute("u1", "ali");
 
-      const [, excludeIds] = userProfileRepo.search.firstCall.args as [
-        string,
-        string[],
-      ];
-      expect(excludeIds).to.include("u4");
+      expect(result[0].relationshipStatus).to.equal("pending_outgoing");
     });
 
-    it("should NOT exclude users with REJECTED requests", async () => {
+    it("should annotate users with REJECTED requests as 'none'", async () => {
       friendRequestRepo.findOutgoingByUserId.resolves([
         { receiverId: "u5", status: "REJECTED" },
       ]);
-      userProfileRepo.search.resolves([]);
+      userProfileRepo.search.resolves([makeProfile("u5")]);
 
-      await useCase.execute("u1", "ali");
+      const result = await useCase.execute("u1", "ali");
 
-      const [, excludeIds] = userProfileRepo.search.firstCall.args as [
-        string,
-        string[],
-      ];
-      expect(excludeIds).to.not.include("u5");
+      expect(result[0].relationshipStatus).to.equal("none");
     });
 
-    it("should NOT exclude users with ACCEPTED requests (friendship model handles that)", async () => {
+    it("should annotate users with ACCEPTED requests as 'none' (friendship model handles friend status)", async () => {
       friendRequestRepo.findOutgoingByUserId.resolves([
         { receiverId: "u6", status: "ACCEPTED" },
       ]);
-      userProfileRepo.search.resolves([]);
+      userProfileRepo.search.resolves([makeProfile("u6")]);
 
-      await useCase.execute("u1", "ali");
+      const result = await useCase.execute("u1", "ali");
 
-      const [, excludeIds] = userProfileRepo.search.firstCall.args as [
-        string,
-        string[],
-      ];
-      expect(excludeIds).to.not.include("u6");
+      expect(result[0].relationshipStatus).to.equal("none");
     });
 
-    it("should build correct excludeIds with all sources combined", async () => {
+    it("should annotate all relationship types correctly in a combined result", async () => {
       friendshipRepo.findByUserId.resolves([{ userId1: "u1", userId2: "u2" }]);
       friendRequestRepo.findIncomingByUserId.resolves([
         { senderId: "u3", status: "PENDING" },
@@ -206,18 +189,33 @@ describe("SearchUsersUseCase (Unit)", () => {
       friendRequestRepo.findOutgoingByUserId.resolves([
         { receiverId: "u4", status: "PENDING" },
       ]);
-      userProfileRepo.search.resolves([]);
+      userProfileRepo.search.resolves([
+        makeProfile("u2"),
+        makeProfile("u3"),
+        makeProfile("u4"),
+        makeProfile("u5"),
+      ]);
 
-      await useCase.execute("u1", "ali");
+      const result = await useCase.execute("u1", "ali");
 
       const [, excludeIds] = userProfileRepo.search.firstCall.args as [
         string,
         string[],
       ];
-      expect(excludeIds).to.include("u1");
-      expect(excludeIds).to.include("u2");
-      expect(excludeIds).to.include("u3");
-      expect(excludeIds).to.include("u4");
+      expect(excludeIds).to.deep.equal(["u1"]);
+
+      expect(result.find((r) => r.id === "u2")?.relationshipStatus).to.equal(
+        "friend",
+      );
+      expect(result.find((r) => r.id === "u3")?.relationshipStatus).to.equal(
+        "pending_incoming",
+      );
+      expect(result.find((r) => r.id === "u4")?.relationshipStatus).to.equal(
+        "pending_outgoing",
+      );
+      expect(result.find((r) => r.id === "u5")?.relationshipStatus).to.equal(
+        "none",
+      );
     });
   });
 });

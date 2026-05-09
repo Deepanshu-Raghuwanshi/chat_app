@@ -188,6 +188,8 @@
       },
       "buttons": {
         "add_friend": "Add Friend",
+        "already_friends": "Friends",
+        "request_pending": "Pending",
         "accept": "Accept",
         "reject": "Reject",
         "remove": "Remove Friend",

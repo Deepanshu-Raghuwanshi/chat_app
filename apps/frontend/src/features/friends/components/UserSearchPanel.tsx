@@ -3,9 +3,43 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Search, Users } from 'lucide-react';
+import { Search, Users, UserCheck, Clock } from 'lucide-react';
 import { useSearchUsers } from '../hooks/useFriends';
 import { Spinner } from '../../../shared/components/ui/spinner';
+import { UserSearchResult } from '../services/friends.service';
+
+interface RelationshipButtonProps {
+  user: UserSearchResult;
+  onSendRequest: (userId: string) => void;
+  t: ReturnType<typeof useTranslations>;
+}
+
+const RelationshipButton = ({ user, onSendRequest, t }: RelationshipButtonProps) => {
+  if (user.relationshipStatus === 'friend') {
+    return (
+      <span className="flex items-center gap-1.5 px-3 py-2 bg-green-50 text-green-700 text-sm font-semibold rounded-lg">
+        <UserCheck className="w-4 h-4" />
+        {t('buttons.already_friends')}
+      </span>
+    );
+  }
+  if (user.relationshipStatus === 'pending_outgoing' || user.relationshipStatus === 'pending_incoming') {
+    return (
+      <span className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-lg">
+        <Clock className="w-4 h-4" />
+        {t('buttons.request_pending')}
+      </span>
+    );
+  }
+  return (
+    <button
+      onClick={() => onSendRequest(user.id)}
+      className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors shadow-sm"
+    >
+      {t('buttons.add_friend')}
+    </button>
+  );
+};
 
 interface UserSearchPanelProps {
   onSendRequest: (userId: string) => void;
@@ -81,12 +115,7 @@ export const UserSearchPanel = ({ onSendRequest }: UserSearchPanelProps) => {
                   </p>
                 </div>
               </Link>
-              <button
-                onClick={() => onSendRequest(user.id)}
-                className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors shadow-sm"
-              >
-                {t('buttons.add_friend')}
-              </button>
+              <RelationshipButton user={user} onSendRequest={onSendRequest} t={t} />
             </div>
           ))}
         </div>

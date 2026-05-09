@@ -103,13 +103,17 @@ paths:
             maxLength: 100
       responses:
         "200":
-          description: List of matching user profiles (excludes current user, existing friends, and users with pending requests)
+          description: >
+            List of all matching users (excludes the requesting user only).
+            Each result includes a relationshipStatus field indicating whether
+            the matched user is already a friend, has a pending request in either
+            direction, or has no relationship with the requester.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UserProfile"
+                  $ref: "#/components/schemas/UserSearchResult"
         "400":
           description: Query too short or missing
           content:
@@ -176,6 +180,24 @@ components:
           type: string
         message:
           type: string
+
+    RelationshipStatus:
+      type: string
+      enum: [friend, pending_incoming, pending_outgoing, none]
+      description: >
+        Relationship between the requesting user and a search result.
+        friend: already connected. pending_outgoing: requester sent a request awaiting response.
+        pending_incoming: the matched user sent a request to the requester. none: no relationship.
+
+    UserSearchResult:
+      allOf:
+        - $ref: "#/components/schemas/UserProfile"
+        - type: object
+          required:
+            - relationshipStatus
+          properties:
+            relationshipStatus:
+              $ref: "#/components/schemas/RelationshipStatus"
 
     UserProfile:
       type: object

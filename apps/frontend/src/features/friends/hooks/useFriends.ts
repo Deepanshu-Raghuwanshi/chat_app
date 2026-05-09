@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
-import { friendsService, FriendRequest, UserProfile } from '../services/friends.service';
+import { friendsService, FriendRequest, UserProfile, UserSearchResult } from '../services/friends.service';
 
 export const useFriends = () => {
   return useQuery({
@@ -62,7 +62,7 @@ export const useSearchUsers = (query: string) => {
     return () => clearTimeout(t);
   }, [query]);
 
-  return useQuery({
+  return useQuery<UserSearchResult[]>({
     queryKey: ['user-search', debouncedQuery],
     queryFn: () => friendsService.searchUsers(debouncedQuery),
     enabled: debouncedQuery.length >= 2,
@@ -86,6 +86,7 @@ export const useSendFriendRequest = () => {
       // Snapshot the previous values
       const previousOutgoing = queryClient.getQueryData<FriendRequest[]>(['friend-requests', 'outgoing']);
       const previousRecommendations = queryClient.getQueryData<UserProfile[]>(['friend-recommendations']);
+      const previousSearchQueries = queryClient.getQueriesData<UserSearchResult[]>({ queryKey: ['user-search'] });
 
       // Optimistically remove from recommendations
       if (previousRecommendations) {
@@ -95,13 +96,16 @@ export const useSendFriendRequest = () => {
         );
       }
 
-      // Optimistically remove from search results
-      queryClient.setQueriesData<UserProfile[]>(
+      // Optimistically mark as pending_outgoing in search results
+      queryClient.setQueriesData<UserSearchResult[]>(
         { queryKey: ['user-search'], exact: false },
-        (old) => old?.filter((u) => u.id !== receiverId) ?? old,
+        (old) =>
+          old?.map((u) =>
+            u.id === receiverId ? { ...u, relationshipStatus: 'pending_outgoing' as const } : u,
+          ) ?? old,
       );
 
-      return { previousOutgoing, previousRecommendations };
+      return { previousOutgoing, previousRecommendations, previousSearchQueries };
     },
 
     // If the mutation fails, use the context returned from onMutate to roll back
@@ -111,6 +115,9 @@ export const useSendFriendRequest = () => {
       }
       if (context?.previousRecommendations) {
         queryClient.setQueryData(['friend-recommendations'], context.previousRecommendations);
+      }
+      for (const [queryKey, data] of (context?.previousSearchQueries ?? [])) {
+        queryClient.setQueryData(queryKey, data);
       }
     },
 

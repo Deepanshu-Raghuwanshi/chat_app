@@ -2,7 +2,7 @@
 
 ## 1. Summary
 
-The friend search feature lets authenticated users find other users on the platform by typing a partial username or full name. Results are filtered to exclude people the requester has already friended or has a pending request with, so every result shown is actionable. After finding a match the user can send a friend request inline, or navigate to the matched user's profile. The feature ships as a third tab on the existing Friends page, keeping the UI consistent with the current tab pattern.
+The friend search feature lets authenticated users find other users on the platform by typing a partial username or full name. Results include **all users** (excluding only the requester themselves), with each result annotated with a `relationshipStatus` field so the UI can render the appropriate action: "Add Friend" for new connections, "Pending" for in-flight requests, and "Friends" for existing connections. After finding a match the user can send a friend request inline, or navigate to the matched user's profile. The feature ships as a third tab on the existing Friends page, keeping the UI consistent with the current tab pattern.
 
 ---
 
@@ -69,10 +69,13 @@ model UserProfile {
 2. They click the new **Search** tab (magnifying glass icon) in `SubNavbar`.
 3. A search input appears. Typing fewer than 2 characters shows an idle state.
 4. After typing ≥ 2 characters (debounced 300 ms) the app calls `GET /api/v1/friends/search?q=<query>`.
-5. Results show up to 20 user cards. Each card shows avatar, display name (fullName fallback to username), and an **Add Friend** button.
+5. Results show up to 20 user cards. Each card shows avatar, display name (fullName fallback to username), and an action indicator based on relationship:
+   - **No relationship** → **Add Friend** button
+   - **Pending request** (either direction) → "Pending" badge (no action)
+   - **Already friends** → "Friends" badge (no action)
 6. Clicking **Add Friend** calls the existing `POST /api/v1/friends/requests` — exactly as recommendations do today.
 7. Clicking the user's name/avatar navigates to `/profile/:id` — the existing profile page.
-8. After sending a request, the card disappears from search results (optimistic update, same pattern as `useSendFriendRequest`).
+8. After sending a request, the card optimistically updates to show "Pending" status (no longer removed from results).
 9. Clearing the input returns to the idle state (no results, no spinner).
 
 ### Data flow
@@ -85,14 +88,15 @@ Client (300ms debounce)
   → API Gateway (proxy /api/v1/* → user-service)
   → FriendsController.search(@Query('q'), req.user.id)
   → SearchUsersUseCase.execute(userId, query)
-      → FriendshipRepository.findByUserId(userId)         // get friend IDs
-      → FriendRequestRepository.findIncomingByUserId(userId) // pending incoming
-      → FriendRequestRepository.findOutgoingByUserId(userId) // pending outgoing
-      → UserProfileRepository.search(query, excludeIds)
+      → FriendshipRepository.findByUserId(userId)            // annotate as 'friend'
+      → FriendRequestRepository.findIncomingByUserId(userId) // annotate as 'pending_incoming'
+      → FriendRequestRepository.findOutgoingByUserId(userId) // annotate as 'pending_outgoing'
+      → UserProfileRepository.search(query, [userId])        // only self excluded
           → Prisma: WHERE (username ILIKE '%q%' OR fullName ILIKE '%q%')
-                    AND id NOT IN (excludeIds)
+                    AND id NOT IN ([userId])
                     ORDER BY username ASC LIMIT 20
-  ← UserProfile[]
+      → annotate each profile with relationshipStatus
+  ← UserSearchResult[]  (UserProfile + { relationshipStatus })
 ```
 
 **Send friend request (unchanged flow, reused):**
@@ -108,7 +112,8 @@ Client → POST /api/v1/friends/requests { receiverId }
 - **Maximum query length**: 100 characters (to prevent pathological DB queries).
 - **Match type**: Partial, case-insensitive (`ILIKE '%q%'`). Not exact match.
 - **Search fields**: `username` and `fullName` only. `email` is not in user-service's DB and cannot be searched. `phoneNumber` is PII and is not exposed in search.
-- **Exclusion**: Results never include the requesting user, their current friends, or users with any PENDING request in either direction — identical exclusion logic to recommendations.
+- **Exclusion**: Only the requesting user is excluded from results. Friends and users with pending requests are included but annotated with their `relationshipStatus`.
+- **Relationship annotation**: Each result carries `relationshipStatus`: `'friend'`, `'pending_outgoing'`, `'pending_incoming'`, or `'none'`. Frontend uses this to render the correct action badge.
 - **Result limit**: Maximum 20 results, ordered by `username ASC`.
 - **Empty query**: Backend is not called. Frontend shows idle state.
 - **No results**: Frontend shows an empty-state message.
@@ -196,21 +201,21 @@ No new DTO needed. The controller accepts `q: string` from `@Query()` directly; 
 
 New file: `apps/user-service/src/application/use-cases/search-users.use-case.ts`
 
-| Use Case             | HTTP trigger             | Business rules enforced               | Events emitted |
-| -------------------- | ------------------------ | ------------------------------------- | -------------- |
-| `SearchUsersUseCase` | `GET /friends/search?q=` | min length 2, max 100, exclusion list | none           |
+| Use Case             | HTTP trigger             | Business rules enforced                     | Events emitted |
+| -------------------- | ------------------------ | ------------------------------------------- | -------------- |
+| `SearchUsersUseCase` | `GET /friends/search?q=` | min length 2, max 100, self-exclusion only  | none           |
 
 **Execution sequence:**
 
 1. Validate `query.trim().length >= 2` → throw `BadRequestException('Search query must be at least 2 characters')` if not.
 2. Validate `query.length <= 100` → throw `BadRequestException('Search query too long')` if not.
-3. `friendshipRepository.findByUserId(userId)` → extract friend IDs.
-4. `friendRequestRepository.findIncomingByUserId(userId)` → extract PENDING sender IDs.
-5. `friendRequestRepository.findOutgoingByUserId(userId)` → extract PENDING receiver IDs.
-6. Build `excludeIds = [userId, ...friendIds, ...pendingIncomingIds, ...pendingOutgoingIds]`.
-7. `userProfileRepository.search(query.trim(), excludeIds)` → return results.
+3. `friendshipRepository.findByUserId(userId)` → build `friendIdSet`.
+4. `friendRequestRepository.findIncomingByUserId(userId)` → build `pendingIncomingSet` (PENDING only).
+5. `friendRequestRepository.findOutgoingByUserId(userId)` → build `pendingOutgoingSet` (PENDING only).
+6. `userProfileRepository.search(query.trim(), [userId])` → fetch all matching users except self.
+7. Map each profile to `UserSearchResult` by annotating with `relationshipStatus`: `'friend'` | `'pending_outgoing'` | `'pending_incoming'` | `'none'`.
 
-This is intentionally identical to `GetRecommendationsUseCase` steps 1–4, extended with text search in step 7.
+Returns `UserSearchResult[]` — `UserProfile` extended with `{ relationshipStatus: RelationshipStatus }`.
 
 ### 2.3 Infrastructure Layer
 
@@ -342,18 +347,23 @@ pnpm nx test user-service
 
 File: `apps/frontend/src/features/friends/services/friends.service.ts` (modified)
 
+Add types:
+
+```typescript
+export type RelationshipStatus = 'friend' | 'pending_incoming' | 'pending_outgoing' | 'none';
+export interface UserSearchResult extends UserProfile { relationshipStatus: RelationshipStatus; }
+```
+
 Add to existing `friendsService` object:
 
 ```typescript
-async searchUsers(query: string): Promise<UserProfile[]> {
-  const response = await apiClient.get<UserProfile[]>('/friends/search', {
+async searchUsers(query: string): Promise<UserSearchResult[]> {
+  const response = await apiClient.get<UserSearchResult[]>('/friends/search', {
     params: { q: query },
   });
   return response.data;
 },
 ```
-
-No new types needed — `UserProfile` is already defined in this file.
 
 ### 3.3 Hooks
 
@@ -381,21 +391,20 @@ export const useSearchUsers = (query: string) => {
 };
 ```
 
-**After sending a friend request from search results**, the search cache must be updated optimistically. Extend the existing `useSendFriendRequest` mutation's `onMutate` to also remove the user from `['user-search', *]` queries:
+**After sending a friend request from search results**, the search cache is updated optimistically. Extend the existing `useSendFriendRequest` mutation's `onMutate` to update the matched user's `relationshipStatus` to `'pending_outgoing'` (instead of removing):
 
 ```typescript
-// inside useSendFriendRequest onMutate, after existing optimistic updates:
-queryClient.setQueriesData<UserProfile[]>(
+// snapshot for rollback
+const previousSearchQueries = queryClient.getQueriesData<UserSearchResult[]>({ queryKey: ['user-search'] });
+
+// optimistic status update
+queryClient.setQueriesData<UserSearchResult[]>(
   { queryKey: ["user-search"], exact: false },
-  (old) => old?.filter((u) => u.id !== receiverId) ?? old,
+  (old) => old?.map((u) => u.id === receiverId ? { ...u, relationshipStatus: 'pending_outgoing' as const } : u) ?? old,
 );
 ```
 
-And in `onError`, restore the search results alongside recommendations (add to rollback context). In `onSettled`, invalidate `['user-search']`:
-
-```typescript
-queryClient.invalidateQueries({ queryKey: ["user-search"] });
-```
+In `onError`, restore each cached query using `previousSearchQueries`. In `onSettled`, invalidate `['user-search']`.
 
 ### 3.4 Zustand Store Changes
 
@@ -434,7 +443,8 @@ Responsibilities:
 - Shows loading spinner while `isLoading && debouncedQuery.length >= 2`
 - Shows idle state when `query.length < 2`
 - Shows empty state when results array is empty and query is valid
-- Shows user cards using the same visual style as `RecommendationList` (avatar, name, Add Friend button, profile link)
+- Shows user cards using the same visual style as `RecommendationList` (avatar, name, profile link)
+- Renders a `RelationshipButton` per card: "Add Friend" when `relationshipStatus === 'none'`, "Pending" badge for `pending_outgoing`/`pending_incoming`, "Friends" badge for `friend`
 
 #### `FriendList.tsx` — modified
 

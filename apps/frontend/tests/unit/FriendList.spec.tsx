@@ -9,6 +9,7 @@ import {
   useRecommendations,
   useRespondToRequest,
   useSendFriendRequest,
+  useRemoveFriend,
 } from "../../src/features/friends/hooks/useFriends";
 import { usePresence } from "../../src/features/friends/hooks/usePresence";
 
@@ -50,6 +51,9 @@ describe("FriendList Component", () => {
 
   beforeEach(() => {
     vi.mocked(usePresence).mockReturnValue(undefined);
+    vi.mocked(useRemoveFriend).mockReturnValue({
+      mutate: vi.fn(),
+    } as unknown as ReturnType<typeof useRemoveFriend>);
   });
 
   it('should render Friends and Recommendations in "friends" tab', () => {

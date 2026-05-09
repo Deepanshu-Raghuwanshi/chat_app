@@ -5,6 +5,16 @@ import { UserProfileRepository } from "../ports/user-profile.repository";
 import { FriendshipRepository } from "../ports/friendship.repository";
 import { FriendRequestRepository } from "../ports/friend-request.repository";
 
+export type RelationshipStatus =
+  | "friend"
+  | "pending_incoming"
+  | "pending_outgoing"
+  | "none";
+
+export type UserSearchResult = UserProfile & {
+  relationshipStatus: RelationshipStatus;
+};
+
 @Injectable()
 export class SearchUsersUseCase {
   constructor(
@@ -19,7 +29,7 @@ export class SearchUsersUseCase {
   async execute(
     userId: string,
     query: string | undefined,
-  ): Promise<UserProfile[]> {
+  ): Promise<UserSearchResult[]> {
     const trimmed = query?.trim() ?? "";
 
     if (trimmed.length < 2) {
@@ -39,23 +49,34 @@ export class SearchUsersUseCase {
       ],
     );
 
-    const friendIds = friendships.map((f) =>
-      f.userId1 === userId ? f.userId2 : f.userId1,
+    const friendIdSet = new Set(
+      friendships.map((f) => (f.userId1 === userId ? f.userId2 : f.userId1)),
     );
-    const pendingIncomingIds = incomingRequests
-      .filter((r) => r.status === FriendRequestStatus.PENDING)
-      .map((r) => r.senderId);
-    const pendingOutgoingIds = outgoingRequests
-      .filter((r) => r.status === FriendRequestStatus.PENDING)
-      .map((r) => r.receiverId);
+    const pendingIncomingSet = new Set(
+      incomingRequests
+        .filter((r) => r.status === FriendRequestStatus.PENDING)
+        .map((r) => r.senderId),
+    );
+    const pendingOutgoingSet = new Set(
+      outgoingRequests
+        .filter((r) => r.status === FriendRequestStatus.PENDING)
+        .map((r) => r.receiverId),
+    );
 
-    const excludeIds = [
+    const profiles = await this.userProfileRepository.search(trimmed, [
       userId,
-      ...friendIds,
-      ...pendingIncomingIds,
-      ...pendingOutgoingIds,
-    ];
+    ]);
 
-    return this.userProfileRepository.search(trimmed, excludeIds);
+    return profiles.map((profile) => {
+      let relationshipStatus: RelationshipStatus = "none";
+      if (friendIdSet.has(profile.id)) {
+        relationshipStatus = "friend";
+      } else if (pendingOutgoingSet.has(profile.id)) {
+        relationshipStatus = "pending_outgoing";
+      } else if (pendingIncomingSet.has(profile.id)) {
+        relationshipStatus = "pending_incoming";
+      }
+      return { ...profile, relationshipStatus };
+    });
   }
 }
