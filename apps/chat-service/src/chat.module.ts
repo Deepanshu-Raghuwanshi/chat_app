@@ -31,6 +31,7 @@ import { SendMessageUseCase } from "./application/use-cases/send-message.use-cas
 import { EditMessageUseCase } from "./application/use-cases/edit-message.use-case";
 import { DeleteMessageUseCase } from "./application/use-cases/delete-message.use-case";
 import { MarkConversationReadUseCase } from "./application/use-cases/mark-conversation-read.use-case";
+import { SearchConversationsUseCase } from "./application/use-cases/search-conversations.use-case";
 import { ConversationViewBuilder } from "./application/services/conversation-view.builder";
 import { PresenceGateway } from "./interfaces/gateways/presence.gateway";
 import { ChatGateway } from "./infrastructure/messaging/chat.gateway";
@@ -83,6 +84,7 @@ import { ChatGateway } from "./infrastructure/messaging/chat.gateway";
     CreateOrGetConversationUseCase,
     GetConversationUseCase,
     ListConversationsUseCase,
+    SearchConversationsUseCase,
     GetMessagesUseCase,
     SendMessageUseCase,
     EditMessageUseCase,

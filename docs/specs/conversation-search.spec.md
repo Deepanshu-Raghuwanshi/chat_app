@@ -60,6 +60,7 @@ Users on the chat page need to find old conversations quickly. The sidebar curre
 ### Data flow
 
 **Search mode (query present):**
+
 ```
 User types → 300ms debounce → useSearchConversations(q)
   → GET /api/v1/chat/conversations?q=john
@@ -80,6 +81,7 @@ User types → 300ms debounce → useSearchConversations(q)
 ```
 
 **Normal mode (no query):**
+
 ```
 (unchanged — existing infinite query, cursor pagination)
 ```
@@ -105,11 +107,12 @@ User types → 300ms debounce → useSearchConversations(q)
 
 Editing existing `libs/openapi-specs/src/v1/chat.yaml` — the search endpoint lives on the existing `GET /api/v1/chat/conversations` route. A separate endpoint would split the same resource unnecessarily; one route with an optional `q` param follows REST convention (filter params on collection endpoints).
 
-| Method | Path                          | Auth | Purpose                                         |
-| ------ | ----------------------------- | ---- | ----------------------------------------------- |
-| GET    | `/api/v1/chat/conversations`  | JWT  | List (paginated) **or** search (flat, by name)  |
+| Method | Path                         | Auth | Purpose                                        |
+| ------ | ---------------------------- | ---- | ---------------------------------------------- |
+| GET    | `/api/v1/chat/conversations` | JWT  | List (paginated) **or** search (flat, by name) |
 
 New `q` query param added (already done above):
+
 ```yaml
 - name: q
   in: query
@@ -146,6 +149,7 @@ libs/openapi-specs/src/v1/chat.yaml   — modified (add q param, update descript
 ```
 
 Commands to run after this phase:
+
 ```bash
 pnpm generate:types   # Regenerate shared-types from updated OpenAPI
 ```
@@ -174,6 +178,7 @@ findConversationIdsByParticipantName(
 ```
 
 This method returns the IDs of all conversations where:
+
 - The current user (`userId`) is a participant, AND
 - The **other** participant's `username` or `fullName` contains `query` (case-insensitive)
 
@@ -204,9 +209,9 @@ q?: string;
 
 **`SearchConversationsUseCase`** — created at `apps/chat-service/src/application/use-cases/search-conversations.use-case.ts`
 
-| Use Case Class                | HTTP Trigger                              | Business Rules Enforced          | Events Emitted |
-| ----------------------------- | ----------------------------------------- | -------------------------------- | -------------- |
-| `SearchConversationsUseCase`  | GET /chat/conversations?q=<term>          | Caller sees only own convos; cap at 50 | none   |
+| Use Case Class               | HTTP Trigger                     | Business Rules Enforced                | Events Emitted |
+| ---------------------------- | -------------------------------- | -------------------------------------- | -------------- |
+| `SearchConversationsUseCase` | GET /chat/conversations?q=<term> | Caller sees only own convos; cap at 50 | none           |
 
 Exact execution sequence:
 
@@ -364,10 +369,10 @@ pnpm nx test chat-service
 
 No new routes or pages. The sidebar is rendered on both `/chat` and `/chat/[conversationId]` via `ChatLayout → ConversationSidebar`. Modifying `ConversationSidebar` handles both automatically.
 
-| Route                    | Page File                            | New or Modified | Purpose                      |
-| ------------------------ | ------------------------------------ | --------------- | ---------------------------- |
-| `/chat`                  | `app/chat/page.tsx`                  | unchanged       | —                            |
-| `/chat/[conversationId]` | `app/chat/[conversationId]/page.tsx` | unchanged       | —                            |
+| Route                    | Page File                            | New or Modified | Purpose |
+| ------------------------ | ------------------------------------ | --------------- | ------- |
+| `/chat`                  | `app/chat/page.tsx`                  | unchanged       | —       |
+| `/chat/[conversationId]` | `app/chat/[conversationId]/page.tsx` | unchanged       | —       |
 
 ### 3.2 API Service
 
@@ -399,7 +404,7 @@ export const useSearchConversations = (query: string) => {
   }, [query]);
 
   return useQuery({
-    queryKey: ['conversation-search', debouncedQuery],
+    queryKey: ["conversation-search", debouncedQuery],
     queryFn: () => chatService.searchConversations(debouncedQuery),
     enabled: debouncedQuery.trim().length >= 1,
     staleTime: 30_000,
@@ -409,8 +414,8 @@ export const useSearchConversations = (query: string) => {
 
 **Debounce inside the hook** — matching the exact pattern used in `useSearchUsers` in `useFriends.ts`. No external debounce library.
 
-| Hook                           | TQ Type    | Query Key                                | Enabled Condition         | Cache Strategy   |
-| ------------------------------ | ---------- | ---------------------------------------- | ------------------------- | ---------------- |
+| Hook                            | TQ Type    | Query Key                                 | Enabled Condition          | Cache Strategy   |
+| ------------------------------- | ---------- | ----------------------------------------- | -------------------------- | ---------------- |
 | `useSearchConversations(query)` | `useQuery` | `['conversation-search', debouncedQuery]` | `query.trim().length >= 1` | `staleTime: 30s` |
 
 ### 3.4 Zustand Store Changes
@@ -429,7 +434,7 @@ State added:
 
 Derived:
   isSearchMode = searchQuery.trim().length >= 1
-  
+
 When isSearchMode = false:
   use existing useConversations() infinite query
   conversations = data?.pages.flatMap(p => p.data) ?? []
@@ -457,10 +462,10 @@ Layout addition — below the existing `<h1>Messages</h1>` header line, add a se
 - When `isSearchMode` and results present → render `ConversationList` exactly as today
 - The infinite scroll `onLoadMore`/`hasMore`/`isFetchingMore` props are passed as `undefined`/`false`/`false` during search mode — `ConversationList` already handles `hasMore: false` gracefully (it doesn't render the sentinel or spinner)
 
-| Component              | New or Modified | Key Changes                                                          |
-| ---------------------- | --------------- | -------------------------------------------------------------------- |
-| `ConversationSidebar`  | modified        | Add `searchQuery` state, search input UI, mode switching logic       |
-| `ConversationList`     | unchanged       | Already accepts any `Conversation[]` and handles empty/hasMore:false |
+| Component             | New or Modified | Key Changes                                                          |
+| --------------------- | --------------- | -------------------------------------------------------------------- |
+| `ConversationSidebar` | modified        | Add `searchQuery` state, search input UI, mode switching logic       |
+| `ConversationList`    | unchanged       | Already accepts any `Conversation[]` and handles empty/hasMore:false |
 
 ### 3.6 i18n Keys
 
@@ -509,15 +514,15 @@ pnpm nx test frontend
 
 ## 4. Architecture Decisions
 
-| #   | Decision | Options Considered | Choice | Rationale |
-| --- | -------- | ------------------ | ------ | --------- |
-| 1 | Where does the search live? | New endpoint `GET /chat/conversations/search` vs `?q=` param on existing list endpoint | `?q=` param on existing endpoint | Same resource, same response type. A separate path would require the frontend to maintain two base URLs and the gateway has no routing logic to update. The existing `ConversationListResponse` type already covers search results with `hasMore: false`. |
-| 2 | Two-step query vs MongoDB aggregation | Two separate `.find()` calls vs `$lookup` aggregation pipeline | Two-step `.find()` | Both hit existing indexes. The two-step approach is easier to read, easier to unit test (stubs are simple), and the intermediate array (my conversation IDs) is bounded by the user's total conversation count, which is always small. An aggregation pipeline joining the same collection on itself is harder to stub in tests. |
-| 3 | Where to cap result count (50)? | Repository layer vs use case layer | Repository layer (`.limit(50)` in Step 2 of the query) | Capping in the repository prevents the matched ID array from growing before it reaches the use case. The view builder does `Promise.all` across those IDs — bounding at the source means the use case never receives an oversized array. |
-| 4 | Regex escape on user input | Raw `RegExp(query)` vs escaped | Escaped with `replace(/[.*+?^${}()|[\]\\]/g, '\\$&')` | User input passed raw into a RegExp constructor is a ReDoS vector and produces incorrect matches for special characters (a user named "A.J. Smith" would be matched by the dot as any character). Escaping is mandatory. |
-| 5 | Frontend — one hook or two? | Merge search into `useConversations` vs separate `useSearchConversations` | Separate hook | `useConversations` is an `useInfiniteQuery` with its own cache key structure. Conflating a regular `useQuery` into it would require conditional logic inside the hook and pollute the `['conversations']` cache. Two focused hooks, each for one purpose, is cleaner and matches the existing pattern in this codebase (`useFriends` vs `useSearchUsers`). |
-| 6 | Debounce location | In the hook vs in the component | In the hook (matching `useSearchUsers` pattern) | Keeps the debounce co-located with the API call. The component just binds the input value. Consistent with the friends feature's established pattern. |
-| 7 | New index on `fullName`? | Add text index on `(username, fullName)` vs rely on existing indexes + regex | No new index | A text index only supports full-word matching — typing "jo" would NOT find "john" with a text index. Partial/prefix matching requires regex. The regex scan is bounded to the user's own conversation set (Step 2 only scans the other participant documents for their conversation IDs), so it's fast enough without an index. |
+| #   | Decision                              | Options Considered                                                                     | Choice                                                 | Rationale                                                                                                                                                                                                                                                                                                                                                  |
+| --- | ------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Where does the search live?           | New endpoint `GET /chat/conversations/search` vs `?q=` param on existing list endpoint | `?q=` param on existing endpoint                       | Same resource, same response type. A separate path would require the frontend to maintain two base URLs and the gateway has no routing logic to update. The existing `ConversationListResponse` type already covers search results with `hasMore: false`.                                                                                                  |
+| 2   | Two-step query vs MongoDB aggregation | Two separate `.find()` calls vs `$lookup` aggregation pipeline                         | Two-step `.find()`                                     | Both hit existing indexes. The two-step approach is easier to read, easier to unit test (stubs are simple), and the intermediate array (my conversation IDs) is bounded by the user's total conversation count, which is always small. An aggregation pipeline joining the same collection on itself is harder to stub in tests.                           |
+| 3   | Where to cap result count (50)?       | Repository layer vs use case layer                                                     | Repository layer (`.limit(50)` in Step 2 of the query) | Capping in the repository prevents the matched ID array from growing before it reaches the use case. The view builder does `Promise.all` across those IDs — bounding at the source means the use case never receives an oversized array.                                                                                                                   |
+| 4   | Regex escape on user input            | Raw `RegExp(query)` vs escaped                                                         | Escaped with `replace(/[.\*+?^${}()                    | [\]\\]/g, '\\$&')`                                                                                                                                                                                                                                                                                                                                         | User input passed raw into a RegExp constructor is a ReDoS vector and produces incorrect matches for special characters (a user named "A.J. Smith" would be matched by the dot as any character). Escaping is mandatory. |
+| 5   | Frontend — one hook or two?           | Merge search into `useConversations` vs separate `useSearchConversations`              | Separate hook                                          | `useConversations` is an `useInfiniteQuery` with its own cache key structure. Conflating a regular `useQuery` into it would require conditional logic inside the hook and pollute the `['conversations']` cache. Two focused hooks, each for one purpose, is cleaner and matches the existing pattern in this codebase (`useFriends` vs `useSearchUsers`). |
+| 6   | Debounce location                     | In the hook vs in the component                                                        | In the hook (matching `useSearchUsers` pattern)        | Keeps the debounce co-located with the API call. The component just binds the input value. Consistent with the friends feature's established pattern.                                                                                                                                                                                                      |
+| 7   | New index on `fullName`?              | Add text index on `(username, fullName)` vs rely on existing indexes + regex           | No new index                                           | A text index only supports full-word matching — typing "jo" would NOT find "john" with a text index. Partial/prefix matching requires regex. The regex scan is bounded to the user's own conversation set (Step 2 only scans the other participant documents for their conversation IDs), so it's fast enough without an index.                            |
 
 ---
 
@@ -530,6 +535,7 @@ None — all decisions are resolved in Section 4.
 ## Reminder
 
 Run after Phase 1:
+
 ```bash
 pnpm generate:types
 ```

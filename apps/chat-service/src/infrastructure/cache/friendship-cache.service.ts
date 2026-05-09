@@ -7,7 +7,11 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { Kafka, Consumer } from "kafkajs";
 import { FriendshipVerifier } from "../../application/ports/friendship-verifier.port";
-import { FriendTopics, FriendRequestAcceptedEventV1, FriendRemovedEventV1 } from "@kafka-events";
+import {
+  FriendTopics,
+  FriendRequestAcceptedEventV1,
+  FriendRemovedEventV1,
+} from "@kafka-events";
 import { RedisService } from "./redis.service";
 
 @Injectable()
@@ -61,10 +65,7 @@ export class FriendshipCacheService
             this.logger.debug(`Removed friendship cache: ${key}`);
           }
         } catch (err) {
-          this.logger.error(
-            `Error processing event on topic ${topic}`,
-            err,
-          );
+          this.logger.error(`Error processing event on topic ${topic}`, err);
         }
       },
     });

@@ -241,13 +241,13 @@ export interface paths {
       };
       requestBody?: never;
       responses: {
-        /** @description List of matching user profiles (excludes current user, existing friends, and users with pending requests) */
+        /** @description List of all matching users (excludes the requesting user only). Each result includes a relationshipStatus field indicating whether the matched user is already a friend, has a pending request in either direction, or has no relationship with the requester. */
         200: {
           headers: {
             [name: string]: unknown;
           };
           content: {
-            "application/json": components["schemas"]["UserProfile"][];
+            "application/json": components["schemas"]["UserSearchResult"][];
           };
         };
         /** @description Query too short or missing */
@@ -367,6 +367,18 @@ export interface components {
       method?: string;
       error?: string;
       message?: string;
+    };
+    /**
+     * @description Relationship between the requesting user and a search result. friend: already connected. pending_outgoing: requester sent a request awaiting response. pending_incoming: the matched user sent a request to the requester. none: no relationship.
+     * @enum {string}
+     */
+    RelationshipStatus:
+      | "friend"
+      | "pending_incoming"
+      | "pending_outgoing"
+      | "none";
+    UserSearchResult: components["schemas"]["UserProfile"] & {
+      relationshipStatus: components["schemas"]["RelationshipStatus"];
     };
     UserProfile: {
       id: string;

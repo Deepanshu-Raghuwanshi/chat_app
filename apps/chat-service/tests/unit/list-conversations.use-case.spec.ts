@@ -105,8 +105,10 @@ describe("ListConversationsUseCase (Unit)", () => {
     ]);
     // conv1 still friends, conv2 unfriended
     friendshipVerifierMock.areFriends
-      .onFirstCall().resolves(true)
-      .onSecondCall().resolves(false);
+      .onFirstCall()
+      .resolves(true)
+      .onSecondCall()
+      .resolves(false);
     viewBuilderMock.build.callsFake((conv: ConversationEntity) =>
       Promise.resolve(makeView(conv.id)),
     );

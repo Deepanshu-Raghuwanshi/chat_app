@@ -41,6 +41,17 @@ vi.mock("../../src/features/auth/store/useAuthStore", () => ({
   useAuthStore: vi.fn((selector: any) => selector({ user: { id: "user-1" } })),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  })),
+}));
+
 function makeWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: {
