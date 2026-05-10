@@ -4,6 +4,7 @@ import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { MarkConversationReadUseCase } from "../../src/application/use-cases/mark-conversation-read.use-case";
 import { ConversationRepository } from "../../src/application/ports/conversation.repository";
 import { ConversationParticipantRepository } from "../../src/application/ports/conversation-participant.repository";
+import { MessageRepository } from "../../src/application/ports/message.repository";
 import { KafkaProducerService } from "../../src/infrastructure/messaging/kafka-producer.service";
 import { ConversationEntity } from "../../src/domain/entities/conversation.entity";
 import { ConversationParticipantEntity } from "../../src/domain/entities/conversation-participant.entity";
@@ -35,6 +36,7 @@ describe("MarkConversationReadUseCase (Unit)", () => {
   let useCase: MarkConversationReadUseCase;
   let conversationRepoMock: Record<string, sinon.SinonStub>;
   let participantRepoMock: Record<string, sinon.SinonStub>;
+  let messageRepoMock: Record<string, sinon.SinonStub>;
   let kafkaProducerMock: Record<string, sinon.SinonStub>;
 
   beforeEach(() => {
@@ -45,6 +47,9 @@ describe("MarkConversationReadUseCase (Unit)", () => {
       findByConversationAndUser: sinon.stub(),
       updateLastRead: sinon.stub().resolves(),
     };
+    messageRepoMock = {
+      updateStatusBySender: sinon.stub().resolves(1),
+    };
     kafkaProducerMock = {
       emit: sinon.stub().resolves(),
     };
@@ -52,6 +57,7 @@ describe("MarkConversationReadUseCase (Unit)", () => {
     useCase = new MarkConversationReadUseCase(
       conversationRepoMock as unknown as ConversationRepository,
       participantRepoMock as unknown as ConversationParticipantRepository,
+      messageRepoMock as unknown as MessageRepository,
       kafkaProducerMock as unknown as KafkaProducerService,
     );
   });
@@ -78,6 +84,52 @@ describe("MarkConversationReadUseCase (Unit)", () => {
     expect(topic).to.equal(ChatTopics.MESSAGE_READ);
     expect(payload.conversationId).to.equal("conv1");
     expect(payload.readerId).to.equal("user1");
+  });
+
+  it("should call updateStatusBySender with SENT and DELIVERED statuses targeting the other participant", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+
+    await useCase.execute({ userId: "user1", conversationId: "conv1" });
+
+    expect(messageRepoMock.updateStatusBySender.calledOnce).to.equal(true);
+    const [convId, senderId, fromStatuses, toStatus] =
+      messageRepoMock.updateStatusBySender.firstCall.args;
+    expect(convId).to.equal("conv1");
+    expect(senderId).to.equal("user2");
+    expect(fromStatuses).to.deep.equal(["SENT", "DELIVERED"]);
+    expect(toStatus).to.equal("READ");
+  });
+
+  it("should emit message.read.v1 with senderId set to the other participant, not the caller", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+
+    await useCase.execute({ userId: "user1", conversationId: "conv1" });
+
+    const [, payload] = kafkaProducerMock.emit.firstCall.args;
+    expect(payload.readerId).to.equal("user1");
+    expect(payload.senderId).to.equal("user2");
+    expect(payload.lastReadAt).to.be.a("string");
+  });
+
+  it("should route senderId correctly when participant2 is the caller", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user2"),
+    );
+
+    await useCase.execute({ userId: "user2", conversationId: "conv1" });
+
+    const [, senderId] = messageRepoMock.updateStatusBySender.firstCall.args;
+    const [, payload] = kafkaProducerMock.emit.firstCall.args;
+    expect(senderId).to.equal("user1");
+    expect(payload.senderId).to.equal("user1");
+    expect(payload.readerId).to.equal("user2");
   });
 
   it("should throw NotFoundException when conversation does not exist", async () => {

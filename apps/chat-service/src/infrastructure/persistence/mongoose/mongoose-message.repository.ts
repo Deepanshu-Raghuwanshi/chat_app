@@ -8,6 +8,7 @@ import {
   UpdateMessageInput,
 } from "../../../application/ports/message.repository";
 import { MessageEntity } from "../../../domain/entities/message.entity";
+import { MessageStatus } from "@kafka-events";
 
 @Injectable()
 export class MongooseMessageRepository implements MessageRepository {
@@ -74,8 +75,22 @@ export class MongooseMessageRepository implements MessageRepository {
     });
   }
 
-  async updateStatusBySender(): Promise<number> {
-    throw new Error('Not implemented — Phase 2');
+  async updateStatusBySender(
+    conversationId: string,
+    senderId: string,
+    fromStatuses: MessageStatus[],
+    toStatus: MessageStatus,
+  ): Promise<number> {
+    const result = await this.model.updateMany(
+      {
+        conversationId,
+        senderId,
+        status: { $in: fromStatuses },
+        isDeleted: false,
+      },
+      { $set: { status: toStatus } },
+    );
+    return result.modifiedCount;
   }
 
   private toEntity(doc: Message): MessageEntity {
