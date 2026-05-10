@@ -59,7 +59,8 @@ export class MarkConversationReadUseCase {
 
     await this.kafkaProducer.emit(ChatTopics.MESSAGE_READ, {
       conversationId,
-      userId,
+      readerId: userId,
+      senderId: '',
       lastReadAt: now.toISOString(),
     } satisfies MessageReadEventV1);
 

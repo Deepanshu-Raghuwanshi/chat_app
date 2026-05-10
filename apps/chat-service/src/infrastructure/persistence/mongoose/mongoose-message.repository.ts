@@ -74,6 +74,10 @@ export class MongooseMessageRepository implements MessageRepository {
     });
   }
 
+  async updateStatusBySender(): Promise<number> {
+    throw new Error('Not implemented — Phase 2');
+  }
+
   private toEntity(doc: Message): MessageEntity {
     return MessageEntity.create({
       id: (doc._id as Types.ObjectId).toString(),

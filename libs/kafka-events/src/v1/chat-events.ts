@@ -1,5 +1,6 @@
 export enum ChatTopics {
   MESSAGE_SENT = "message.sent.v1",
+  MESSAGE_DELIVERED = "message.delivered.v1",
   MESSAGE_EDITED = "message.edited.v1",
   MESSAGE_DELETED = "message.deleted.v1",
   MESSAGE_READ = "message.read.v1",
@@ -25,9 +26,17 @@ export interface MessageSentEventV1 {
   sentAt: string;
 }
 
+export interface MessageDeliveredEventV1 {
+  conversationId: string;
+  senderId: string;
+  recipientId: string;
+  deliveredAt: string;
+}
+
 export interface MessageReadEventV1 {
   conversationId: string;
-  userId: string;
+  readerId: string;
+  senderId: string;
   lastReadAt: string;
 }
 

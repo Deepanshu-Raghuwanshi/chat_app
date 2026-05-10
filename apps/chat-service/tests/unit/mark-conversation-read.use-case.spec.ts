@@ -77,7 +77,7 @@ describe("MarkConversationReadUseCase (Unit)", () => {
     const [topic, payload] = kafkaProducerMock.emit.firstCall.args;
     expect(topic).to.equal(ChatTopics.MESSAGE_READ);
     expect(payload.conversationId).to.equal("conv1");
-    expect(payload.userId).to.equal("user1");
+    expect(payload.readerId).to.equal("user1");
   });
 
   it("should throw NotFoundException when conversation does not exist", async () => {
