@@ -576,9 +576,10 @@ components:
 
 # Kafka Events
 # Produces: message.sent.v1
+# Produces: message.delivered.v1   — emitted by GetMessagesUseCase when recipient fetches messages that are still SENT
 # Produces: message.edited.v1
 # Produces: message.deleted.v1
-# Produces: message.read.v1
+# Produces: message.read.v1        — payload now includes senderId (other participant) for gateway routing
 # Consumes: friend.request.accepted.v1
 
 # Search Mode Behaviour (q param)
