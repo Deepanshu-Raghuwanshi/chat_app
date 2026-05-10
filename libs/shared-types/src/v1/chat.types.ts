@@ -12,12 +12,14 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * List all conversations
-     * @description Returns all direct-message conversations for the authenticated user, ordered by most recent message. Cursor-based — pass `before` to fetch older pages.
+     * List or search conversations
+     * @description Without `q`: returns cursor-paginated conversations ordered by most recent activity. With `q`: searches ALL conversations across history by the other participant's username or full name. Returns up to 50 matches ordered by most recent activity. `limit` and `before` are ignored in search mode.
      */
     get: {
       parameters: {
         query?: {
+          /** @description Search term — filters by the other participant's username or full name (case-insensitive, minimum 1 character). When present activates search mode; pagination params are ignored. */
+          q?: string;
           limit?: number;
           /** @description Return conversations whose last message was older than this conversation ID (cursor) */
           before?: string;

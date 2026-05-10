@@ -53,6 +53,36 @@ export class MongooseConversationParticipantRepository implements ConversationPa
       .exec();
   }
 
+  async findConversationIdsByParticipantName(
+    userId: string,
+    query: string,
+  ): Promise<string[]> {
+    const myParticipations = await this.model
+      .find({ userId })
+      .select("conversationId")
+      .lean()
+      .exec();
+
+    const myConvIds = myParticipations.map((p) => p.conversationId);
+    if (myConvIds.length === 0) return [];
+
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "i");
+
+    const matched = await this.model
+      .find({
+        conversationId: { $in: myConvIds },
+        userId: { $ne: userId },
+        $or: [{ username: regex }, { fullName: regex }],
+      })
+      .select("conversationId")
+      .limit(50)
+      .lean()
+      .exec();
+
+    return matched.map((p) => p.conversationId);
+  }
+
   private toEntity(
     doc: ConversationParticipant,
   ): ConversationParticipantEntity {

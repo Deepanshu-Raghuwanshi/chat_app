@@ -11,7 +11,7 @@ interface ConversationListProps {
   conversations: Conversation[];
   activeId: string | null;
   onSelect: (conversationId: string) => void;
-  onLoadMore: () => void;
+  onLoadMore?: () => void;
   hasMore: boolean;
   isFetchingMore?: boolean;
 }
@@ -34,7 +34,7 @@ export const ConversationList = ({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore) {
-          onLoadMore();
+          onLoadMore?.();
         }
       },
       { threshold: 0.1 },

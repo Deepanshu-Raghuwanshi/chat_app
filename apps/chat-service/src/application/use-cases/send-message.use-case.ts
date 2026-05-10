@@ -64,7 +64,10 @@ export class SendMessageUseCase {
         ? conversation.participant2Id
         : conversation.participant1Id;
 
-    const areFriends = await this.friendshipVerifier.areFriends(userId, receiverId);
+    const areFriends = await this.friendshipVerifier.areFriends(
+      userId,
+      receiverId,
+    );
     if (!areFriends) {
       throw new ForbiddenException("You can no longer message this user");
     }

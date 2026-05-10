@@ -58,6 +58,19 @@ export class MongooseConversationRepository implements ConversationRepository {
     return docs.map((d) => this.toEntity(d));
   }
 
+  async findByIds(ids: string[]): Promise<ConversationEntity[]> {
+    const objectIds = ids
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+
+    const docs = await this.model
+      .find({ _id: { $in: objectIds } })
+      .sort({ lastActivityAt: -1 })
+      .exec();
+
+    return docs.map((d) => this.toEntity(d));
+  }
+
   async create(data: CreateConversationInput): Promise<ConversationEntity> {
     const doc = await this.model.create({
       participant1Id: data.participant1Id,

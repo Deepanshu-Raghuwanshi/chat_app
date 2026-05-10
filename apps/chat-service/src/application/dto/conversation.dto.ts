@@ -1,4 +1,13 @@
-import { IsUUID, IsOptional, IsInt, IsString, Min, Max } from "class-validator";
+import {
+  IsUUID,
+  IsOptional,
+  IsInt,
+  IsString,
+  Min,
+  Max,
+  MinLength,
+  MaxLength,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 
@@ -44,6 +53,18 @@ export class CreateConversationDto {
 }
 
 export class ListConversationsQueryDto {
+  @ApiPropertyOptional({
+    description:
+      "Search term — min 1 char, max 100 chars. When present activates search mode; pagination params are ignored.",
+    minLength: 1,
+    maxLength: 100,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
+  q?: string;
+
   @ApiPropertyOptional({ minimum: 1, maximum: 50, default: 20 })
   @IsOptional()
   @Type(() => Number)

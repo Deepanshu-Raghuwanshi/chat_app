@@ -104,8 +104,16 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
       if (!p.userId || !p.friendId) return;
       const event = p as unknown as FriendRemovedEventV1;
       // Notify both sides so each user's conversation list updates in real-time.
-      this.presenceGateway.emitToRoom(`user:${event.userId}`, "friendship.removed", event);
-      this.presenceGateway.emitToRoom(`user:${event.friendId}`, "friendship.removed", event);
+      this.presenceGateway.emitToRoom(
+        `user:${event.userId}`,
+        "friendship.removed",
+        event,
+      );
+      this.presenceGateway.emitToRoom(
+        `user:${event.friendId}`,
+        "friendship.removed",
+        event,
+      );
     }
   }
 }

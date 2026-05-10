@@ -22,4 +22,8 @@ export interface ConversationParticipantRepository {
     userId: string,
     lastReadAt: Date,
   ): Promise<void>;
+  findConversationIdsByParticipantName(
+    userId: string,
+    query: string,
+  ): Promise<string[]>;
 }

@@ -206,7 +206,10 @@
       },
       "sidebar": {
         "title": "Messages",
-        "no_conversations": "No conversations yet. Message a friend to get started!"
+        "no_conversations": "No conversations yet. Message a friend to get started!",
+        "search_placeholder": "Search conversations...",
+        "search_no_results": "No conversations found for \"{query}\"",
+        "clear_search": "Clear search"
       },
       "composer": {
         "placeholder": "Type a message...",

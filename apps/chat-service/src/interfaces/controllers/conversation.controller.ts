@@ -32,6 +32,7 @@ import { SendMessageUseCase } from "../../application/use-cases/send-message.use
 import { EditMessageUseCase } from "../../application/use-cases/edit-message.use-case";
 import { DeleteMessageUseCase } from "../../application/use-cases/delete-message.use-case";
 import { MarkConversationReadUseCase } from "../../application/use-cases/mark-conversation-read.use-case";
+import { SearchConversationsUseCase } from "../../application/use-cases/search-conversations.use-case";
 import {
   CreateConversationDto,
   ListConversationsQueryDto,
@@ -51,6 +52,7 @@ export class ConversationController {
     private readonly createOrGetConversation: CreateOrGetConversationUseCase,
     private readonly getConversation: GetConversationUseCase,
     private readonly listConversations: ListConversationsUseCase,
+    private readonly searchConversations: SearchConversationsUseCase,
     private readonly getMessages: GetMessagesUseCase,
     private readonly sendMessage: SendMessageUseCase,
     private readonly editMessage: EditMessageUseCase,
@@ -60,13 +62,27 @@ export class ConversationController {
 
   @Get()
   @ApiOperation({
-    summary: "List all conversations for the authenticated user",
+    summary: "List or search conversations for the authenticated user",
   })
-  @ApiResponse({ status: 200, description: "Paginated conversation list" })
+  @ApiResponse({
+    status: 200,
+    description: "Conversation list or search results",
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid query — q must be at least 1 character",
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async list(
     @Req() req: RequestWithUser,
     @Query() query: ListConversationsQueryDto,
   ) {
+    if (query.q) {
+      return this.searchConversations.execute({
+        userId: req.user.id,
+        q: query.q,
+      });
+    }
     return this.listConversations.execute({
       userId: req.user.id,
       limit: query.limit,

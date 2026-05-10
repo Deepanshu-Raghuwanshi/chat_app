@@ -7,11 +7,21 @@ info:
 paths:
   /api/v1/chat/conversations:
     get:
-      summary: List all conversations
-      description: Returns all direct-message conversations for the authenticated user, ordered by most recent message. Cursor-based — pass `before` to fetch older pages.
+      summary: List or search conversations
+      description: >
+        Without `q`: returns cursor-paginated conversations ordered by most recent activity.
+        With `q`: searches ALL conversations across history by the other participant's username or full name.
+        Returns up to 50 matches ordered by most recent activity. `limit` and `before` are ignored in search mode.
       security:
         - bearerAuth: []
       parameters:
+        - name: q
+          in: query
+          description: Search term — filters by the other participant's username or full name (case-insensitive, minimum 1 character). When present activates search mode; pagination params are ignored.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
         - name: limit
           in: query
           schema:
@@ -570,3 +580,7 @@ components:
 # Produces: message.deleted.v1
 # Produces: message.read.v1
 # Consumes: friend.request.accepted.v1
+
+# Search Mode Behaviour (q param)
+# When q is present: ConversationListResponse is returned with hasMore always false.
+# When q is absent:  Normal cursor pagination applies (hasMore / nextCursor populated).

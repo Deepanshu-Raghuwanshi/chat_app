@@ -88,4 +88,12 @@ export const chatService = {
     );
     return data;
   },
+
+  async searchConversations(q: string): Promise<ConversationListResponse> {
+    const { data } = await apiClient.get<ConversationListResponse>(
+      "/chat/conversations",
+      { params: { q } },
+    );
+    return data;
+  },
 };

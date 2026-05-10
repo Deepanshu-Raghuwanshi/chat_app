@@ -19,6 +19,7 @@ export interface ConversationRepository {
     limit: number,
     before?: string,
   ): Promise<ConversationEntity[]>;
+  findByIds(ids: string[]): Promise<ConversationEntity[]>;
   create(data: CreateConversationInput): Promise<ConversationEntity>;
   updateLastMessage(id: string, snapshot: LastMessageSnapshot): Promise<void>;
 }
