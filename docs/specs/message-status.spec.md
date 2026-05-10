@@ -13,46 +13,52 @@ All facts below were verified by reading the code directly.
 ### What already exists
 
 **Database (`apps/chat-service`):**
+
 - `Message.status` field exists in `infrastructure/persistence/mongoose/schemas/message.schema.ts` with enum `['SENT', 'DELIVERED', 'READ']` and default `'SENT'`
 - `ConversationParticipant.lastReadAt` field exists for a conversation-level read cursor
 
 **Kafka contracts (`libs/kafka-events/src/v1/chat-events.ts`):**
+
 - `MessageStatus` enum: `SENT | DELIVERED | READ`
 - `ChatTopics.MESSAGE_READ = "message.read.v1"` — topic exists
 - `MessageReadEventV1` interface exists: `{ conversationId, userId, lastReadAt }` — note: no `senderId` field (this is a gap)
 - `MESSAGE_SENT`, `MESSAGE_EDITED`, `MESSAGE_DELETED` topics all exist
 
 **OpenAPI + shared types:**
+
 - `Message.status` in `libs/openapi-specs/src/v1/chat.yaml` with enum `[SENT, DELIVERED, READ]`
 - Auto-generated `libs/shared-types/src/v1/chat.types.ts` exposes `status: "SENT" | "DELIVERED" | "READ"`
 
 **Application layer:**
+
 - `SendMessageUseCase` creates messages with `status: SENT` (schema default)
 - `MarkConversationReadUseCase` (`application/use-cases/mark-conversation-read.use-case.ts`) updates `ConversationParticipant.lastReadAt` and emits `MESSAGE_READ` Kafka event — but does NOT update individual `Message.status` fields
 
 **Infrastructure:**
+
 - `ChatGateway` (`infrastructure/messaging/chat.gateway.ts`) subscribes to `MESSAGE_SENT`, `MESSAGE_EDITED`, `MESSAGE_DELETED`, `FRIEND_REMOVED`, `FRIEND_REQUEST_SENT` — does NOT subscribe to `MESSAGE_DELIVERED` or `MESSAGE_READ`
 - `PresenceGateway.emitToRoom()` exists and is the correct fanout mechanism
 
 **Frontend:**
+
 - `MessageBubble.tsx` renders time and edit/delete controls — **no status indicator**
 - `usePresence.ts` handles `message.new`, `presence.updated`, `friendship.removed`, `friend.request.received` — **no `message.delivered` or `message.read` handlers**
 - `useChatStore.ts` has `activeConversationId` — needed for auto-read on new message arrival
 
 ### What does NOT exist
 
-| Gap | Impact |
-|-----|--------|
-| `ChatTopics.MESSAGE_DELIVERED` topic | Cannot emit delivery event |
-| `MessageDeliveredEventV1` interface | No typed event payload |
-| `senderId` in `MessageReadEventV1` | ChatGateway cannot route `message.read` socket event without a DB lookup |
-| `status` in `UpdateMessageInput` | Cannot update message status through the repository |
-| `updateStatusBySender()` in `MessageRepository` port | Cannot bulk-transition SENT → DELIVERED or SENT/DELIVERED → READ |
-| Delivery logic in `GetMessagesUseCase` | Status never transitions from SENT to DELIVERED |
-| Read status logic in `MarkConversationReadUseCase` | Individual messages never reach READ status |
-| `MESSAGE_DELIVERED` and `MESSAGE_READ` fanout in `ChatGateway` | Sender never receives real-time status update |
-| Checkmark icons in `MessageBubble` | User never sees delivery/read confirmation |
-| Socket listeners in `usePresence` | Frontend cannot react to status updates |
+| Gap                                                            | Impact                                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `ChatTopics.MESSAGE_DELIVERED` topic                           | Cannot emit delivery event                                               |
+| `MessageDeliveredEventV1` interface                            | No typed event payload                                                   |
+| `senderId` in `MessageReadEventV1`                             | ChatGateway cannot route `message.read` socket event without a DB lookup |
+| `status` in `UpdateMessageInput`                               | Cannot update message status through the repository                      |
+| `updateStatusBySender()` in `MessageRepository` port           | Cannot bulk-transition SENT → DELIVERED or SENT/DELIVERED → READ         |
+| Delivery logic in `GetMessagesUseCase`                         | Status never transitions from SENT to DELIVERED                          |
+| Read status logic in `MarkConversationReadUseCase`             | Individual messages never reach READ status                              |
+| `MESSAGE_DELIVERED` and `MESSAGE_READ` fanout in `ChatGateway` | Sender never receives real-time status update                            |
+| Checkmark icons in `MessageBubble`                             | User never sees delivery/read confirmation                               |
+| Socket listeners in `usePresence`                              | Frontend cannot react to status updates                                  |
 
 ---
 
@@ -140,9 +146,9 @@ Editing `libs/openapi-specs/src/v1/chat.yaml` (existing file — no new endpoint
 
 The only change is the Kafka events comment block at the bottom to document the new `message.delivered.v1` topic and the updated `message.read.v1` payload. **Already applied** to `chat.yaml`.
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| — | — | — | No new HTTP endpoints |
+| Method | Path | Auth | Purpose               |
+| ------ | ---- | ---- | --------------------- |
+| —      | —    | —    | No new HTTP endpoints |
 
 ### 1.2 Database Schema Changes
 
@@ -150,27 +156,29 @@ The only change is the Kafka events comment block at the bottom to document the 
 
 ### 1.3 Kafka Event Contracts
 
-| Direction | Topic | Producer | Consumer | Payload |
-|-----------|-------|----------|----------|---------|
-| Produces (new) | `message.delivered.v1` | chat-service (GetMessagesUseCase) | ChatGateway (same service) | `{ conversationId, senderId, recipientId, deliveredAt }` |
-| Produces (modified) | `message.read.v1` | chat-service (MarkConversationReadUseCase) | ChatGateway (same service) | adds `senderId` field to existing payload |
+| Direction           | Topic                  | Producer                                   | Consumer                   | Payload                                                  |
+| ------------------- | ---------------------- | ------------------------------------------ | -------------------------- | -------------------------------------------------------- |
+| Produces (new)      | `message.delivered.v1` | chat-service (GetMessagesUseCase)          | ChatGateway (same service) | `{ conversationId, senderId, recipientId, deliveredAt }` |
+| Produces (modified) | `message.read.v1`      | chat-service (MarkConversationReadUseCase) | ChatGateway (same service) | adds `senderId` field to existing payload                |
 
 **New — `MessageDeliveredEventV1`:**
+
 ```typescript
 export interface MessageDeliveredEventV1 {
   conversationId: string;
-  senderId: string;    // Original message sender (User A) — the socket room to notify
+  senderId: string; // Original message sender (User A) — the socket room to notify
   recipientId: string; // The user whose fetch triggered delivery (User B)
   deliveredAt: string; // ISO 8601
 }
 ```
 
 **Modified — `MessageReadEventV1`** (add `senderId`; `userId` renamed to `readerId` for clarity):
+
 ```typescript
 export interface MessageReadEventV1 {
   conversationId: string;
-  readerId: string;    // The user who marked as read (was: userId)
-  senderId: string;    // NEW: the other participant whose messages are being marked READ
+  readerId: string; // The user who marked as read (was: userId)
+  senderId: string; // NEW: the other participant whose messages are being marked READ
   lastReadAt: string;
 }
 ```
@@ -213,7 +221,7 @@ export interface UpdateMessageInput {
   content?: string;
   isDeleted?: boolean;
   isEdited?: boolean;
-  status?: string;   // NEW
+  status?: string; // NEW
 }
 ```
 
@@ -247,26 +255,35 @@ const otherUserId =
     : conversation.participant1Id;
 
 const messages = await this.messageRepository.findByConversationId(
-  dto.conversationId, limit + 1, dto.before,
+  dto.conversationId,
+  limit + 1,
+  dto.before,
 );
 const hasMore = messages.length > limit;
 const page = messages.slice(0, limit);
 
 // Identify SENT messages from the other participant
 const sentIds = new Set(
-  page.filter(m => m.senderId === otherUserId && m.status === 'SENT').map(m => m.id),
+  page
+    .filter((m) => m.senderId === otherUserId && m.status === "SENT")
+    .map((m) => m.id),
 );
 
 // Return response with DELIVERED reflected in memory immediately
-const views = page.map(m => this.toView(
-  sentIds.has(m.id) ? { ...m, status: 'DELIVERED' } : m
-));
+const views = page.map((m) =>
+  this.toView(sentIds.has(m.id) ? { ...m, status: "DELIVERED" } : m),
+);
 
 // Fire-and-forget: DB update → Kafka event (do not await for response latency)
 if (sentIds.size > 0) {
   this.messageRepository
-    .updateStatusBySender(dto.conversationId, otherUserId, ['SENT'], 'DELIVERED')
-    .then(count => {
+    .updateStatusBySender(
+      dto.conversationId,
+      otherUserId,
+      ["SENT"],
+      "DELIVERED",
+    )
+    .then((count) => {
       if (count > 0) {
         return this.kafkaProducer.emit(ChatTopics.MESSAGE_DELIVERED, {
           conversationId: dto.conversationId,
@@ -276,10 +293,14 @@ if (sentIds.size > 0) {
         } satisfies MessageDeliveredEventV1);
       }
     })
-    .catch(err => this.logger.error('Failed to update delivery status', err));
+    .catch((err) => this.logger.error("Failed to update delivery status", err));
 }
 
-return { data: views, hasMore, nextCursor: hasMore ? page[page.length - 1].id : undefined };
+return {
+  data: views,
+  hasMore,
+  nextCursor: hasMore ? page[page.length - 1].id : undefined,
+};
 ```
 
 Add `private readonly logger = new Logger(GetMessagesUseCase.name)` for the error path.
@@ -298,25 +319,28 @@ const otherUserId =
     : conversation.participant1Id;
 
 await this.messageRepository.updateStatusBySender(
-  conversationId, otherUserId, ['SENT', 'DELIVERED'], 'READ'
+  conversationId,
+  otherUserId,
+  ["SENT", "DELIVERED"],
+  "READ",
 );
 
 // Updated event payload — now includes senderId for gateway routing
 await this.kafkaProducer.emit(ChatTopics.MESSAGE_READ, {
   conversationId,
-  readerId: userId,        // renamed from userId
-  senderId: otherUserId,  // NEW
+  readerId: userId, // renamed from userId
+  senderId: otherUserId, // NEW
   lastReadAt: now.toISOString(),
 } satisfies MessageReadEventV1);
 ```
 
 #### Use case summary
 
-| Use Case | Change | Events Emitted |
-|----------|--------|----------------|
-| `GetMessagesUseCase` | Add delivery transition + event | `message.delivered.v1` (conditional) |
-| `MarkConversationReadUseCase` | Add READ transition + updated event payload | `message.read.v1` (updated payload) |
-| `SendMessageUseCase` | No change | `message.sent.v1` (unchanged) |
+| Use Case                      | Change                                      | Events Emitted                       |
+| ----------------------------- | ------------------------------------------- | ------------------------------------ |
+| `GetMessagesUseCase`          | Add delivery transition + event             | `message.delivered.v1` (conditional) |
+| `MarkConversationReadUseCase` | Add READ transition + updated event payload | `message.read.v1` (updated payload)  |
+| `SendMessageUseCase`          | No change                                   | `message.sent.v1` (unchanged)        |
 
 ### 2.3 Infrastructure Layer
 
@@ -358,10 +382,10 @@ Subscribe to `ChatTopics.MESSAGE_DELIVERED` and `ChatTopics.MESSAGE_READ`:
 await this.consumer.subscribe({
   topics: [
     ChatTopics.MESSAGE_SENT,
-    ChatTopics.MESSAGE_DELIVERED,  // NEW
+    ChatTopics.MESSAGE_DELIVERED, // NEW
     ChatTopics.MESSAGE_EDITED,
     ChatTopics.MESSAGE_DELETED,
-    ChatTopics.MESSAGE_READ,       // NEW
+    ChatTopics.MESSAGE_READ, // NEW
     FriendTopics.FRIEND_REMOVED,
     FriendTopics.FRIEND_REQUEST_SENT,
   ],
@@ -430,6 +454,7 @@ apps/chat-service/src/infrastructure/messaging/chat.gateway.ts                 �
 ### 2.7 Test Cases
 
 **Unit — `GetMessagesUseCase`:**
+
 - [ ] When recipient fetches messages: SENT messages from sender are returned with status `DELIVERED` in the view (in-memory update reflected)
 - [ ] When recipient fetches messages: `updateStatusBySender` is called with `['SENT']` and `'DELIVERED'`
 - [ ] When recipient fetches messages and no SENT messages exist: `updateStatusBySender` is NOT called and no Kafka event is emitted
@@ -438,6 +463,7 @@ apps/chat-service/src/infrastructure/messaging/chat.gateway.ts                 �
 - [ ] When `updateStatusBySender` throws: fetch still succeeds, error is logged, no crash
 
 **Unit — `MarkConversationReadUseCase`:**
+
 - [ ] `updateStatusBySender` is called with `['SENT', 'DELIVERED']` and `'READ'` after `updateLastRead`
 - [ ] Kafka event `message.read.v1` is emitted with `{ conversationId, readerId, senderId, lastReadAt }`
 - [ ] `senderId` in the event is the OTHER participant (not the user calling mark-as-read)
@@ -504,9 +530,9 @@ interface MessageDeliveredPayload {
   deliveredAt: string;
 }
 
-socket.on('message.delivered', (data: MessageDeliveredPayload) => {
+socket.on("message.delivered", (data: MessageDeliveredPayload) => {
   queryClient.setQueryData<InfiniteData<MessageListResponse>>(
-    ['messages', data.conversationId],
+    ["messages", data.conversationId],
     (old) => {
       if (!old) return old;
       return {
@@ -514,8 +540,8 @@ socket.on('message.delivered', (data: MessageDeliveredPayload) => {
         pages: old.pages.map((page) => ({
           ...page,
           data: (page.data ?? []).map((msg) =>
-            msg.senderId === data.senderId && msg.status === 'SENT'
-              ? { ...msg, status: 'DELIVERED' as const }
+            msg.senderId === data.senderId && msg.status === "SENT"
+              ? { ...msg, status: "DELIVERED" as const }
               : msg,
           ),
         })),
@@ -534,9 +560,9 @@ interface MessageReadPayload {
   lastReadAt: string;
 }
 
-socket.on('message.read', (data: MessageReadPayload) => {
+socket.on("message.read", (data: MessageReadPayload) => {
   queryClient.setQueryData<InfiniteData<MessageListResponse>>(
-    ['messages', data.conversationId],
+    ["messages", data.conversationId],
     (old) => {
       if (!old) return old;
       return {
@@ -544,8 +570,8 @@ socket.on('message.read', (data: MessageReadPayload) => {
         pages: old.pages.map((page) => ({
           ...page,
           data: (page.data ?? []).map((msg) =>
-            msg.senderId === data.senderId && msg.status !== 'READ'
-              ? { ...msg, status: 'READ' as const }
+            msg.senderId === data.senderId && msg.status !== "READ"
+              ? { ...msg, status: "READ" as const }
               : msg,
           ),
         })),
@@ -560,29 +586,38 @@ socket.on('message.read', (data: MessageReadPayload) => {
 Add checkmark indicator below the message time. Only render for `isMine` messages. Lucide's `Check` icon is already imported; add `CheckCheck`.
 
 ```tsx
-import { MoreVertical, Pencil, Trash2, Check, X, CheckCheck } from 'lucide-react';
+import {
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Check,
+  X,
+  CheckCheck,
+} from "lucide-react";
 
 // Inside the time row (below the existing time span):
-{isMine && !message.isDeleted && (
-  <span className="flex items-center">
-    {message.status === 'READ' ? (
-      <CheckCheck className="w-3.5 h-3.5 text-primary" />
-    ) : message.status === 'DELIVERED' ? (
-      <CheckCheck className="w-3.5 h-3.5 text-foreground/40" />
-    ) : (
-      <Check className="w-3.5 h-3.5 text-foreground/40" />
-    )}
-  </span>
-)}
+{
+  isMine && !message.isDeleted && (
+    <span className="flex items-center">
+      {message.status === "READ" ? (
+        <CheckCheck className="w-3.5 h-3.5 text-primary" />
+      ) : message.status === "DELIVERED" ? (
+        <CheckCheck className="w-3.5 h-3.5 text-foreground/40" />
+      ) : (
+        <Check className="w-3.5 h-3.5 text-foreground/40" />
+      )}
+    </span>
+  );
+}
 ```
 
 Place this inside the existing `<div className="flex items-center gap-1.5 mt-0.5 px-1">` alongside the time and edited badge.
 
-| Status | Icon | Colour class |
-|--------|------|-------------|
-| SENT | `<Check>` (single) | `text-foreground/40` (grey) |
+| Status    | Icon                    | Colour class                |
+| --------- | ----------------------- | --------------------------- |
+| SENT      | `<Check>` (single)      | `text-foreground/40` (grey) |
 | DELIVERED | `<CheckCheck>` (double) | `text-foreground/40` (grey) |
-| READ | `<CheckCheck>` (double) | `text-primary` (blue) |
+| READ      | `<CheckCheck>` (double) | `text-primary` (blue)       |
 
 ### 3.6 Files to Create / Modify in This Phase
 
@@ -594,6 +629,7 @@ apps/frontend/src/features/chat/components/MessageBubble.tsx    — modified (ad
 ### 3.7 Test Cases
 
 **`MessageBubble` component:**
+
 - [ ] Renders `<Check>` (single, grey) when `isMine && status === 'SENT'`
 - [ ] Renders `<CheckCheck>` (double, grey) when `isMine && status === 'DELIVERED'`
 - [ ] Renders `<CheckCheck>` (double, blue/primary) when `isMine && status === 'READ'`
@@ -601,6 +637,7 @@ apps/frontend/src/features/chat/components/MessageBubble.tsx    — modified (ad
 - [ ] Renders NO status indicator when `message.isDeleted === true`
 
 **`usePresence` socket handlers:**
+
 - [ ] `message.delivered`: updates SENT messages from `senderId` to DELIVERED in messages cache
 - [ ] `message.delivered`: does NOT update DELIVERED or READ messages (status already advanced)
 - [ ] `message.read`: updates SENT and DELIVERED messages from `senderId` to READ in messages cache
@@ -617,14 +654,14 @@ pnpm nx test frontend
 
 ## 4. Architecture Decisions
 
-| # | Decision | Options Considered | Choice | Rationale |
-|---|----------|--------------------|--------|-----------|
-| 1 | When to trigger DELIVERED | (a) On message fetch, (b) On socket connection, (c) Separate ACK endpoint | On `GET /messages` fetch | No new endpoint or socket event needed; already covers the "recipient has opened the conversation" case; idempotent by design |
-| 2 | Bulk update sync vs async | (a) Await before responding, (b) Concurrent with fetch, (c) Fire-and-forget after response | Fire-and-forget, in-memory status reflected immediately | Keeps API latency minimal; response carries correct status via in-memory update; DB update is best-effort and idempotent on retry |
-| 3 | Include `senderId` in `MessageReadEventV1` | (a) Add field to event, (b) ChatGateway does a DB lookup | Add field to event | ChatGateway must remain stateless and fast; a DB lookup per event would add unnecessary latency and coupling |
-| 4 | New Kafka topic vs piggyback on existing | N/A | New `message.delivered.v1` topic | Semantically distinct from `message.sent.v1`; separate topic allows independent subscription and filtering |
-| 5 | Auto-read on `message.new` | (a) Frontend triggers markRead for active conversation, (b) Backend tracks socket room membership | Frontend triggers markRead | Simplest; no backend state needed; follows same path as manual mark-read |
-| 6 | Compound index `{ conversationId, senderId, status }` | (a) Add index, (b) Rely on existing `{ conversationId, createdAt }` index | Add compound index | `updateStatusBySender` filters on all three fields; without the index, MongoDB falls back to a collection scan per delivery event |
+| #   | Decision                                              | Options Considered                                                                                | Choice                                                  | Rationale                                                                                                                         |
+| --- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | When to trigger DELIVERED                             | (a) On message fetch, (b) On socket connection, (c) Separate ACK endpoint                         | On `GET /messages` fetch                                | No new endpoint or socket event needed; already covers the "recipient has opened the conversation" case; idempotent by design     |
+| 2   | Bulk update sync vs async                             | (a) Await before responding, (b) Concurrent with fetch, (c) Fire-and-forget after response        | Fire-and-forget, in-memory status reflected immediately | Keeps API latency minimal; response carries correct status via in-memory update; DB update is best-effort and idempotent on retry |
+| 3   | Include `senderId` in `MessageReadEventV1`            | (a) Add field to event, (b) ChatGateway does a DB lookup                                          | Add field to event                                      | ChatGateway must remain stateless and fast; a DB lookup per event would add unnecessary latency and coupling                      |
+| 4   | New Kafka topic vs piggyback on existing              | N/A                                                                                               | New `message.delivered.v1` topic                        | Semantically distinct from `message.sent.v1`; separate topic allows independent subscription and filtering                        |
+| 5   | Auto-read on `message.new`                            | (a) Frontend triggers markRead for active conversation, (b) Backend tracks socket room membership | Frontend triggers markRead                              | Simplest; no backend state needed; follows same path as manual mark-read                                                          |
+| 6   | Compound index `{ conversationId, senderId, status }` | (a) Add index, (b) Rely on existing `{ conversationId, createdAt }` index                         | Add compound index                                      | `updateStatusBySender` filters on all three fields; without the index, MongoDB falls back to a collection scan per delivery event |
 
 ---
 

@@ -2,7 +2,14 @@
 
 import React, { useState } from "react";
 import { Message } from "@shared-types";
-import { MoreVertical, Pencil, Trash2, Check, X } from "lucide-react";
+import {
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Check,
+  CheckCheck,
+  X,
+} from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useTranslations } from "next-intl";
 import { useEditMessage, useDeleteMessage } from "../hooks/useChat";
@@ -156,6 +163,17 @@ export const MessageBubble = ({ message, isMine }: MessageBubbleProps) => {
           {message.isEdited && (
             <span className="text-xs text-foreground/30 italic">
               ({t("edited")})
+            </span>
+          )}
+          {isMine && (
+            <span className="flex items-center">
+              {message.status === "READ" ? (
+                <CheckCheck className="w-3.5 h-3.5 text-primary" />
+              ) : message.status === "DELIVERED" ? (
+                <CheckCheck className="w-3.5 h-3.5 text-foreground/40" />
+              ) : (
+                <Check className="w-3.5 h-3.5 text-foreground/40" />
+              )}
             </span>
           )}
         </div>

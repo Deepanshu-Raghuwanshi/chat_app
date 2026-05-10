@@ -4,6 +4,8 @@ import { UserProfile } from "../services/friends.service";
 import { Message, MessageListResponse } from "@shared-types";
 import { InfiniteData } from "@tanstack/react-query";
 import { io, Socket } from "socket.io-client";
+import { chatService } from "../../chat/services/chat.service";
+import { useChatStore } from "../../chat/store/useChatStore";
 
 interface PresenceUpdate {
   userId: string;
@@ -19,6 +21,19 @@ interface MessageNewPayload {
   content: string;
   type: string;
   sentAt: string;
+}
+
+interface MessageDeliveredPayload {
+  conversationId: string;
+  senderId: string;
+  recipientId: string; // mirrors server payload; not needed client-side
+  deliveredAt: string;
+}
+
+interface MessageReadPayload {
+  conversationId: string;
+  senderId: string;
+  lastReadAt: string;
 }
 
 let socket: Socket | null = null;
@@ -59,7 +74,9 @@ export const usePresence = () => {
       });
 
       socket.on("friend.request.received", () => {
-        queryClient.invalidateQueries({ queryKey: ["friend-requests", "incoming"] });
+        queryClient.invalidateQueries({
+          queryKey: ["friend-requests", "incoming"],
+        });
       });
 
       socket.on("message.new", (data: MessageNewPayload) => {
@@ -110,6 +127,54 @@ export const usePresence = () => {
         );
         // Refresh conversation list to update order and unread counts
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
+
+        // Auto-read: if the conversation is currently open, mark it read immediately.
+        // .getState() is used instead of the useChatStore hook because this runs
+        // inside a socket event handler, not a component render cycle.
+        const { activeConversationId } = useChatStore.getState();
+        if (data.conversationId === activeConversationId) {
+          chatService.markRead(data.conversationId).catch(() => {});
+        }
+      });
+
+      socket.on("message.delivered", (data: MessageDeliveredPayload) => {
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+          ["messages", data.conversationId],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                data: (page.data ?? []).map((msg) =>
+                  msg.senderId === data.senderId && msg.status === "SENT"
+                    ? { ...msg, status: "DELIVERED" as const }
+                    : msg,
+                ),
+              })),
+            };
+          },
+        );
+      });
+
+      socket.on("message.read", (data: MessageReadPayload) => {
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+          ["messages", data.conversationId],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                data: (page.data ?? []).map((msg) =>
+                  msg.senderId === data.senderId && msg.status !== "READ"
+                    ? { ...msg, status: "READ" as const }
+                    : msg,
+                ),
+              })),
+            };
+          },
+        );
       });
     }
 
