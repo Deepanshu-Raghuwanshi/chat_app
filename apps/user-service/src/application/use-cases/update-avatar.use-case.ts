@@ -2,6 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { UserProfileRepository } from '../ports/user-profile.repository';
 import { CloudinaryService } from '../../infrastructure/cloudinary/cloudinary.service';
 import { KafkaProducerService } from '../../infrastructure/messaging/kafka-producer.service';
+import { UserTopics } from '@kafka-events';
 
 @Injectable()
 export class UpdateAvatarUseCase {
@@ -24,7 +25,7 @@ export class UpdateAvatarUseCase {
     const updatedUser = await this.userProfileRepository.update(userId, { avatarUrl });
 
     // Emit event for synchronization
-    await this.kafkaProducer.emit('user.profile.updated', {
+    await this.kafkaProducer.emit(UserTopics.USER_PROFILE_UPDATED, {
       userId: updatedUser.id,
       username: updatedUser.username,
       fullName: updatedUser.fullName,

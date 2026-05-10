@@ -8,6 +8,21 @@ export interface CreateParticipantInput {
   avatarUrl?: string;
 }
 
+export interface UpdateParticipantProfileInput {
+  conversationId: string;
+  userId: string;
+  username?: string;
+  fullName?: string;
+  avatarUrl?: string;
+}
+
+export interface UpdateParticipantProfileByUserInput {
+  userId: string;
+  username?: string;
+  fullName?: string;
+  avatarUrl?: string;
+}
+
 export interface ConversationParticipantRepository {
   findByConversationAndUser(
     conversationId: string,
@@ -22,6 +37,8 @@ export interface ConversationParticipantRepository {
     userId: string,
     lastReadAt: Date,
   ): Promise<void>;
+  updateProfile(data: UpdateParticipantProfileInput): Promise<void>;
+  updateProfileByUserId(data: UpdateParticipantProfileByUserInput): Promise<void>;
   findConversationIdsByParticipantName(
     userId: string,
     query: string,
