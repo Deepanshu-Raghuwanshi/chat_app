@@ -13,8 +13,14 @@ import {
   useConversations,
   useSendMessage,
   useMarkRead,
+  useSearchConversations,
 } from "../../src/features/chat/hooks/useChat";
-import { Conversation, Message, MessageListResponse } from "@shared-types";
+import {
+  Conversation,
+  ConversationListResponse,
+  Message,
+  MessageListResponse,
+} from "@shared-types";
 
 vi.mock("../../src/features/chat/services/chat.service", () => ({
   chatService: {
@@ -26,6 +32,7 @@ vi.mock("../../src/features/chat/services/chat.service", () => ({
     editMessage: vi.fn(),
     deleteMessage: vi.fn(),
     markRead: vi.fn(),
+    searchConversations: vi.fn(),
   },
 }));
 
@@ -239,5 +246,73 @@ describe("useMarkRead", () => {
       queryKey: ["conversation", "conv-1"],
     });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["conversations"] });
+  });
+});
+
+describe("useSearchConversations", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("does not call searchConversations when query is empty string", async () => {
+    const { Wrapper } = makeWrapper();
+    renderHook(() => useSearchConversations(""), { wrapper: Wrapper });
+
+    await new Promise((r) => setTimeout(r, 50));
+    expect(chatService.searchConversations).not.toHaveBeenCalled();
+  });
+
+  it("debounces — API is called only after 300ms of idle, not on every keystroke", async () => {
+    vi.useFakeTimers();
+    vi.mocked(chatService.searchConversations).mockResolvedValue({
+      data: [],
+      hasMore: false,
+    } as ConversationListResponse);
+
+    const { Wrapper } = makeWrapper();
+    const { rerender } = renderHook(
+      ({ q }: { q: string }) => useSearchConversations(q),
+      { wrapper: Wrapper, initialProps: { q: "" } },
+    );
+
+    rerender({ q: "j" });
+    expect(chatService.searchConversations).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    vi.useRealTimers();
+
+    await waitFor(() => {
+      expect(chatService.searchConversations).toHaveBeenCalledWith("j");
+    });
+  });
+
+  it("calls chatService.searchConversations with the debounced query value", async () => {
+    vi.mocked(chatService.searchConversations).mockResolvedValue({
+      data: [],
+      hasMore: false,
+    } as ConversationListResponse);
+
+    const { Wrapper } = makeWrapper();
+    renderHook(() => useSearchConversations("alice"), { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(chatService.searchConversations).toHaveBeenCalledWith("alice");
+    });
+  });
+
+  it("returns empty data array when API returns { data: [], hasMore: false }", async () => {
+    vi.mocked(chatService.searchConversations).mockResolvedValue({
+      data: [],
+      hasMore: false,
+    } as ConversationListResponse);
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useSearchConversations("alice"), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data).toHaveLength(0);
+    expect(result.current.data?.hasMore).toBe(false);
   });
 });

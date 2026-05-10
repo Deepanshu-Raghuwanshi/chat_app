@@ -9,8 +9,14 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useState, useEffect } from "react";
 import { chatService } from "../services/chat.service";
-import { Conversation, Message, MessageListResponse } from "@shared-types";
+import {
+  Conversation,
+  ConversationListResponse,
+  Message,
+  MessageListResponse,
+} from "@shared-types";
 import { showToast } from "../../../shared/utils/toast";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useTranslations } from "next-intl";
@@ -210,6 +216,22 @@ export const useMarkRead = (conversationId: string) => {
       });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
+  });
+};
+
+export const useSearchConversations = (query: string) => {
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  return useQuery<ConversationListResponse>({
+    queryKey: ["conversation-search", debouncedQuery],
+    queryFn: () => chatService.searchConversations(debouncedQuery),
+    enabled: debouncedQuery.trim().length >= 1,
+    staleTime: 30_000,
   });
 };
 

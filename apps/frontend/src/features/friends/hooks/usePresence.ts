@@ -21,7 +21,6 @@ interface MessageNewPayload {
   sentAt: string;
 }
 
-
 let socket: Socket | null = null;
 
 export const usePresence = () => {
