@@ -6,6 +6,7 @@ import {
   UserProfile,
   UserSearchResult,
 } from "../services/friends.service";
+import { showToast } from "../../../shared/utils/toast";
 
 export const useFriends = () => {
   return useQuery({
@@ -133,7 +134,7 @@ export const useSendFriendRequest = () => {
     },
 
     // If the mutation fails, use the context returned from onMutate to roll back
-    onError: (_err, _variables, context) => {
+    onError: (err: { response?: { data?: { message?: string } } }, _variables, context) => {
       if (context?.previousOutgoing) {
         queryClient.setQueryData(
           ["friend-requests", "outgoing"],
@@ -149,12 +150,17 @@ export const useSendFriendRequest = () => {
       for (const [queryKey, data] of context?.previousSearchQueries ?? []) {
         queryClient.setQueryData(queryKey, data);
       }
+      const message = err.response?.data?.message ?? "Failed to send friend request";
+      showToast.error("Could not send friend request", message);
     },
 
     // Always refetch after error or success:
     onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["friend-requests", "outgoing"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["friend-requests", "incoming"],
       });
       queryClient.invalidateQueries({ queryKey: ["friend-recommendations"] });
       queryClient.invalidateQueries({ queryKey: ["user-search"] });

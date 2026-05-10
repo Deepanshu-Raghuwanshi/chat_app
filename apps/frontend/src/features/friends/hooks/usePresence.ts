@@ -58,6 +58,10 @@ export const usePresence = () => {
         queryClient.invalidateQueries({ queryKey: ["friends"] });
       });
 
+      socket.on("friend.request.received", () => {
+        queryClient.invalidateQueries({ queryKey: ["friend-requests", "incoming"] });
+      });
+
       socket.on("message.new", (data: MessageNewPayload) => {
         // Map the Kafka event shape to the Message schema shape
         const newMessage: Message = {

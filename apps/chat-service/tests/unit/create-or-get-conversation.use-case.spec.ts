@@ -54,6 +54,7 @@ describe("CreateOrGetConversationUseCase (Unit)", () => {
     participantRepoMock = {
       create: sinon.stub(),
       updateLastRead: sinon.stub().resolves(),
+      updateProfile: sinon.stub().resolves(),
     };
     friendshipVerifierMock = {
       areFriends: sinon.stub(),
@@ -107,6 +108,37 @@ describe("CreateOrGetConversationUseCase (Unit)", () => {
     expect(result.isNew).to.equal(false);
     expect(result.conversation.id).to.equal("conv1");
     expect(conversationRepoMock.create.called).to.equal(false);
+  });
+
+  it("should refresh participant profile hints (avatarUrl) when returning existing conversation — regression for stale avatar bug", async () => {
+    const existing = makeConversation();
+    friendshipVerifierMock.areFriends.resolves(true);
+    conversationRepoMock.findByParticipants.resolves(existing);
+
+    await useCase.execute({
+      userId: "user1",
+      targetUserId: "user2",
+      callerAvatarUrl: "https://cdn.example.com/user1.jpg",
+      targetAvatarUrl: "https://cdn.example.com/user2.jpg",
+      callerUsername: "alice",
+      targetUsername: "bob",
+    });
+
+    expect(participantRepoMock.updateProfile.calledTwice).to.equal(true);
+
+    const callerCall = participantRepoMock.updateProfile
+      .getCalls()
+      .find((c: sinon.SinonSpyCall) => c.args[0].userId === "user1");
+    expect(callerCall?.args[0].avatarUrl).to.equal(
+      "https://cdn.example.com/user1.jpg",
+    );
+
+    const targetCall = participantRepoMock.updateProfile
+      .getCalls()
+      .find((c: sinon.SinonSpyCall) => c.args[0].userId === "user2");
+    expect(targetCall?.args[0].avatarUrl).to.equal(
+      "https://cdn.example.com/user2.jpg",
+    );
   });
 
   it("should create a new conversation when none exists", async () => {

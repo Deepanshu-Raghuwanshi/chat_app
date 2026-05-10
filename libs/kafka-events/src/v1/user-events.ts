@@ -1,6 +1,7 @@
 export enum UserTopics {
   USER_CREATED = 'user.created.v1',
   USER_UPDATED = 'user.updated.v1',
+  USER_PROFILE_UPDATED = 'user.profile.updated',
   USER_PRESENCE_UPDATED = 'user.presence.updated.v1',
 }
 
@@ -25,4 +26,13 @@ export interface UserUpdatedEventV1 {
   username?: string;
   fullName?: string;
   avatarUrl?: string;
+}
+
+export interface UserProfileUpdatedEventV1 {
+  userId: string;
+  username?: string;
+  fullName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  status?: string;
 }

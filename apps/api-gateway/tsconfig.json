@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "mocha", "chai", "sinon"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
+}

@@ -5,6 +5,8 @@ import { ConversationParticipant } from "./schemas/conversation-participant.sche
 import {
   ConversationParticipantRepository,
   CreateParticipantInput,
+  UpdateParticipantProfileInput,
+  UpdateParticipantProfileByUserInput,
 } from "../../../application/ports/conversation-participant.repository";
 import { ConversationParticipantEntity } from "../../../domain/entities/conversation-participant.entity";
 
@@ -50,6 +52,33 @@ export class MongooseConversationParticipantRepository implements ConversationPa
   ): Promise<void> {
     await this.model
       .findOneAndUpdate({ conversationId, userId }, { $set: { lastReadAt } })
+      .exec();
+  }
+
+  async updateProfile(data: UpdateParticipantProfileInput): Promise<void> {
+    const fields: Partial<Record<string, unknown>> = {};
+    if (data.username !== undefined) fields.username = data.username;
+    if (data.fullName !== undefined) fields.fullName = data.fullName;
+    if (data.avatarUrl !== undefined) fields.avatarUrl = data.avatarUrl;
+    if (Object.keys(fields).length === 0) return;
+    await this.model
+      .findOneAndUpdate(
+        { conversationId: data.conversationId, userId: data.userId },
+        { $set: fields },
+      )
+      .exec();
+  }
+
+  async updateProfileByUserId(
+    data: UpdateParticipantProfileByUserInput,
+  ): Promise<void> {
+    const fields: Partial<Record<string, unknown>> = {};
+    if (data.username !== undefined) fields.username = data.username;
+    if (data.fullName !== undefined) fields.fullName = data.fullName;
+    if (data.avatarUrl !== undefined) fields.avatarUrl = data.avatarUrl;
+    if (Object.keys(fields).length === 0) return;
+    await this.model
+      .updateMany({ userId: data.userId }, { $set: fields })
       .exec();
   }
 

@@ -66,6 +66,22 @@ export class CreateOrGetConversationUseCase {
       targetUserId,
     );
     if (existing) {
+      await Promise.all([
+        this.participantRepository.updateProfile({
+          conversationId: existing.id,
+          userId,
+          username: dto.callerUsername,
+          fullName: dto.callerFullName,
+          avatarUrl: dto.callerAvatarUrl,
+        }),
+        this.participantRepository.updateProfile({
+          conversationId: existing.id,
+          userId: targetUserId,
+          username: dto.targetUsername,
+          fullName: dto.targetFullName,
+          avatarUrl: dto.targetAvatarUrl,
+        }),
+      ]);
       return {
         conversation: await this.viewBuilder.build(existing, userId),
         isNew: false,

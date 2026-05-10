@@ -35,6 +35,7 @@ import { SearchConversationsUseCase } from "./application/use-cases/search-conve
 import { ConversationViewBuilder } from "./application/services/conversation-view.builder";
 import { PresenceGateway } from "./interfaces/gateways/presence.gateway";
 import { ChatGateway } from "./infrastructure/messaging/chat.gateway";
+import { UserProfileUpdatesConsumer } from "./infrastructure/messaging/user-profile-updates.consumer";
 
 @Module({
   imports: [
@@ -97,6 +98,7 @@ import { ChatGateway } from "./infrastructure/messaging/chat.gateway";
 
     // Infrastructure
     KafkaProducerService,
+    UserProfileUpdatesConsumer,
     JwtStrategy,
 
     // Repository bindings
