@@ -28,10 +28,11 @@ export const setupInterceptors = () => {
       const originalRequest = error.config;
 
       if (
-        error.response?.status === 401 && 
+        error.response?.status === 401 &&
         !originalRequest._retry &&
         !originalRequest.url?.includes('/auth/login') &&
-        !originalRequest.url?.includes('/auth/register')
+        !originalRequest.url?.includes('/auth/register') &&
+        !originalRequest.url?.includes('/auth/refresh')
       ) {
         if (isRefreshing) {
           return new Promise(function (resolve, reject) {
@@ -55,6 +56,11 @@ export const setupInterceptors = () => {
         } catch (refreshError) {
           processQueue(refreshError, null);
           useAuthStore.getState().logout();
+          authService.logout().catch(() => {}).finally(() => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login';
+            }
+          });
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
