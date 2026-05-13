@@ -13,8 +13,10 @@ import {
   FriendRemovedEventV1,
   FriendRequestSentEventV1,
   MessageSentEventV1,
+  MessageDeliveredEventV1,
   MessageEditedEventV1,
   MessageDeletedEventV1,
+  MessageReadEventV1,
 } from "@kafka-events";
 
 @Injectable()
@@ -40,8 +42,10 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
     await this.consumer.subscribe({
       topics: [
         ChatTopics.MESSAGE_SENT,
+        ChatTopics.MESSAGE_DELIVERED,
         ChatTopics.MESSAGE_EDITED,
         ChatTopics.MESSAGE_DELETED,
+        ChatTopics.MESSAGE_READ,
         FriendTopics.FRIEND_REMOVED,
         FriendTopics.FRIEND_REQUEST_SENT,
       ],
@@ -100,6 +104,22 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
       this.presenceGateway.emitToRoom(
         `conversation:${event.conversationId}`,
         "message.deleted",
+        event,
+      );
+    } else if (topic === ChatTopics.MESSAGE_DELIVERED) {
+      if (!p.senderId) return;
+      const event = p as unknown as MessageDeliveredEventV1;
+      this.presenceGateway.emitToRoom(
+        `user:${event.senderId}`,
+        "message.delivered",
+        event,
+      );
+    } else if (topic === ChatTopics.MESSAGE_READ) {
+      if (!p.senderId) return;
+      const event = p as unknown as MessageReadEventV1;
+      this.presenceGateway.emitToRoom(
+        `user:${event.senderId}`,
+        "message.read",
         event,
       );
     } else if (topic === FriendTopics.FRIEND_REMOVED) {
