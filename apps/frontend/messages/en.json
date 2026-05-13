@@ -213,7 +213,8 @@
       },
       "composer": {
         "placeholder": "Type a message...",
-        "send": "Send"
+        "send": "Send",
+        "emoji_button_label": "Open emoji picker"
       },
       "message": {
         "deleted": "[deleted]",

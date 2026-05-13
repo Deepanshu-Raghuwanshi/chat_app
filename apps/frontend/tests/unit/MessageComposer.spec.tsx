@@ -11,6 +11,18 @@ vi.mock("../../src/features/chat/hooks/useChat", () => ({
   useSendMessage: vi.fn(),
 }));
 
+vi.mock("../../src/features/chat/components/EmojiPickerPopover", () => ({
+  EmojiPickerPopover: ({
+    onEmojiSelect,
+  }: {
+    onEmojiSelect: (emoji: string) => void;
+  }) => (
+    <button data-testid="mock-emoji-picker" onClick={() => onEmojiSelect("👍")}>
+      Mock Picker
+    </button>
+  ),
+}));
+
 describe("MessageComposer", () => {
   const mockSendMessage = vi.fn();
 
@@ -65,5 +77,76 @@ describe("MessageComposer", () => {
     await waitFor(() => {
       expect((textarea as HTMLTextAreaElement).value).toBe("");
     });
+  });
+
+  it("emoji button renders and is accessible via aria-label", () => {
+    renderWithIntl(<MessageComposer conversationId="conv-1" />);
+    expect(
+      screen.queryByRole("button", { name: /open emoji picker/i }),
+    ).toBeTruthy();
+  });
+
+  it("clicking the emoji button opens the picker", async () => {
+    renderWithIntl(<MessageComposer conversationId="conv-1" />);
+    const emojiButton = screen.getByRole("button", {
+      name: /open emoji picker/i,
+    });
+    await simulate.click(emojiButton);
+    expect(screen.queryByTestId("mock-emoji-picker")).toBeTruthy();
+  });
+
+  it("clicking the emoji button again closes the picker", async () => {
+    renderWithIntl(<MessageComposer conversationId="conv-1" />);
+    const emojiButton = screen.getByRole("button", {
+      name: /open emoji picker/i,
+    });
+    await simulate.click(emojiButton);
+    expect(screen.queryByTestId("mock-emoji-picker")).toBeTruthy();
+    await simulate.click(emojiButton);
+    expect(screen.queryByTestId("mock-emoji-picker")).toBeNull();
+  });
+
+  it("selecting an emoji appends it to the draft when the composer is empty", async () => {
+    renderWithIntl(<MessageComposer conversationId="conv-emoji" />);
+    const emojiButton = screen.getByRole("button", {
+      name: /open emoji picker/i,
+    });
+    await simulate.click(emojiButton);
+    await simulate.click(screen.getByTestId("mock-emoji-picker"));
+
+    const draft = useChatStore.getState().draftMessages["conv-emoji"];
+    expect(draft).toBe("👍");
+  });
+
+  it("selecting an emoji inserts it at the cursor position when cursor is mid-text", async () => {
+    renderWithIntl(<MessageComposer conversationId="conv-cursor" />);
+    const textarea = screen.getByPlaceholderText("Type a message...");
+
+    await simulate.type(textarea, "helloworld");
+
+    act(() => {
+      (textarea as HTMLTextAreaElement).setSelectionRange(5, 5);
+    });
+
+    const emojiButton = screen.getByRole("button", {
+      name: /open emoji picker/i,
+    });
+    await simulate.click(emojiButton);
+    await simulate.click(screen.getByTestId("mock-emoji-picker"));
+
+    const draft = useChatStore.getState().draftMessages["conv-cursor"];
+    expect(draft).toBe("hello👍world");
+  });
+
+  it("closes the emoji picker when clicking outside the emoji area", async () => {
+    renderWithIntl(<MessageComposer conversationId="conv-1" />);
+    const emojiButton = screen.getByRole("button", {
+      name: /open emoji picker/i,
+    });
+    await simulate.click(emojiButton);
+    expect(screen.queryByTestId("mock-emoji-picker")).toBeTruthy();
+
+    await simulate.click(document.body);
+    expect(screen.queryByTestId("mock-emoji-picker")).toBeNull();
   });
 });

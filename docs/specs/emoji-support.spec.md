@@ -45,6 +45,7 @@ Verified by reading source files — no assumptions.
 ### User-facing behaviour
 
 **Phase 1 — Emoji in message text:**
+
 1. User opens a conversation.
 2. User clicks the 😊 button next to the message input.
 3. An emoji picker popover appears (search, recently used, all categories).
@@ -52,6 +53,7 @@ Verified by reading source files — no assumptions.
 5. User submits the message normally. The emoji is stored as UTF-8 text content.
 
 **Phase 2 — Emoji reactions:**
+
 1. User hovers over any (non-deleted) message.
 2. A faint reaction button (😊 +) appears on the appropriate side.
 3. Clicking shows a quick-picker with 6 common emoji (👍 ❤️ 😂 😮 😢 🔥) plus a "more" button that opens the full emoji picker.
@@ -139,6 +141,7 @@ apps/frontend/src/features/chat/components/EmojiPickerPopover.tsx
 ```
 
 **Props:**
+
 ```typescript
 interface EmojiPickerPopoverProps {
   onEmojiSelect: (emoji: string) => void;
@@ -158,12 +161,14 @@ apps/frontend/src/features/chat/components/MessageComposer.tsx
 ```
 
 Changes:
+
 1. Import and render `EmojiPickerPopover`.
 2. Add `emojiPickerOpen: boolean` to local component state (no Zustand — it's ephemeral UI state scoped to a single component instance).
 3. Add `textareaRef` cursor position tracking: when an emoji is selected, insert it at `textareaRef.current.selectionStart` and update the draft in Zustand.
 4. Add the 😊 icon button between the textarea and the send button.
 
 Cursor-insert logic:
+
 ```typescript
 const handleEmojiSelect = (emoji: string) => {
   const textarea = textareaRef.current;
@@ -221,11 +226,12 @@ Editing the existing `libs/openapi-specs/src/v1/chat.yaml` (reactions belong to 
 
 New endpoint added:
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| POST | `/api/v1/chat/conversations/{conversationId}/messages/{messageId}/reactions` | JWT | Toggle a reaction (add or remove) |
+| Method | Path                                                                         | Auth | Purpose                           |
+| ------ | ---------------------------------------------------------------------------- | ---- | --------------------------------- |
+| POST   | `/api/v1/chat/conversations/{conversationId}/messages/{messageId}/reactions` | JWT  | Toggle a reaction (add or remove) |
 
 New schemas added:
+
 - `Reaction` — `{ emoji: string, userId: uuid, createdAt: date-time }`
 - `ToggleReactionDto` — `{ emoji: string (1–10 chars) }`
 
@@ -263,9 +269,9 @@ reactions!: ReactionDocument[];
 
 #### 2.1.3 Kafka Event Contracts
 
-| Direction | Topic | Producer | Consumer(s) | Payload |
-|-----------|-------|----------|-------------|---------|
-| Produces | `message.reaction.toggled.v1` | chat-service | notification-service | `{ messageId, conversationId, senderId, reactorId, emoji, action: 'added'\|'removed', toggledAt }` |
+| Direction | Topic                         | Producer     | Consumer(s)          | Payload                                                                                            |
+| --------- | ----------------------------- | ------------ | -------------------- | -------------------------------------------------------------------------------------------------- |
+| Produces  | `message.reaction.toggled.v1` | chat-service | notification-service | `{ messageId, conversationId, senderId, reactorId, emoji, action: 'added'\|'removed', toggledAt }` |
 
 This is a **new** topic. `notification-service` will eventually consume it to notify the message sender when someone reacts.
 
@@ -361,11 +367,12 @@ export interface MessageView {
 
 **`ToggleReactionUseCase`** — new file `apps/chat-service/src/application/use-cases/toggle-reaction.use-case.ts`:
 
-| Use Case | HTTP Trigger | Business Rules | Events |
-|----------|-------------|----------------|--------|
+| Use Case                | HTTP Trigger         | Business Rules                                         | Events                        |
+| ----------------------- | -------------------- | ------------------------------------------------------ | ----------------------------- |
 | `ToggleReactionUseCase` | POST `.../reactions` | participant check, not-deleted check, toggle semantics | `message.reaction.toggled.v1` |
 
 Exact execution sequence:
+
 1. Load conversation by `conversationId` — throw `NotFoundException` if missing.
 2. Load participant by `(conversationId, userId)` — throw `ForbiddenException` if not a participant.
 3. Load message by `messageId` — throw `NotFoundException` if missing or `message.conversationId !== conversationId`.
@@ -543,13 +550,15 @@ export const useToggleReaction = (conversationId: string) => {
       chatService.toggleReaction(conversationId, messageId, emoji),
 
     onMutate: async ({ messageId, emoji }) => {
-      await queryClient.cancelQueries({ queryKey: ['messages', conversationId] });
-      const snapshot = queryClient.getQueryData<InfiniteData<MessageListResponse>>(
-        ['messages', conversationId],
-      );
+      await queryClient.cancelQueries({
+        queryKey: ["messages", conversationId],
+      });
+      const snapshot = queryClient.getQueryData<
+        InfiniteData<MessageListResponse>
+      >(["messages", conversationId]);
 
       queryClient.setQueryData<InfiniteData<MessageListResponse>>(
-        ['messages', conversationId],
+        ["messages", conversationId],
         (old) => {
           if (!old) return old;
           return {
@@ -565,7 +574,14 @@ export const useToggleReaction = (conversationId: string) => {
                 const updatedReactions =
                   existingIdx >= 0
                     ? reactions.filter((_, i) => i !== existingIdx)
-                    : [...reactions, { emoji, userId: user?.id ?? '', createdAt: new Date().toISOString() }];
+                    : [
+                        ...reactions,
+                        {
+                          emoji,
+                          userId: user?.id ?? "",
+                          createdAt: new Date().toISOString(),
+                        },
+                      ];
                 return { ...msg, reactions: updatedReactions };
               }),
             })),
@@ -577,12 +593,15 @@ export const useToggleReaction = (conversationId: string) => {
     },
     onError: (_err, _vars, context) => {
       if (context?.snapshot) {
-        queryClient.setQueryData(['messages', conversationId], context.snapshot);
+        queryClient.setQueryData(
+          ["messages", conversationId],
+          context.snapshot,
+        );
       }
     },
     onSuccess: (updatedMessage) => {
       queryClient.setQueryData<InfiniteData<MessageListResponse>>(
-        ['messages', conversationId],
+        ["messages", conversationId],
         (old) => {
           if (!old) return old;
           return {
@@ -601,8 +620,8 @@ export const useToggleReaction = (conversationId: string) => {
 };
 ```
 
-| Hook | TQ Type | Query Key | Optimistic Update |
-|------|---------|-----------|-------------------|
+| Hook                                | TQ Type       | Query Key                      | Optimistic Update                                                  |
+| ----------------------------------- | ------------- | ------------------------------ | ------------------------------------------------------------------ |
 | `useToggleReaction(conversationId)` | `useMutation` | `['messages', conversationId]` | Yes — toggle local reactions array immediately, roll back on error |
 
 #### 2.3.4 Zustand Store Changes
@@ -611,17 +630,17 @@ export const useToggleReaction = (conversationId: string) => {
 
 #### 2.3.5 Components
 
-| Component | New or Modified | Responsibility |
-|-----------|----------------|----------------|
-| `ReactionBar.tsx` | created | Displays reaction pills below message; handles click-to-toggle |
-| `ReactionPicker.tsx` | created | Quick-picker (6 common emoji) + "more" button opening full `EmojiPickerPopover` |
-| `MessageBubble.tsx` | modified | Add reaction button on hover, render `ReactionBar`, wire `useToggleReaction` |
+| Component            | New or Modified | Responsibility                                                                  |
+| -------------------- | --------------- | ------------------------------------------------------------------------------- |
+| `ReactionBar.tsx`    | created         | Displays reaction pills below message; handles click-to-toggle                  |
+| `ReactionPicker.tsx` | created         | Quick-picker (6 common emoji) + "more" button opening full `EmojiPickerPopover` |
+| `MessageBubble.tsx`  | modified        | Add reaction button on hover, render `ReactionBar`, wire `useToggleReaction`    |
 
 **`ReactionBar` props:**
 
 ```typescript
 interface ReactionBarProps {
-  reactions: Reaction[];        // from message
+  reactions: Reaction[]; // from message
   currentUserId: string;
   onToggle: (emoji: string) => void;
 }
@@ -640,6 +659,7 @@ interface ReactionPickerProps {
 Six preset emoji (👍 ❤️ 😂 😮 😢 🔥) as quick-tap buttons, then a small "+" button that opens `EmojiPickerPopover`. Reuses `EmojiPickerPopover` from Phase 1.
 
 **`MessageBubble` changes:**
+
 - Add `useToggleReaction(conversationId)` mutation.
 - Show `ReactionPicker` on hover (in a `group-hover:opacity-100` div), positioned opposite the `MoreVertical` menu.
   - `isMine` messages: picker appears to the left of the bubble.
@@ -660,12 +680,14 @@ libs/shared-types/src/index.ts                                      — modified
 #### 2.3.7 Test Cases
 
 **Hook tests:**
+
 - [ ] `useToggleReaction`: optimistic update adds reaction immediately before server response
 - [ ] `useToggleReaction`: optimistic update removes reaction when same emoji+userId already present
 - [ ] `useToggleReaction`: on error, rolls back to snapshot state
 - [ ] `useToggleReaction`: on success, replaces optimistic entry with server-confirmed message
 
 **Component tests:**
+
 - [ ] `ReactionBar`: groups multiple reactions by emoji and shows correct counts
 - [ ] `ReactionBar`: highlights reactions the current user has made (reacted pill has distinct style)
 - [ ] `ReactionBar`: clicking a pill calls `onToggle` with the correct emoji
@@ -684,15 +706,15 @@ pnpm nx test frontend
 
 ## 4. Architecture Decisions
 
-| # | Decision | Options Considered | Choice | Rationale |
-|---|----------|--------------------|--------|-----------|
-| 1 | Where to store reactions | Separate collection vs embedded array on Message | Embedded array | DMs are 1:1 — max 2 distinct users per message, bounded doc growth. Reactions always fetched with their message, so embedding avoids a second query entirely. Separate collection only wins for group chats with many participants. |
-| 2 | Reaction toggle — one endpoint or two | POST (add) + DELETE (remove) vs single POST (toggle) | Single POST toggle | Simpler client API: no need to track whether a reaction exists before deciding which verb to call. Matches the UX (single tap to add/remove). Idempotent semantics via toggle. |
-| 3 | Emoji picker library | `emoji-mart`, `emoji-picker-react`, OS keyboard only | `@emoji-mart/react` | Industry standard (used in Slack, Linear). Supports search, recently-used, skin tones. Works with React 19. `emoji-picker-react` is smaller but less feature-complete. OS keyboard alone has no picker UI. |
-| 4 | Emoji picker SSR handling | Render server-side vs dynamic no-SSR | `dynamic({ ssr: false })` | `@emoji-mart` uses Web Components internally which aren't SSR-compatible in Next.js App Router. `ssr: false` is the documented approach and avoids hydration errors. |
-| 5 | Race condition on toggle | Atomic Mongo update vs exists-check + conditional update | Two-step (check + update) | MongoDB lacks a single atomic "upsert into subdoc array or remove if present" operator. The two-step approach is clean. For 1:1 DMs the race window is negligible; a duplicate reaction at worst is corrected on the next toggle. Full atomicity would require a `$function` update pipeline which adds read complexity. |
-| 6 | Reactions in existing message fetch | Separate endpoint vs included in message payload | Included in existing `Message` schema | Reactions are embedded in the document. Returning them with every message fetch adds zero query cost and zero round-trips on the client. |
-| 7 | Reaction Kafka event | New topic vs reuse existing | New topic `message.reaction.toggled.v1` | Distinct semantic — a reaction event has a different payload shape (emoji, action) and different consumers (notify sender) than `message.sent.v1`. Reusing would conflate unrelated event semantics. |
+| #   | Decision                              | Options Considered                                       | Choice                                  | Rationale                                                                                                                                                                                                                                                                                                                |
+| --- | ------------------------------------- | -------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Where to store reactions              | Separate collection vs embedded array on Message         | Embedded array                          | DMs are 1:1 — max 2 distinct users per message, bounded doc growth. Reactions always fetched with their message, so embedding avoids a second query entirely. Separate collection only wins for group chats with many participants.                                                                                      |
+| 2   | Reaction toggle — one endpoint or two | POST (add) + DELETE (remove) vs single POST (toggle)     | Single POST toggle                      | Simpler client API: no need to track whether a reaction exists before deciding which verb to call. Matches the UX (single tap to add/remove). Idempotent semantics via toggle.                                                                                                                                           |
+| 3   | Emoji picker library                  | `emoji-mart`, `emoji-picker-react`, OS keyboard only     | `@emoji-mart/react`                     | Industry standard (used in Slack, Linear). Supports search, recently-used, skin tones. Works with React 19. `emoji-picker-react` is smaller but less feature-complete. OS keyboard alone has no picker UI.                                                                                                               |
+| 4   | Emoji picker SSR handling             | Render server-side vs dynamic no-SSR                     | `dynamic({ ssr: false })`               | `@emoji-mart` uses Web Components internally which aren't SSR-compatible in Next.js App Router. `ssr: false` is the documented approach and avoids hydration errors.                                                                                                                                                     |
+| 5   | Race condition on toggle              | Atomic Mongo update vs exists-check + conditional update | Two-step (check + update)               | MongoDB lacks a single atomic "upsert into subdoc array or remove if present" operator. The two-step approach is clean. For 1:1 DMs the race window is negligible; a duplicate reaction at worst is corrected on the next toggle. Full atomicity would require a `$function` update pipeline which adds read complexity. |
+| 6   | Reactions in existing message fetch   | Separate endpoint vs included in message payload         | Included in existing `Message` schema   | Reactions are embedded in the document. Returning them with every message fetch adds zero query cost and zero round-trips on the client.                                                                                                                                                                                 |
+| 7   | Reaction Kafka event                  | New topic vs reuse existing                              | New topic `message.reaction.toggled.v1` | Distinct semantic — a reaction event has a different payload shape (emoji, action) and different consumers (notify sender) than `message.sent.v1`. Reusing would conflate unrelated event semantics.                                                                                                                     |
 
 ---
 
