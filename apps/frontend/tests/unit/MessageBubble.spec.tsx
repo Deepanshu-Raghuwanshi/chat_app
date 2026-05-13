@@ -104,7 +104,7 @@ describe("MessageBubble status indicator", () => {
     expect(icon?.getAttribute("class")).toContain("text-foreground/40");
   });
 
-  it("renders double CheckCheck icon with primary color when isMine is true and status is READ", () => {
+  it("renders double CheckCheck icon with blue color when isMine is true and status is READ", () => {
     const { container } = renderWithIntl(
       <MessageBubble
         message={{ ...mockMessage, status: "READ" }}
@@ -113,7 +113,7 @@ describe("MessageBubble status indicator", () => {
     );
     const icon = container.querySelector("svg.lucide-check-check");
     expect(icon).toBeTruthy();
-    expect(icon?.getAttribute("class")).toContain("text-primary");
+    expect(icon?.getAttribute("class")).toContain("text-blue-500");
   });
 
   it("renders no status indicator when isMine is false", () => {

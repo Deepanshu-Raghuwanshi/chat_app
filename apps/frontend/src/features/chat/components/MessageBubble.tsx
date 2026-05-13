@@ -168,7 +168,7 @@ export const MessageBubble = ({ message, isMine }: MessageBubbleProps) => {
           {isMine && (
             <span className="flex items-center">
               {message.status === "READ" ? (
-                <CheckCheck className="w-3.5 h-3.5 text-primary" />
+                <CheckCheck className="w-3.5 h-3.5 text-blue-500" />
               ) : message.status === "DELIVERED" ? (
                 <CheckCheck className="w-3.5 h-3.5 text-foreground/40" />
               ) : (
