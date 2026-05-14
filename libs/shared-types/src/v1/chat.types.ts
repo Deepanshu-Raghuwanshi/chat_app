@@ -683,6 +683,8 @@ export interface components {
       status: "SENT" | "DELIVERED" | "READ";
       isDeleted: boolean;
       isEdited?: boolean;
+      /** @description Present when this message is a quoted reply. Contains a snapshot of the original message. */
+      replyTo?: components["schemas"]["QuotedMessage"];
       /** @default [] */
       reactions: components["schemas"]["Reaction"][];
       /** Format: date-time */
@@ -733,6 +735,20 @@ export interface components {
       /** @description Avatar URL of the requesting user (profile hint) */
       callerAvatarUrl?: string;
     };
+    QuotedMessage: {
+      /**
+       * Format: uuid
+       * @description ID of the original message being quoted
+       */
+      messageId: string;
+      /**
+       * Format: uuid
+       * @description User ID of the original message's author
+       */
+      senderId: string;
+      /** @description Snapshot of the original message content at reply time (truncated to 200 chars) */
+      content: string;
+    };
     SendMessageDto: {
       content: string;
       /**
@@ -740,6 +756,11 @@ export interface components {
        * @enum {string}
        */
       type: "TEXT";
+      /**
+       * Format: uuid
+       * @description ID of the message being replied to. When provided, the backend fetches the original message and embeds a snapshot in the new message's replyTo field.
+       */
+      quotedMessageId?: string;
     };
     EditMessageDto: {
       content: string;

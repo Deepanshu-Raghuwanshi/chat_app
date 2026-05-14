@@ -17,6 +17,13 @@ export enum MessageStatus {
   READ = "READ",
 }
 
+/** Immutable snapshot of the quoted message, embedded in MessageSentEventV1.replyTo. */
+export interface ReplyToSnapshot {
+  messageId: string;
+  senderId: string;
+  content: string;
+}
+
 export interface MessageSentEventV1 {
   messageId: string;
   conversationId: string;
@@ -25,6 +32,7 @@ export interface MessageSentEventV1 {
   content: string;
   type: MessageType;
   sentAt: string;
+  replyTo?: ReplyToSnapshot;
 }
 
 export interface MessageDeliveredEventV1 {

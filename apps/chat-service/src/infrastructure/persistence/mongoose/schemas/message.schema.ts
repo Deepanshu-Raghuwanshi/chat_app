@@ -16,6 +16,20 @@ export class ReactionDocument {
 
 const ReactionDocumentSchema = SchemaFactory.createForClass(ReactionDocument);
 
+@Schema({ _id: false })
+export class ReplyToDocument {
+  @Prop({ required: true })
+  messageId!: string;
+
+  @Prop({ required: true })
+  senderId!: string;
+
+  @Prop({ required: true, maxlength: 200 })
+  content!: string;
+}
+
+const ReplyToDocumentSchema = SchemaFactory.createForClass(ReplyToDocument);
+
 @Schema({ timestamps: true })
 export class Message extends Document {
   @Prop({ required: true, index: true })
@@ -41,6 +55,9 @@ export class Message extends Document {
 
   @Prop({ type: [ReactionDocumentSchema], default: [] })
   reactions!: ReactionDocument[];
+
+  @Prop({ type: ReplyToDocumentSchema, default: null })
+  replyTo?: ReplyToDocument | null;
 
   readonly createdAt!: Date;
   readonly updatedAt!: Date;

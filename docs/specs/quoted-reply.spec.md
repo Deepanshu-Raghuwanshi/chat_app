@@ -12,35 +12,35 @@ Verified by reading the actual source files listed below.
 
 ### Backend — `apps/chat-service`
 
-| File | Relevant current state |
-|---|---|
-| `src/infrastructure/persistence/mongoose/schemas/message.schema.ts` | `Message` schema has `conversationId`, `senderId`, `content`, `type`, `status`, `isDeleted`, `isEdited`, `reactions[]`. **No `replyTo` field.** |
-| `src/domain/entities/message.entity.ts` | `MessageProps` and `MessageEntity` match the schema exactly. **No `replyTo`.** |
-| `src/application/interfaces/conversation-view.interface.ts` | `MessageView` interface has same fields. **No `replyTo`.** |
-| `src/application/ports/message.repository.ts` | `CreateMessageInput` has `conversationId`, `senderId`, `content`, `type`. **No `replyTo`.** |
-| `src/application/use-cases/send-message.use-case.ts` | `SendMessageDto` has `userId`, `conversationId`, `content`, `type`. **No `quotedMessageId`.** |
-| `src/application/dto/message.dto.ts` | Controller-level `SendMessageDto` has `content` and optional `type`. **No `quotedMessageId`.** |
-| `src/application/mappers/message.mapper.ts` | `toMessageView` maps all current fields. **No `replyTo` mapping.** |
-| `src/infrastructure/persistence/mongoose/mongoose-message.repository.ts` | `create()` passes `conversationId`, `senderId`, `content`, `type` to Mongoose. **No `replyTo`.** |
-| `src/interfaces/controllers/conversation.controller.ts` | `send()` handler passes `content` and `type` to use case. **No `quotedMessageId`.** |
+| File                                                                     | Relevant current state                                                                                                                          |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/infrastructure/persistence/mongoose/schemas/message.schema.ts`      | `Message` schema has `conversationId`, `senderId`, `content`, `type`, `status`, `isDeleted`, `isEdited`, `reactions[]`. **No `replyTo` field.** |
+| `src/domain/entities/message.entity.ts`                                  | `MessageProps` and `MessageEntity` match the schema exactly. **No `replyTo`.**                                                                  |
+| `src/application/interfaces/conversation-view.interface.ts`              | `MessageView` interface has same fields. **No `replyTo`.**                                                                                      |
+| `src/application/ports/message.repository.ts`                            | `CreateMessageInput` has `conversationId`, `senderId`, `content`, `type`. **No `replyTo`.**                                                     |
+| `src/application/use-cases/send-message.use-case.ts`                     | `SendMessageDto` has `userId`, `conversationId`, `content`, `type`. **No `quotedMessageId`.**                                                   |
+| `src/application/dto/message.dto.ts`                                     | Controller-level `SendMessageDto` has `content` and optional `type`. **No `quotedMessageId`.**                                                  |
+| `src/application/mappers/message.mapper.ts`                              | `toMessageView` maps all current fields. **No `replyTo` mapping.**                                                                              |
+| `src/infrastructure/persistence/mongoose/mongoose-message.repository.ts` | `create()` passes `conversationId`, `senderId`, `content`, `type` to Mongoose. **No `replyTo`.**                                                |
+| `src/interfaces/controllers/conversation.controller.ts`                  | `send()` handler passes `content` and `type` to use case. **No `quotedMessageId`.**                                                             |
 
 ### Shared libraries
 
-| File | Relevant current state |
-|---|---|
-| `libs/openapi-specs/src/v1/chat.yaml` | `Message` schema and `SendMessageDto` have no `replyTo` / `quotedMessageId`. **Updated by this spec's Phase 1.** |
-| `libs/kafka-events/src/v1/chat-events.ts` | `MessageSentEventV1` has no `replyTo`. `ChatTopics` enum is complete — no new topics needed. |
-| `libs/shared-types/src/index.ts` | Exports `Message`, `SendMessageDto` etc. **No `QuotedMessage` type.** |
+| File                                      | Relevant current state                                                                                           |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `libs/openapi-specs/src/v1/chat.yaml`     | `Message` schema and `SendMessageDto` have no `replyTo` / `quotedMessageId`. **Updated by this spec's Phase 1.** |
+| `libs/kafka-events/src/v1/chat-events.ts` | `MessageSentEventV1` has no `replyTo`. `ChatTopics` enum is complete — no new topics needed.                     |
+| `libs/shared-types/src/index.ts`          | Exports `Message`, `SendMessageDto` etc. **No `QuotedMessage` type.**                                            |
 
 ### Frontend — `apps/frontend`
 
-| File | Relevant current state |
-|---|---|
-| `src/features/chat/services/chat.service.ts` | `sendMessage(conversationId, content)` posts `{ content, type }`. **No `quotedMessageId`.** |
-| `src/features/chat/hooks/useChat.ts` | `useSendMessage` mutation takes `content: string`. Optimistic update builds message without `replyTo`. |
-| `src/features/chat/store/useChatStore.ts` | State has `activeConversationId` and `draftMessages`. **No reply target state.** |
-| `src/features/chat/components/MessageBubble.tsx` | Renders content, reactions, status indicator, edit/delete menu. **No quoted preview, no Reply button.** |
-| `src/features/chat/components/MessageComposer.tsx` | Shows textarea + emoji picker + send button. **No reply strip UI.** |
+| File                                               | Relevant current state                                                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `src/features/chat/services/chat.service.ts`       | `sendMessage(conversationId, content)` posts `{ content, type }`. **No `quotedMessageId`.**             |
+| `src/features/chat/hooks/useChat.ts`               | `useSendMessage` mutation takes `content: string`. Optimistic update builds message without `replyTo`.  |
+| `src/features/chat/store/useChatStore.ts`          | State has `activeConversationId` and `draftMessages`. **No reply target state.**                        |
+| `src/features/chat/components/MessageBubble.tsx`   | Renders content, reactions, status indicator, edit/delete menu. **No quoted preview, no Reply button.** |
+| `src/features/chat/components/MessageComposer.tsx` | Shows textarea + emoji picker + send button. **No reply strip UI.**                                     |
 
 ### What does NOT exist yet
 
@@ -68,6 +68,7 @@ Verified by reading the actual source files listed below.
 ### Data flow
 
 **Send a reply:**
+
 ```
 Client (POST /api/v1/chat/conversations/{id}/messages + { content, quotedMessageId })
 → API Gateway (proxy, no change)
@@ -112,9 +113,9 @@ No additional endpoint. `replyTo` is embedded in every `Message` document; the e
 
 Editing existing `libs/openapi-specs/src/v1/chat.yaml`. The feature belongs entirely to the chat service; no new yaml file is needed.
 
-| Method | Path | Auth | Change |
-|---|---|---|---|
-| POST | `/api/v1/chat/conversations/{conversationId}/messages` | JWT | Add optional `quotedMessageId` to `SendMessageDto` |
+| Method | Path                                                   | Auth | Change                                             |
+| ------ | ------------------------------------------------------ | ---- | -------------------------------------------------- |
+| POST   | `/api/v1/chat/conversations/{conversationId}/messages` | JWT  | Add optional `quotedMessageId` to `SendMessageDto` |
 
 New schemas added to `components/schemas`:
 
@@ -134,13 +135,13 @@ Existing schemas modified:
 @Schema({ _id: false })
 export class ReplyToDocument {
   @Prop({ required: true })
-  messageId!: string;  // _id.toString() of the quoted Message document
+  messageId!: string; // _id.toString() of the quoted Message document
 
   @Prop({ required: true })
   senderId!: string;
 
   @Prop({ required: true, maxlength: 200 })
-  content!: string;  // snapshot; immutable after creation
+  content!: string; // snapshot; immutable after creation
 }
 
 const ReplyToDocumentSchema = SchemaFactory.createForClass(ReplyToDocument);
@@ -162,9 +163,9 @@ replyTo?: ReplyToDocument | null;
 
 ### 1.3 Kafka Event Contracts
 
-| Direction | Topic | Change | Payload addition |
-|---|---|---|---|
-| Produces | `message.sent.v1` | Existing — extend payload | Add optional `replyTo?: { messageId, senderId, content }` |
+| Direction | Topic             | Change                    | Payload addition                                          |
+| --------- | ----------------- | ------------------------- | --------------------------------------------------------- |
+| Produces  | `message.sent.v1` | Existing — extend payload | Add optional `replyTo?: { messageId, senderId, content }` |
 
 No new topics. The `message.new` WebSocket event that the `ChatGateway` fans out to both participants already carries the full `MessageSentEventV1` payload. Consumers that do not care about `replyTo` safely ignore the new optional field.
 
@@ -205,7 +206,7 @@ export interface ReplyToProps {
 
 export interface MessageProps {
   // ...existing fields unchanged...
-  replyTo?: ReplyToProps;  // add
+  replyTo?: ReplyToProps; // add
 }
 ```
 
@@ -233,7 +234,7 @@ export interface CreateMessageInput {
   senderId: string;
   content: string;
   type: string;
-  replyTo?: ReplyToInput;  // add
+  replyTo?: ReplyToInput; // add
 }
 ```
 
@@ -248,14 +249,14 @@ export interface ReplyToView {
 
 export interface MessageView {
   // ...existing fields...
-  replyTo?: ReplyToView;  // add
+  replyTo?: ReplyToView; // add
 }
 ```
 
 **Use cases:**
 
-| Use Case | HTTP Trigger | Business Rules Added | Events |
-|---|---|---|---|
+| Use Case                        | HTTP Trigger   | Business Rules Added                                                                         | Events                       |
+| ------------------------------- | -------------- | -------------------------------------------------------------------------------------------- | ---------------------------- |
 | `SendMessageUseCase` (modified) | POST /messages | Validate quoted message exists, belongs to same conversation, is not deleted; build snapshot | `message.sent.v1` (extended) |
 
 Exact execution sequence for `SendMessageUseCase.execute()` with `quotedMessageId`:
@@ -283,7 +284,7 @@ export interface SendMessageDto {
   conversationId: string;
   content: string;
   type?: string;
-  quotedMessageId?: string;  // add
+  quotedMessageId?: string; // add
 }
 ```
 
@@ -324,7 +325,11 @@ export function toMessageView(message: MessageEntity): MessageView {
   return {
     // ...existing fields...
     replyTo: message.replyTo
-      ? { messageId: message.replyTo.messageId, senderId: message.replyTo.senderId, content: message.replyTo.content }
+      ? {
+          messageId: message.replyTo.messageId,
+          senderId: message.replyTo.senderId,
+          content: message.replyTo.content,
+        }
       : undefined,
   };
 }
@@ -366,10 +371,13 @@ export class SendMessageDto {
   @IsEnum(MessageType)
   type?: MessageType;
 
-  @ApiPropertyOptional({ format: 'uuid', description: 'ID of the message being replied to' })
+  @ApiPropertyOptional({
+    format: "uuid",
+    description: "ID of the message being replied to",
+  })
   @IsOptional()
   @IsString()
-  quotedMessageId?: string;  // add
+  quotedMessageId?: string; // add
 }
 ```
 
@@ -381,7 +389,7 @@ return this.sendMessage.execute({
   conversationId,
   content: dto.content,
   type: dto.type,
-  quotedMessageId: dto.quotedMessageId,  // add
+  quotedMessageId: dto.quotedMessageId, // add
 });
 ```
 
@@ -455,14 +463,15 @@ async sendMessage(
 
 Extending `useSendMessage` in `apps/frontend/src/features/chat/hooks/useChat.ts`.
 
-| Hook | Change | Cache Strategy |
-|---|---|---|
+| Hook             | Change                                                                                                 | Cache Strategy                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
 | `useSendMessage` | `mutationFn` accepts `{ content: string; quotedMessageId?: string }` instead of bare `content: string` | Optimistic update includes `replyTo` snapshot; `onSuccess` invalidates as before |
 
 Optimistic message extended:
 
 ```typescript
-const replyTarget = useChatStore.getState().replyTargets[conversationId] ?? null;
+const replyTarget =
+  useChatStore.getState().replyTargets[conversationId] ?? null;
 
 const optimisticMessage: Message = {
   id: `optimistic-${Date.now()}`,
@@ -475,7 +484,11 @@ const optimisticMessage: Message = {
   isEdited: false,
   reactions: [],
   replyTo: replyTarget
-    ? { messageId: replyTarget.id, senderId: replyTarget.senderId, content: replyTarget.content.slice(0, 200) }
+    ? {
+        messageId: replyTarget.id,
+        senderId: replyTarget.senderId,
+        content: replyTarget.content.slice(0, 200),
+      }
     : undefined,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -488,24 +501,26 @@ All existing `onError` / `onSuccess` behaviour is unchanged.
 
 Adding reply state to `apps/frontend/src/features/chat/store/useChatStore.ts`:
 
-| Field | Type | Default | Purpose |
-|---|---|---|---|
-| `replyTargets` | `Record<string, Message \| null>` | `{}` | Per-conversation "currently replying to" message |
-| `setReplyTarget` | `(conversationId: string, message: Message \| null) => void` | — | Set or clear the reply target |
+| Field            | Type                                                         | Default | Purpose                                          |
+| ---------------- | ------------------------------------------------------------ | ------- | ------------------------------------------------ |
+| `replyTargets`   | `Record<string, Message \| null>`                            | `{}`    | Per-conversation "currently replying to" message |
+| `setReplyTarget` | `(conversationId: string, message: Message \| null) => void` | —       | Set or clear the reply target                    |
 
 The reply target is client-side UI state — it controls whether the composer shows a reply strip and what `quotedMessageId` is sent. It lives in Zustand (not TQ) for the same reason `draftMessages` does: both `MessageBubble` (writes) and `MessageComposer` (reads and clears) need access to it without prop drilling through `MessageList`.
 
 ### 3.5 Components
 
-| Component | New or Modified | Changes |
-|---|---|---|
-| `MessageBubble` | modified | Add Reply button (↩) on hover; render `QuotedPreview` block above content when `message.replyTo` is set |
-| `MessageComposer` | modified | Read `replyTarget` from store; show `ReplyStrip` above textarea; pass `quotedMessageId` on send; clear reply target on successful send |
+| Component         | New or Modified | Changes                                                                                                                                |
+| ----------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `MessageBubble`   | modified        | Add Reply button (↩) on hover; render `QuotedPreview` block above content when `message.replyTo` is set                                |
+| `MessageComposer` | modified        | Read `replyTarget` from store; show `ReplyStrip` above textarea; pass `quotedMessageId` on send; clear reply target on successful send |
 
 **Reply button in `MessageBubble`** — placed between the Smile reaction button and the MoreVertical menu button (same hover-opacity pattern that already exists):
 
 ```tsx
-{/* Reply button — visible on hover for both mine and others' messages */}
+{
+  /* Reply button — visible on hover for both mine and others' messages */
+}
 <button
   type="button"
   onClick={() => setReplyTarget(conversationId, message)}
@@ -513,27 +528,29 @@ The reply target is client-side UI state — it controls whether the composer sh
   className="p-1 rounded-full hover:bg-secondary text-foreground/40 hover:text-foreground transition-colors"
 >
   <Reply className="w-4 h-4" />
-</button>
+</button>;
 ```
 
 **Quoted preview block in `MessageBubble`** — rendered above the message content bubble when `message.replyTo` is present:
 
 ```tsx
-{message.replyTo && (
-  <div
-    className={cn(
-      "mb-1 px-3 py-1.5 rounded-xl text-xs border-l-2 border-primary/50 bg-primary/5",
-      "max-w-full overflow-hidden cursor-pointer",
-      isMine ? "self-end" : "self-start",
-    )}
-  >
-    <p className="font-medium text-primary/70 truncate">
-      {/* Resolve senderId to username via conversation.participants */}
-      {resolvedSenderName}
-    </p>
-    <p className="truncate text-foreground/60">{message.replyTo.content}</p>
-  </div>
-)}
+{
+  message.replyTo && (
+    <div
+      className={cn(
+        "mb-1 px-3 py-1.5 rounded-xl text-xs border-l-2 border-primary/50 bg-primary/5",
+        "max-w-full overflow-hidden cursor-pointer",
+        isMine ? "self-end" : "self-start",
+      )}
+    >
+      <p className="font-medium text-primary/70 truncate">
+        {/* Resolve senderId to username via conversation.participants */}
+        {resolvedSenderName}
+      </p>
+      <p className="truncate text-foreground/60">{message.replyTo.content}</p>
+    </div>
+  );
+}
 ```
 
 The `resolvedSenderName` is derived from the `conversation` prop (the `ConversationParticipant[]` already contains `userId` and `username`). `MessageBubble` currently receives `conversationId: string`; it needs to also receive `participants: ConversationParticipant[]` (passed from `MessageList` which already has access to the conversation object) to do this lookup without a new query.
@@ -541,23 +558,29 @@ The `resolvedSenderName` is derived from the `conversation` prop (the `Conversat
 **Reply strip in `MessageComposer`** — shown above the textarea when `replyTarget` is non-null:
 
 ```tsx
-{replyTarget && (
-  <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-secondary/40 rounded-t-2xl text-xs">
-    <Reply className="w-3.5 h-3.5 text-primary shrink-0" />
-    <div className="flex-1 min-w-0">
-      <p className="font-medium text-primary truncate">{replyTarget.senderId}</p>
-      <p className="text-foreground/60 truncate">{replyTarget.content.slice(0, 80)}</p>
+{
+  replyTarget && (
+    <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-secondary/40 rounded-t-2xl text-xs">
+      <Reply className="w-3.5 h-3.5 text-primary shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-primary truncate">
+          {replyTarget.senderId}
+        </p>
+        <p className="text-foreground/60 truncate">
+          {replyTarget.content.slice(0, 80)}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => setReplyTarget(conversationId, null)}
+        aria-label={t("cancel_reply")}
+        className="p-1 rounded-full hover:bg-foreground/10 text-foreground/40 shrink-0"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
     </div>
-    <button
-      type="button"
-      onClick={() => setReplyTarget(conversationId, null)}
-      aria-label={t("cancel_reply")}
-      className="p-1 rounded-full hover:bg-foreground/10 text-foreground/40 shrink-0"
-    >
-      <X className="w-3.5 h-3.5" />
-    </button>
-  </div>
-)}
+  );
+}
 ```
 
 The reply strip sits above the textarea, inside the same outer `div` boundary. On successful send, `setReplyTarget(conversationId, null)` is called in `onSuccess`.
@@ -606,14 +629,14 @@ pnpm nx test frontend
 
 ## 4. Architecture Decisions
 
-| # | Decision | Options Considered | Choice | Rationale |
-|---|---|---|---|---|
-| 1 | Store reply context as embedded snapshot vs foreign key | Foreign key only (`replyTo: { messageId }`) vs embedded snapshot (`replyTo: { messageId, senderId, content }`) | **Embedded snapshot** | `GET .../messages` already returns all messages in one query. A foreign-key-only approach requires a second `findById` per replied message to populate the preview content. The snapshot adds ~300 bytes per reply document but eliminates the lookup. Also matches WhatsApp: deleted originals still show preview context. Same pattern as `reactions[]` already in this codebase. |
-| 2 | New endpoint vs extend existing SendMessageDto | New `POST .../messages/reply` vs optional `quotedMessageId` on existing `POST .../messages` | **Extend existing** | A reply is semantically a message send with extra metadata. A separate endpoint would duplicate all auth guards, participant checks, friendship checks, and Kafka emission logic for no benefit. An optional field is fully backward-compatible. |
-| 3 | New Kafka topic vs extend existing `message.sent.v1` | `message.reply.v1` (new topic) vs optional `replyTo` on `message.sent.v1` | **Extend existing** | `replyTo` is optional; consumers that don't handle it ignore the extra field safely. The `ChatGateway` already fans out `message.sent.v1` as `message.new` to both WebSocket rooms — no gateway changes needed. A dedicated topic would add infrastructure with no benefit. |
-| 4 | Content snapshot truncation length | 100 / 200 / 500 chars | **200 chars** | 100 is too short for messages containing CJK or Arabic text. 500 doubles the per-document overhead of the snapshot for marginal UI value (the preview is always truncated visually anyway). 200 is a common industry value (Slack, Discord also use ~200). |
-| 5 | Allow replying to a deleted message | Allow (show tombstone quote) vs Block at send time | **Block at send time** | A deleted message has replaced its content with `isDeleted: true`; we have no original content to snapshot. Storing a quote with empty content or a hard-coded string like "[deleted]" would be misleading. Blocking with `BadRequestException` is the cleaner contract. |
-| 6 | Reply state location (Zustand vs local component state) | `useState` in `ConversationView` vs Zustand per-conversation | **Zustand store** | `MessageBubble` (writer) and `MessageComposer` (reader + clearer) are siblings under `ConversationView`, not in a parent-child relationship. Lifting state to `ConversationView` works but adds two prop-drilling levels. The `draftMessages` pattern in the existing store is the exact precedent for this pattern in this codebase. |
+| #   | Decision                                                | Options Considered                                                                                             | Choice                 | Rationale                                                                                                                                                                                                                                                                                                                                                                           |
+| --- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Store reply context as embedded snapshot vs foreign key | Foreign key only (`replyTo: { messageId }`) vs embedded snapshot (`replyTo: { messageId, senderId, content }`) | **Embedded snapshot**  | `GET .../messages` already returns all messages in one query. A foreign-key-only approach requires a second `findById` per replied message to populate the preview content. The snapshot adds ~300 bytes per reply document but eliminates the lookup. Also matches WhatsApp: deleted originals still show preview context. Same pattern as `reactions[]` already in this codebase. |
+| 2   | New endpoint vs extend existing SendMessageDto          | New `POST .../messages/reply` vs optional `quotedMessageId` on existing `POST .../messages`                    | **Extend existing**    | A reply is semantically a message send with extra metadata. A separate endpoint would duplicate all auth guards, participant checks, friendship checks, and Kafka emission logic for no benefit. An optional field is fully backward-compatible.                                                                                                                                    |
+| 3   | New Kafka topic vs extend existing `message.sent.v1`    | `message.reply.v1` (new topic) vs optional `replyTo` on `message.sent.v1`                                      | **Extend existing**    | `replyTo` is optional; consumers that don't handle it ignore the extra field safely. The `ChatGateway` already fans out `message.sent.v1` as `message.new` to both WebSocket rooms — no gateway changes needed. A dedicated topic would add infrastructure with no benefit.                                                                                                         |
+| 4   | Content snapshot truncation length                      | 100 / 200 / 500 chars                                                                                          | **200 chars**          | 100 is too short for messages containing CJK or Arabic text. 500 doubles the per-document overhead of the snapshot for marginal UI value (the preview is always truncated visually anyway). 200 is a common industry value (Slack, Discord also use ~200).                                                                                                                          |
+| 5   | Allow replying to a deleted message                     | Allow (show tombstone quote) vs Block at send time                                                             | **Block at send time** | A deleted message has replaced its content with `isDeleted: true`; we have no original content to snapshot. Storing a quote with empty content or a hard-coded string like "[deleted]" would be misleading. Blocking with `BadRequestException` is the cleaner contract.                                                                                                            |
+| 6   | Reply state location (Zustand vs local component state) | `useState` in `ConversationView` vs Zustand per-conversation                                                   | **Zustand store**      | `MessageBubble` (writer) and `MessageComposer` (reader + clearer) are siblings under `ConversationView`, not in a parent-child relationship. Lifting state to `ConversationView` works but adds two prop-drilling levels. The `draftMessages` pattern in the existing store is the exact precedent for this pattern in this codebase.                                               |
 
 ---
 
