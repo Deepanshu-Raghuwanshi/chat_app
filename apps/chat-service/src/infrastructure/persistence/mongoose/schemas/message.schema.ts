@@ -2,6 +2,20 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { MessageStatus, MessageType } from "@kafka-events";
 
+@Schema({ _id: false })
+export class ReactionDocument {
+  @Prop({ required: true })
+  emoji!: string;
+
+  @Prop({ required: true })
+  userId!: string;
+
+  @Prop({ default: () => new Date() })
+  createdAt!: Date;
+}
+
+const ReactionDocumentSchema = SchemaFactory.createForClass(ReactionDocument);
+
 @Schema({ timestamps: true })
 export class Message extends Document {
   @Prop({ required: true, index: true })
@@ -24,6 +38,9 @@ export class Message extends Document {
 
   @Prop({ default: false })
   isEdited!: boolean;
+
+  @Prop({ type: [ReactionDocumentSchema], default: [] })
+  reactions!: ReactionDocument[];
 
   readonly createdAt!: Date;
   readonly updatedAt!: Date;

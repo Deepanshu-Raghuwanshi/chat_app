@@ -14,6 +14,7 @@ import {
   useSendMessage,
   useMarkRead,
   useSearchConversations,
+  useToggleReaction,
 } from "../../src/features/chat/hooks/useChat";
 import {
   Conversation,
@@ -33,6 +34,7 @@ vi.mock("../../src/features/chat/services/chat.service", () => ({
     deleteMessage: vi.fn(),
     markRead: vi.fn(),
     searchConversations: vi.fn(),
+    toggleReaction: vi.fn(),
   },
 }));
 
@@ -89,6 +91,7 @@ const mockMessage: Message = {
   type: "TEXT",
   status: "SENT",
   isDeleted: false,
+  reactions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
@@ -314,5 +317,157 @@ describe("useSearchConversations", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.data).toHaveLength(0);
     expect(result.current.data?.hasMore).toBe(false);
+  });
+});
+
+describe("useToggleReaction", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("optimistically adds reaction when emoji is not yet in message reactions", async () => {
+    let resolveToggle!: (msg: Message) => void;
+    vi.mocked(chatService.toggleReaction).mockReturnValue(
+      new Promise<Message>((resolve) => {
+        resolveToggle = resolve;
+      }),
+    );
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      populatedMessagesCache,
+    );
+
+    const { result } = renderHook(() => useToggleReaction("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ messageId: "msg-1", emoji: "👍" });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<
+        InfiniteData<MessageListResponse>
+      >(["messages", "conv-1"]);
+      const msg = cached?.pages[0].data[0];
+      expect(msg?.reactions?.some((r) => r.emoji === "👍")).toBe(true);
+    });
+
+    resolveToggle({
+      ...mockMessage,
+      reactions: [
+        { emoji: "👍", userId: "user-1", createdAt: new Date().toISOString() },
+      ],
+    });
+  });
+
+  it("optimistically removes reaction when emoji is already present for current user", async () => {
+    const messageWithReaction: Message = {
+      ...mockMessage,
+      reactions: [
+        { emoji: "👍", userId: "user-1", createdAt: new Date().toISOString() },
+      ],
+    };
+    const cacheWithReaction: InfiniteData<MessageListResponse> = {
+      pages: [
+        { data: [messageWithReaction], hasMore: false, nextCursor: undefined },
+      ],
+      pageParams: [undefined],
+    };
+
+    let resolveToggle!: (msg: Message) => void;
+    vi.mocked(chatService.toggleReaction).mockReturnValue(
+      new Promise<Message>((resolve) => {
+        resolveToggle = resolve;
+      }),
+    );
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      cacheWithReaction,
+    );
+
+    const { result } = renderHook(() => useToggleReaction("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ messageId: "msg-1", emoji: "👍" });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<
+        InfiniteData<MessageListResponse>
+      >(["messages", "conv-1"]);
+      const msg = cached?.pages[0].data[0];
+      expect(
+        msg?.reactions?.some((r) => r.emoji === "👍" && r.userId === "user-1"),
+      ).toBe(false);
+    });
+
+    resolveToggle(mockMessage);
+  });
+
+  it("rolls back optimistic update and restores original cache on request failure", async () => {
+    vi.mocked(chatService.toggleReaction).mockRejectedValue(
+      new Error("Network error"),
+    );
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      populatedMessagesCache,
+    );
+
+    const { result } = renderHook(() => useToggleReaction("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ messageId: "msg-1", emoji: "👍" });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    const cached = queryClient.getQueryData<InfiniteData<MessageListResponse>>([
+      "messages",
+      "conv-1",
+    ]);
+    expect(cached?.pages[0].data[0].reactions).toHaveLength(0);
+    expect(cached?.pages[0].data[0].id).toBe("msg-1");
+  });
+
+  it("replaces message in cache with server response on success", async () => {
+    const serverResponse: Message = {
+      ...mockMessage,
+      reactions: [
+        { emoji: "👍", userId: "user-1", createdAt: new Date().toISOString() },
+      ],
+    };
+    vi.mocked(chatService.toggleReaction).mockResolvedValue(serverResponse);
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      populatedMessagesCache,
+    );
+
+    const { result } = renderHook(() => useToggleReaction("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ messageId: "msg-1", emoji: "👍" });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const cached = queryClient.getQueryData<InfiniteData<MessageListResponse>>([
+      "messages",
+      "conv-1",
+    ]);
+    expect(cached?.pages[0].data[0].reactions).toHaveLength(1);
+    expect(cached?.pages[0].data[0].reactions[0].emoji).toBe("👍");
   });
 });

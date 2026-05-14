@@ -4,6 +4,7 @@ export enum ChatTopics {
   MESSAGE_EDITED = "message.edited.v1",
   MESSAGE_DELETED = "message.deleted.v1",
   MESSAGE_READ = "message.read.v1",
+  MESSAGE_REACTION_TOGGLED = "message.reaction.toggled.v1",
 }
 
 export enum MessageType {
@@ -53,4 +54,14 @@ export interface MessageDeletedEventV1 {
   conversationId: string;
   senderId: string;
   deletedAt: string;
+}
+
+export interface MessageReactionToggledEventV1 {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  reactorId: string;
+  emoji: string;
+  action: "added" | "removed";
+  toggledAt: string;
 }

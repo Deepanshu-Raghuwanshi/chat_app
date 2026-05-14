@@ -61,6 +61,11 @@ export class DeleteMessageUseCase {
       status: message.status,
       isDeleted: message.isDeleted,
       isEdited: message.isEdited,
+      reactions: message.reactions.map((r) => ({
+        emoji: r.emoji,
+        userId: r.userId,
+        createdAt: r.createdAt.toISOString(),
+      })),
       createdAt: message.createdAt.toISOString(),
       updatedAt: message.updatedAt.toISOString(),
     };

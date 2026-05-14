@@ -8,11 +8,13 @@ import { simulate } from "../utils/simulate";
 import {
   useEditMessage,
   useDeleteMessage,
+  useToggleReaction,
 } from "../../src/features/chat/hooks/useChat";
 
 vi.mock("../../src/features/chat/hooks/useChat", () => ({
   useEditMessage: vi.fn(),
   useDeleteMessage: vi.fn(),
+  useToggleReaction: vi.fn(),
 }));
 
 const mockMessage: Message = {
@@ -24,6 +26,7 @@ const mockMessage: Message = {
   status: "SENT",
   isDeleted: false,
   isEdited: false,
+  reactions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
@@ -43,18 +46,40 @@ describe("MessageBubble", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupMocks();
+    vi.mocked(useEditMessage).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useEditMessage>);
+    vi.mocked(useDeleteMessage).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useDeleteMessage>);
+    vi.mocked(useToggleReaction).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useToggleReaction>);
   });
 
   it("shows edit/delete menu only when isMine is true", async () => {
     const { unmount } = renderWithIntl(
-      <MessageBubble message={mockMessage} isMine={false} />,
+      <MessageBubble
+        message={mockMessage}
+        isMine={false}
+        conversationId="conv-1"
+      />,
     );
     expect(screen.queryByText("Edit")).toBeNull();
     expect(screen.queryByText("Delete")).toBeNull();
     unmount();
 
-    renderWithIntl(<MessageBubble message={mockMessage} isMine={true} />);
-    const menuTrigger = screen.getAllByRole("button")[0];
+    renderWithIntl(
+      <MessageBubble
+        message={mockMessage}
+        isMine={true}
+        conversationId="conv-1"
+      />,
+    );
+    const menuTrigger = screen.getAllByRole("button")[1];
     await simulate.click(menuTrigger);
     expect(screen.getByText("Edit")).toBeTruthy();
     expect(screen.getByText("Delete")).toBeTruthy();
@@ -62,14 +87,32 @@ describe("MessageBubble", () => {
 
   it("renders [deleted] tombstone when isDeleted is true and hides edit/delete", () => {
     const deletedMessage = { ...mockMessage, isDeleted: true };
-    renderWithIntl(<MessageBubble message={deletedMessage} isMine={true} />);
+    renderWithIntl(
+      <MessageBubble
+        message={deletedMessage}
+        isMine={true}
+        conversationId="conv-1"
+      />,
+    );
     expect(screen.getByText("[deleted]")).toBeTruthy();
     expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("shows (edited) label when isEdited is true", () => {
-    const editedMessage = { ...mockMessage, isEdited: true };
-    renderWithIntl(<MessageBubble message={editedMessage} isMine={false} />);
+    const editedMessage = {
+      ...mockMessage,
+      isEdited: true,
+      reactions: [
+        { emoji: "👍", userId: "user-2", createdAt: new Date().toISOString() },
+      ],
+    };
+    renderWithIntl(
+      <MessageBubble
+        message={editedMessage}
+        isMine={false}
+        conversationId="conv-1"
+      />,
+    );
     expect(screen.getByText("(edited)")).toBeTruthy();
   });
 });

@@ -8,6 +8,7 @@ import { useAuthStore } from "../../auth/store/useAuthStore";
 import { cn } from "../../../shared/utils/cn";
 
 interface MessageListProps {
+  conversationId: string;
   messages: Message[];
   onLoadMore: () => void;
   hasMore: boolean;
@@ -15,6 +16,7 @@ interface MessageListProps {
 }
 
 export const MessageList = ({
+  conversationId,
   messages,
   onLoadMore,
   hasMore,
@@ -63,6 +65,7 @@ export const MessageList = ({
           key={msg.id}
           message={msg}
           isMine={msg.senderId === currentUserId}
+          conversationId={conversationId}
         />
       ))}
 

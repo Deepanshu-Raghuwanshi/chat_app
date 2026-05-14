@@ -9,6 +9,7 @@ import {
   Max,
   IsUUID,
 } from "class-validator";
+
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { MessageType } from "@kafka-events";
@@ -32,6 +33,14 @@ export class EditMessageDto {
   @MinLength(1)
   @MaxLength(4000)
   content!: string;
+}
+
+export class ToggleReactionDto {
+  @ApiProperty({ minLength: 1, maxLength: 10 })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(10)
+  emoji!: string;
 }
 
 export class GetMessagesQueryDto {

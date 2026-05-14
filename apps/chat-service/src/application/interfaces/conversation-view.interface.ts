@@ -1,3 +1,9 @@
+export interface ReactionView {
+  emoji: string;
+  userId: string;
+  createdAt: string;
+}
+
 export interface MessageView {
   id: string;
   conversationId: string;
@@ -7,6 +13,7 @@ export interface MessageView {
   status: string;
   isDeleted: boolean;
   isEdited?: boolean;
+  reactions: ReactionView[];
   createdAt: string;
   updatedAt: string;
 }

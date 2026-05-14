@@ -56,6 +56,11 @@ export class ConversationViewBuilder {
             status: msg.status,
             isDeleted: msg.isDeleted,
             isEdited: msg.isEdited,
+            reactions: msg.reactions.map((r) => ({
+              emoji: r.emoji,
+              userId: r.userId,
+              createdAt: r.createdAt.toISOString(),
+            })),
             createdAt: msg.createdAt.toISOString(),
             updatedAt: msg.updatedAt.toISOString(),
           }
@@ -68,6 +73,7 @@ export class ConversationViewBuilder {
             status: "SENT",
             isDeleted: false,
             isEdited: false,
+            reactions: [],
             createdAt: snapshot.sentAt.toISOString(),
             updatedAt: snapshot.sentAt.toISOString(),
           };

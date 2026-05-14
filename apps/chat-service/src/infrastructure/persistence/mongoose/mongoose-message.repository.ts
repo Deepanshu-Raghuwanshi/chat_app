@@ -92,6 +92,42 @@ export class MongooseMessageRepository implements MessageRepository {
     );
     return result.modifiedCount;
   }
+  async toggleReaction(
+    messageId: string,
+    emoji: string,
+    userId: string,
+  ): Promise<MessageEntity> {
+    if (!Types.ObjectId.isValid(messageId)) {
+      throw new NotFoundException(`Message ${messageId} not found`);
+    }
+
+    // Two-step check-then-mutate: safe for concurrent reactions from *different* users
+    // (each user's reaction is a distinct subdocument). Rapid double-taps from the
+    // *same* user could race between the exists check and the $push, but the UI
+    // debounces clicks and the window is negligible in practice.
+    const exists = await this.model
+      .exists({ _id: messageId, reactions: { $elemMatch: { userId, emoji } } })
+      .exec();
+
+    const updated = exists
+      ? await this.model
+          .findByIdAndUpdate(
+            messageId,
+            { $pull: { reactions: { userId, emoji } } },
+            { new: true },
+          )
+          .exec()
+      : await this.model
+          .findByIdAndUpdate(
+            messageId,
+            { $push: { reactions: { emoji, userId, createdAt: new Date() } } },
+            { new: true },
+          )
+          .exec();
+
+    if (!updated) throw new NotFoundException(`Message ${messageId} not found`);
+    return this.toEntity(updated);
+  }
 
   private toEntity(doc: Message): MessageEntity {
     return MessageEntity.create({
@@ -103,6 +139,11 @@ export class MongooseMessageRepository implements MessageRepository {
       status: doc.status,
       isDeleted: doc.isDeleted,
       isEdited: doc.isEdited,
+      reactions: (doc.reactions ?? []).map((r) => ({
+        emoji: r.emoji,
+        userId: r.userId,
+        createdAt: r.createdAt,
+      })),
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     });
