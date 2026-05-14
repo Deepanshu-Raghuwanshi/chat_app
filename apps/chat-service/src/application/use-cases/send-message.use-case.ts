@@ -11,7 +11,7 @@ import { MessageRepository } from "../ports/message.repository";
 import { FriendshipVerifier } from "../ports/friendship-verifier.port";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import { MessageView } from "../interfaces/conversation-view.interface";
-import { MessageEntity } from "../../domain/entities/message.entity";
+import { toMessageView } from "../mappers/message.mapper";
 import { ChatTopics, MessageSentEventV1, MessageType } from "@kafka-events";
 
 export interface SendMessageDto {
@@ -96,26 +96,6 @@ export class SendMessageUseCase {
       sentAt: message.createdAt.toISOString(),
     } satisfies MessageSentEventV1);
 
-    return this.toView(message);
-  }
-
-  private toView(message: MessageEntity): MessageView {
-    return {
-      id: message.id,
-      conversationId: message.conversationId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      status: message.status,
-      isDeleted: message.isDeleted,
-      isEdited: message.isEdited,
-      reactions: message.reactions.map((r) => ({
-        emoji: r.emoji,
-        userId: r.userId,
-        createdAt: r.createdAt.toISOString(),
-      })),
-      createdAt: message.createdAt.toISOString(),
-      updatedAt: message.updatedAt.toISOString(),
-    };
+    return toMessageView(message);
   }
 }

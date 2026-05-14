@@ -19,6 +19,7 @@ import {
   MessageDeliveredEventV1,
   MessageStatus,
 } from "@kafka-events";
+import { toMessageView } from "../mappers/message.mapper";
 
 export interface GetMessagesDto {
   userId: string;
@@ -115,28 +116,9 @@ export class GetMessagesUseCase {
           ? { ...view, status: MessageStatus.DELIVERED }
           : view;
       }),
+      data: page.map((m) => toMessageView(m)),
       hasMore,
       nextCursor: hasMore ? page[page.length - 1].id : undefined,
-    };
-  }
-
-  private toView(message: MessageEntity): MessageView {
-    return {
-      id: message.id,
-      conversationId: message.conversationId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      status: message.status,
-      isDeleted: message.isDeleted,
-      isEdited: message.isEdited,
-      reactions: message.reactions.map((r) => ({
-        emoji: r.emoji,
-        userId: r.userId,
-        createdAt: r.createdAt.toISOString(),
-      })),
-      createdAt: message.createdAt.toISOString(),
-      updatedAt: message.updatedAt.toISOString(),
     };
   }
 }

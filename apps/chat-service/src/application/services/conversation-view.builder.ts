@@ -8,6 +8,7 @@ import {
   MessageView,
 } from "../interfaces/conversation-view.interface";
 import { PresenceStatus } from "@kafka-events";
+import { toMessageView } from "../mappers/message.mapper";
 
 @Injectable()
 export class ConversationViewBuilder {
@@ -47,23 +48,7 @@ export class ConversationViewBuilder {
     if (snapshot) {
       const msg = await this.messageRepository.findById(snapshot.messageId);
       lastMessage = msg
-        ? {
-            id: msg.id,
-            conversationId: conversation.id,
-            senderId: msg.senderId,
-            content: msg.content,
-            type: msg.type,
-            status: msg.status,
-            isDeleted: msg.isDeleted,
-            isEdited: msg.isEdited,
-            reactions: msg.reactions.map((r) => ({
-              emoji: r.emoji,
-              userId: r.userId,
-              createdAt: r.createdAt.toISOString(),
-            })),
-            createdAt: msg.createdAt.toISOString(),
-            updatedAt: msg.updatedAt.toISOString(),
-          }
+        ? toMessageView(msg)
         : {
             id: snapshot.messageId,
             conversationId: conversation.id,
