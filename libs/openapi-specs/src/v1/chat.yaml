@@ -549,6 +549,9 @@ components:
           type: boolean
         isEdited:
           type: boolean
+        replyTo:
+          $ref: "#/components/schemas/QuotedMessage"
+          description: Present when this message is a quoted reply. Contains a snapshot of the original message.
         reactions:
           type: array
           items:
@@ -637,6 +640,26 @@ components:
           type: string
           description: Avatar URL of the requesting user (profile hint)
 
+    QuotedMessage:
+      type: object
+      required:
+        - messageId
+        - senderId
+        - content
+      properties:
+        messageId:
+          type: string
+          format: uuid
+          description: ID of the original message being quoted
+        senderId:
+          type: string
+          format: uuid
+          description: User ID of the original message's author
+        content:
+          type: string
+          maxLength: 200
+          description: Snapshot of the original message content at reply time (truncated to 200 chars)
+
     SendMessageDto:
       type: object
       required:
@@ -650,6 +673,10 @@ components:
           type: string
           enum: [TEXT]
           default: TEXT
+        quotedMessageId:
+          type: string
+          format: uuid
+          description: ID of the message being replied to. When provided, the backend fetches the original message and embeds a snapshot in the new message's replyTo field.
 
     EditMessageDto:
       type: object
@@ -662,7 +689,7 @@ components:
           maxLength: 4000
 
 # Kafka Events
-# Produces: message.sent.v1
+# Produces: message.sent.v1        — payload includes optional replyTo: { messageId, senderId, content } when message is a quoted reply
 # Produces: message.delivered.v1   — emitted by GetMessagesUseCase when recipient fetches messages that are still SENT
 # Produces: message.edited.v1
 # Produces: message.deleted.v1
