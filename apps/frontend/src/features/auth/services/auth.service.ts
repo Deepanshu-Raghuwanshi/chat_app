@@ -1,12 +1,5 @@
-import axios from 'axios';
+import apiClient from '../../../shared/lib/apiClient';
 import { UserProfile } from '@shared-types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
-
-const apiClient = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
 
 export const authService = {
   async login(credentials: Record<string, string>): Promise<UserProfile> {

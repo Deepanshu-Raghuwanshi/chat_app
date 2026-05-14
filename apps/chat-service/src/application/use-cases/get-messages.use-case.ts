@@ -8,11 +8,7 @@ import {
 import { ConversationRepository } from "../ports/conversation.repository";
 import { ConversationParticipantRepository } from "../ports/conversation-participant.repository";
 import { MessageRepository } from "../ports/message.repository";
-import {
-  MessageListView,
-  MessageView,
-} from "../interfaces/conversation-view.interface";
-import { MessageEntity } from "../../domain/entities/message.entity";
+import { MessageListView } from "../interfaces/conversation-view.interface";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import {
   ChatTopics,
@@ -111,12 +107,11 @@ export class GetMessagesUseCase {
 
     return {
       data: page.map((m) => {
-        const view = this.toView(m);
+        const view = toMessageView(m);
         return sentFromOther.has(m.id)
           ? { ...view, status: MessageStatus.DELIVERED }
           : view;
       }),
-      data: page.map((m) => toMessageView(m)),
       hasMore,
       nextCursor: hasMore ? page[page.length - 1].id : undefined,
     };

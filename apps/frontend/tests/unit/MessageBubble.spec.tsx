@@ -128,6 +128,7 @@ describe("MessageBubble status indicator", () => {
       <MessageBubble
         message={{ ...mockMessage, status: "SENT" }}
         isMine={true}
+        conversationId="conv-1"
       />,
     );
     // CheckCheck must be absent; Check must be present
@@ -140,6 +141,7 @@ describe("MessageBubble status indicator", () => {
       <MessageBubble
         message={{ ...mockMessage, status: "DELIVERED" }}
         isMine={true}
+        conversationId="conv-1"
       />,
     );
     const icon = container.querySelector("svg.lucide-check-check");
@@ -152,6 +154,7 @@ describe("MessageBubble status indicator", () => {
       <MessageBubble
         message={{ ...mockMessage, status: "READ" }}
         isMine={true}
+        conversationId="conv-1"
       />,
     );
     const icon = container.querySelector("svg.lucide-check-check");
@@ -161,7 +164,7 @@ describe("MessageBubble status indicator", () => {
 
   it("renders no status indicator when isMine is false", () => {
     const { container } = renderWithIntl(
-      <MessageBubble message={mockMessage} isMine={false} />,
+      <MessageBubble message={mockMessage} isMine={false} conversationId="conv-1" />,
     );
     expect(container.querySelector("svg.lucide-check")).toBeNull();
     expect(container.querySelector("svg.lucide-check-check")).toBeNull();
@@ -172,6 +175,7 @@ describe("MessageBubble status indicator", () => {
       <MessageBubble
         message={{ ...mockMessage, isDeleted: true }}
         isMine={true}
+        conversationId="conv-1"
       />,
     );
     expect(container.querySelector("svg.lucide-check")).toBeNull();

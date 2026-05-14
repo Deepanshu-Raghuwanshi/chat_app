@@ -92,6 +92,7 @@ export class MongooseMessageRepository implements MessageRepository {
     );
     return result.modifiedCount;
   }
+
   async toggleReaction(
     messageId: string,
     emoji: string,
