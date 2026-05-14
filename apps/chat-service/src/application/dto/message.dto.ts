@@ -25,6 +25,14 @@ export class SendMessageDto {
   @IsOptional()
   @IsEnum(MessageType)
   type?: MessageType;
+
+  @ApiPropertyOptional({
+    format: "uuid",
+    description: "ID of the message being replied to",
+  })
+  @IsOptional()
+  @IsUUID()
+  quotedMessageId?: string;
 }
 
 export class EditMessageDto {

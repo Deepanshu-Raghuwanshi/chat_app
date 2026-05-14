@@ -4,6 +4,12 @@ export interface ReactionView {
   createdAt: string;
 }
 
+export interface ReplyToView {
+  messageId: string;
+  senderId: string;
+  content: string;
+}
+
 export interface MessageView {
   id: string;
   conversationId: string;
@@ -14,6 +20,7 @@ export interface MessageView {
   isDeleted: boolean;
   isEdited?: boolean;
   reactions: ReactionView[];
+  replyTo?: ReplyToView;
   createdAt: string;
   updatedAt: string;
 }

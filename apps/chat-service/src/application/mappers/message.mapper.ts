@@ -16,6 +16,13 @@ export function toMessageView(message: MessageEntity): MessageView {
       userId: r.userId,
       createdAt: r.createdAt.toISOString(),
     })),
+    replyTo: message.replyTo
+      ? {
+          messageId: message.replyTo.messageId,
+          senderId: message.replyTo.senderId,
+          content: message.replyTo.content,
+        }
+      : undefined,
     createdAt: message.createdAt.toISOString(),
     updatedAt: message.updatedAt.toISOString(),
   };

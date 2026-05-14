@@ -1,11 +1,18 @@
 import { MessageEntity } from "../../domain/entities/message.entity";
 import { MessageStatus } from "@kafka-events";
 
+export interface ReplyToInput {
+  messageId: string;
+  senderId: string;
+  content: string;
+}
+
 export interface CreateMessageInput {
   conversationId: string;
   senderId: string;
   content: string;
   type: string;
+  replyTo?: ReplyToInput;
 }
 
 export interface UpdateMessageInput {
