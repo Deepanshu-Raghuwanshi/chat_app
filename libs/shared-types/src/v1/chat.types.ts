@@ -464,6 +464,88 @@ export interface paths {
     };
     trace?: never;
   };
+  "/api/v1/chat/conversations/{conversationId}/messages/{messageId}/reactions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Toggle a reaction on a message
+     * @description Adds the given emoji reaction for the authenticated user if it does not already exist; removes it if it does. Idempotent toggle — calling twice returns to the original state. Both participants of the conversation may react. Deleted messages cannot be reacted to.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          conversationId: components["parameters"]["conversationId"];
+          messageId: components["parameters"]["messageId"];
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["ToggleReactionDto"];
+        };
+      };
+      responses: {
+        /** @description Updated message with current reactions */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Message"];
+          };
+        };
+        /** @description Invalid emoji or message is deleted */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user is not a participant */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation or message not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/chat/conversations/{conversationId}/read": {
     parameters: {
       query?: never;
@@ -601,10 +683,27 @@ export interface components {
       status: "SENT" | "DELIVERED" | "READ";
       isDeleted: boolean;
       isEdited?: boolean;
+      /** @default [] */
+      reactions: components["schemas"]["Reaction"][];
       /** Format: date-time */
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
+    };
+    Reaction: {
+      /** @description A single emoji character or ZWJ sequence (e.g. "👍", "❤️", "👨‍👩‍👧") */
+      emoji: string;
+      /**
+       * Format: uuid
+       * @description The user who added this reaction
+       */
+      userId: string;
+      /** Format: date-time */
+      createdAt: string;
+    };
+    ToggleReactionDto: {
+      /** @description Emoji to toggle. Adding the same emoji again removes it. */
+      emoji: string;
     };
     MessageListResponse: {
       data: components["schemas"]["Message"][];

@@ -35,4 +35,9 @@ export interface MessageRepository {
     fromStatuses: MessageStatus[],
     toStatus: MessageStatus,
   ): Promise<number>;
+  toggleReaction(
+    messageId: string,
+    emoji: string,
+    userId: string,
+  ): Promise<MessageEntity>;
 }

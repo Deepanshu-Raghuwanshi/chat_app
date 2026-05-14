@@ -213,13 +213,17 @@
       },
       "composer": {
         "placeholder": "Type a message...",
-        "send": "Send"
+        "send": "Send",
+        "emoji_button_label": "Open emoji picker"
       },
       "message": {
         "deleted": "[deleted]",
         "edited": "edited",
         "edit": "Edit",
-        "delete": "Delete"
+        "delete": "Delete",
+        "react": "React",
+        "more_reactions": "More",
+        "message_menu": "Message options"
       },
       "conversation": {
         "online": "Online",
@@ -235,6 +239,7 @@
         "send_failed": "Failed to send message",
         "edit_failed": "Failed to edit message",
         "delete_failed": "Failed to delete message",
+        "react_failed": "Failed to react to message",
         "open_failed": "Failed to open conversation",
         "not_found": "Conversation not found",
         "back_to_chats": "Back to conversations",

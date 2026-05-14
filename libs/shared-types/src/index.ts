@@ -25,3 +25,5 @@ export type CreateConversationDto =
   chatComponents["schemas"]["CreateConversationDto"];
 export type SendMessageDto = chatComponents["schemas"]["SendMessageDto"];
 export type EditMessageDto = chatComponents["schemas"]["EditMessageDto"];
+export type Reaction = chatComponents["schemas"]["Reaction"];
+export type ToggleReactionDto = chatComponents["schemas"]["ToggleReactionDto"];

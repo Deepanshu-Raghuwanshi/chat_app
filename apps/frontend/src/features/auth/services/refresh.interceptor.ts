@@ -1,4 +1,5 @@
-import apiClient, { authService } from './auth.service';
+import apiClient from '../../../shared/lib/apiClient';
+import { authService } from './auth.service';
 import { useAuthStore } from '../store/useAuthStore';
 
 interface FailedRequest {

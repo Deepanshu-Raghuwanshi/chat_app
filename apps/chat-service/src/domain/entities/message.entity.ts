@@ -1,3 +1,9 @@
+export interface ReactionProps {
+  emoji: string;
+  userId: string;
+  createdAt: Date;
+}
+
 export interface MessageProps {
   id: string;
   conversationId: string;
@@ -7,6 +13,7 @@ export interface MessageProps {
   status: string;
   isDeleted: boolean;
   isEdited: boolean;
+  reactions?: ReactionProps[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +44,9 @@ export class MessageEntity {
   }
   get isEdited() {
     return this.props.isEdited;
+  }
+  get reactions(): ReactionProps[] {
+    return this.props.reactions ?? [];
   }
   get createdAt() {
     return this.props.createdAt;

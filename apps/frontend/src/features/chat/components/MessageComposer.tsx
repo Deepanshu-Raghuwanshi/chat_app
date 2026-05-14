@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef, KeyboardEvent } from "react";
-import { Send } from "lucide-react";
+import React, { useRef, useState, useEffect, KeyboardEvent } from "react";
+import { Send, Smile } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useTranslations } from "next-intl";
 import { useSendMessage } from "../hooks/useChat";
 import { useChatStore } from "../store/useChatStore";
+import { EmojiPickerPopover } from "./EmojiPickerPopover";
 
 interface MessageComposerProps {
   conversationId: string;
@@ -19,6 +20,36 @@ export const MessageComposer = ({ conversationId }: MessageComposerProps) => {
   const setDraft = useChatStore((state) => state.setDraft);
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const emojiAreaRef = useRef<HTMLDivElement>(null);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!emojiPickerOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        emojiAreaRef.current &&
+        !emojiAreaRef.current.contains(e.target as Node)
+      ) {
+        setEmojiPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [emojiPickerOpen]);
+
+  const handleEmojiSelect = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart ?? draft.length;
+    const end = textarea.selectionEnd ?? draft.length;
+    const newValue = draft.slice(0, start) + emoji + draft.slice(end);
+    setDraft(conversationId, newValue);
+    setEmojiPickerOpen(false);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    });
+  };
 
   const handleSend = () => {
     const content = draft.trim();
@@ -42,7 +73,6 @@ export const MessageComposer = ({ conversationId }: MessageComposerProps) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDraft(conversationId, e.target.value);
-    // Auto-resize
     e.target.style.height = "auto";
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
@@ -63,6 +93,24 @@ export const MessageComposer = ({ conversationId }: MessageComposerProps) => {
             "placeholder:text-foreground/40 max-h-30 leading-relaxed py-1 disabled:opacity-50",
           )}
         />
+        <div ref={emojiAreaRef} className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setEmojiPickerOpen((v) => !v)}
+            aria-label={t("emoji_button_label")}
+            className={cn(
+              "p-2 rounded-xl transition-all duration-200",
+              emojiPickerOpen
+                ? "text-primary bg-primary/10"
+                : "text-foreground/40 hover:text-foreground hover:bg-foreground/5",
+            )}
+          >
+            <Smile className="w-4 h-4" />
+          </button>
+          {emojiPickerOpen && (
+            <EmojiPickerPopover onEmojiSelect={handleEmojiSelect} />
+          )}
+        </div>
         <button
           onClick={handleSend}
           disabled={!draft.trim() || isPending}

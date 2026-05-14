@@ -90,6 +90,7 @@ export const usePresence = () => {
           status: "SENT",
           isDeleted: false,
           isEdited: false,
+          reactions: [],
           createdAt: data.sentAt,
           updatedAt: data.sentAt,
         };

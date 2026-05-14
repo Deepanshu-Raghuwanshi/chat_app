@@ -33,6 +33,7 @@ import { EditMessageUseCase } from "../../application/use-cases/edit-message.use
 import { DeleteMessageUseCase } from "../../application/use-cases/delete-message.use-case";
 import { MarkConversationReadUseCase } from "../../application/use-cases/mark-conversation-read.use-case";
 import { SearchConversationsUseCase } from "../../application/use-cases/search-conversations.use-case";
+import { ToggleReactionUseCase } from "../../application/use-cases/toggle-reaction.use-case";
 import {
   CreateConversationDto,
   ListConversationsQueryDto,
@@ -41,6 +42,7 @@ import {
   SendMessageDto,
   EditMessageDto,
   GetMessagesQueryDto,
+  ToggleReactionDto,
 } from "../../application/dto/message.dto";
 
 @ApiTags("Chat")
@@ -58,6 +60,7 @@ export class ConversationController {
     private readonly editMessage: EditMessageUseCase,
     private readonly deleteMessage: DeleteMessageUseCase,
     private readonly markConversationRead: MarkConversationReadUseCase,
+    private readonly toggleReactionUseCase: ToggleReactionUseCase,
   ) {}
 
   @Get()
@@ -199,6 +202,30 @@ export class ConversationController {
       userId: req.user.id,
       conversationId,
       messageId,
+    });
+  }
+
+  @Post(":conversationId/messages/:messageId/reactions")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Toggle an emoji reaction on a message" })
+  @ApiParam({ name: "conversationId", format: "uuid" })
+  @ApiParam({ name: "messageId", format: "uuid" })
+  @ApiBody({ type: ToggleReactionDto })
+  @ApiResponse({
+    status: 200,
+    description: "Updated message with current reactions",
+  })
+  async react(
+    @Req() req: RequestWithUser,
+    @Param("conversationId") conversationId: string,
+    @Param("messageId") messageId: string,
+    @Body() dto: ToggleReactionDto,
+  ) {
+    return this.toggleReactionUseCase.execute({
+      userId: req.user.id,
+      conversationId,
+      messageId,
+      emoji: dto.emoji,
     });
   }
 

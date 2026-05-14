@@ -303,6 +303,57 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/chat/conversations/{conversationId}/messages/{messageId}/reactions:
+    post:
+      summary: Toggle a reaction on a message
+      description: >
+        Adds the given emoji reaction for the authenticated user if it does not
+        already exist; removes it if it does. Idempotent toggle — calling twice
+        returns to the original state. Both participants of the conversation may
+        react. Deleted messages cannot be reacted to.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ToggleReactionDto"
+      responses:
+        "200":
+          description: Updated message with current reactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Invalid emoji or message is deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Authenticated user is not a participant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Conversation or message not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/chat/conversations/{conversationId}/read:
     post:
       summary: Mark conversation as read
@@ -498,12 +549,48 @@ components:
           type: boolean
         isEdited:
           type: boolean
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reaction"
+          default: []
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    Reaction:
+      type: object
+      required:
+        - emoji
+        - userId
+        - createdAt
+      properties:
+        emoji:
+          type: string
+          minLength: 1
+          maxLength: 10
+          description: A single emoji character or ZWJ sequence (e.g. "👍", "❤️", "👨‍👩‍👧")
+        userId:
+          type: string
+          format: uuid
+          description: The user who added this reaction
+        createdAt:
+          type: string
+          format: date-time
+
+    ToggleReactionDto:
+      type: object
+      required:
+        - emoji
+      properties:
+        emoji:
+          type: string
+          minLength: 1
+          maxLength: 10
+          description: Emoji to toggle. Adding the same emoji again removes it.
 
     MessageListResponse:
       type: object
@@ -580,6 +667,7 @@ components:
 # Produces: message.edited.v1
 # Produces: message.deleted.v1
 # Produces: message.read.v1        — payload now includes senderId (other participant) for gateway routing
+# Produces: message.reaction.toggled.v1
 # Consumes: friend.request.accepted.v1
 
 # Search Mode Behaviour (q param)

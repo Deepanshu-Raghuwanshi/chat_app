@@ -99,6 +99,7 @@ export const useSendMessage = (conversationId: string) => {
         status: "SENT",
         isDeleted: false,
         isEdited: false,
+        reactions: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -232,6 +233,86 @@ export const useSearchConversations = (query: string) => {
     queryFn: () => chatService.searchConversations(debouncedQuery),
     enabled: debouncedQuery.trim().length >= 1,
     staleTime: 30_000,
+  });
+};
+
+export const useToggleReaction = (conversationId: string) => {
+  const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const t = useTranslations("features.chat.errors");
+
+  return useMutation({
+    mutationFn: ({ messageId, emoji }: { messageId: string; emoji: string }) =>
+      chatService.toggleReaction(conversationId, messageId, emoji),
+
+    onMutate: async ({ messageId, emoji }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["messages", conversationId],
+      });
+      const snapshot = queryClient.getQueryData<
+        InfiniteData<MessageListResponse>
+      >(["messages", conversationId]);
+
+      queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+        ["messages", conversationId],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data.map((msg) => {
+                if (msg.id !== messageId) return msg;
+                const reactions = msg.reactions ?? [];
+                const existingIdx = reactions.findIndex(
+                  (r) => r.emoji === emoji && r.userId === user?.id,
+                );
+                const updatedReactions =
+                  existingIdx >= 0
+                    ? reactions.filter((_, i) => i !== existingIdx)
+                    : [
+                        ...reactions,
+                        {
+                          emoji,
+                          userId: user?.id ?? "",
+                          createdAt: new Date().toISOString(),
+                        },
+                      ];
+                return { ...msg, reactions: updatedReactions };
+              }),
+            })),
+          };
+        },
+      );
+
+      return { snapshot };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.snapshot) {
+        queryClient.setQueryData(
+          ["messages", conversationId],
+          context.snapshot,
+        );
+      }
+      showToast.error(t("react_failed"));
+    },
+    onSuccess: (updatedMessage) => {
+      queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+        ["messages", conversationId],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data.map((msg) =>
+                msg.id === updatedMessage.id ? updatedMessage : msg,
+              ),
+            })),
+          };
+        },
+      );
+    },
   });
 };
 

@@ -7,7 +7,7 @@ import {
 import { MessageRepository } from "../ports/message.repository";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import { MessageView } from "../interfaces/conversation-view.interface";
-import { MessageEntity } from "../../domain/entities/message.entity";
+import { toMessageView } from "../mappers/message.mapper";
 import { ChatTopics, MessageDeletedEventV1 } from "@kafka-events";
 
 export interface DeleteMessageDto {
@@ -48,21 +48,6 @@ export class DeleteMessageUseCase {
       deletedAt: deleted.updatedAt.toISOString(),
     } satisfies MessageDeletedEventV1);
 
-    return this.toView(deleted);
-  }
-
-  private toView(message: MessageEntity): MessageView {
-    return {
-      id: message.id,
-      conversationId: message.conversationId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      status: message.status,
-      isDeleted: message.isDeleted,
-      isEdited: message.isEdited,
-      createdAt: message.createdAt.toISOString(),
-      updatedAt: message.updatedAt.toISOString(),
-    };
+    return toMessageView(deleted);
   }
 }

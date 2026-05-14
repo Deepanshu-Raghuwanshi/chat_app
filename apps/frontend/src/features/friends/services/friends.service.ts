@@ -1,4 +1,4 @@
-import apiClient from '../../auth/services/auth.service';
+import apiClient from '../../../shared/lib/apiClient';
 
 export interface UserProfile {
   id: string;

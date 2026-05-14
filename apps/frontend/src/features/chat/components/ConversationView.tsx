@@ -10,7 +10,6 @@ import { Spinner } from "../../../shared/components/ui/spinner";
 import { useConversation, useMessages, useMarkRead } from "../hooks/useChat";
 import { useChatStore } from "../store/useChatStore";
 import { usePresence } from "../../friends/hooks/usePresence";
-import { cn } from "../../../shared/utils/cn";
 import type { Message } from "@shared-types";
 
 interface ConversationViewProps {
@@ -60,9 +59,7 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
 
   if (!conversation) {
     return (
-      <div
-        className={cn("flex flex-col items-center justify-center h-full gap-3")}
-      >
+      <div className="flex flex-col items-center justify-center h-full gap-3">
         <p className="text-foreground/60 text-sm">{t("not_found")}</p>
         <button
           onClick={() => router.push("/chat")}
@@ -86,10 +83,11 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
   const displayMessages = [...allMessages].reverse();
 
   return (
-    <div className={cn("flex flex-col h-full")}>
+    <div className="flex flex-col h-full">
       <ConversationHeader conversation={conversation} />
       <MessageList
         key={conversationId}
+        conversationId={conversationId}
         messages={displayMessages}
         onLoadMore={fetchNextPage}
         hasMore={!!hasNextPage}

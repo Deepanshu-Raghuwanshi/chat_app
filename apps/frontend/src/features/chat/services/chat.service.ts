@@ -96,4 +96,16 @@ export const chatService = {
     );
     return data;
   },
+
+  async toggleReaction(
+    conversationId: string,
+    messageId: string,
+    emoji: string,
+  ): Promise<Message> {
+    const { data } = await apiClient.post<Message>(
+      `/chat/conversations/${conversationId}/messages/${messageId}/reactions`,
+      { emoji },
+    );
+    return data;
+  },
 };
