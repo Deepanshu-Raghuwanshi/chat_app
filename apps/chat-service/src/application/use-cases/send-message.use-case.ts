@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { ConversationRepository } from "../ports/conversation.repository";
 import { ConversationParticipantRepository } from "../ports/conversation-participant.repository";
-import { MessageRepository } from "../ports/message.repository";
+import { MessageRepository, ReplyToInput } from "../ports/message.repository";
 import { FriendshipVerifier } from "../ports/friendship-verifier.port";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import { MessageView } from "../interfaces/conversation-view.interface";
@@ -19,6 +19,7 @@ export interface SendMessageDto {
   conversationId: string;
   content: string;
   type?: string;
+  quotedMessageId?: string;
 }
 
 @Injectable()
@@ -72,11 +73,29 @@ export class SendMessageUseCase {
       throw new ForbiddenException("You can no longer message this user");
     }
 
+    let replyTo: ReplyToInput | undefined;
+
+    if (dto.quotedMessageId) {
+      const quoted = await this.messageRepository.findById(dto.quotedMessageId);
+      if (!quoted || quoted.conversationId !== conversationId) {
+        throw new NotFoundException("Quoted message not found");
+      }
+      if (quoted.isDeleted) {
+        throw new BadRequestException("Cannot reply to a deleted message");
+      }
+      replyTo = {
+        messageId: quoted.id,
+        senderId: quoted.senderId,
+        content: quoted.content.slice(0, 200),
+      };
+    }
+
     const message = await this.messageRepository.create({
       conversationId,
       senderId: userId,
       content: content.trim(),
       type: dto.type ?? MessageType.TEXT,
+      replyTo,
     });
 
     await this.conversationRepository.updateLastMessage(conversationId, {
@@ -94,6 +113,7 @@ export class SendMessageUseCase {
       content: content.trim(),
       type: (dto.type ?? MessageType.TEXT) as MessageType,
       sentAt: message.createdAt.toISOString(),
+      ...(replyTo ? { replyTo } : {}),
     } satisfies MessageSentEventV1);
 
     return toMessageView(message);

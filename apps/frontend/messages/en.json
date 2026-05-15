@@ -214,7 +214,9 @@
       "composer": {
         "placeholder": "Type a message...",
         "send": "Send",
-        "emoji_button_label": "Open emoji picker"
+        "emoji_button_label": "Open emoji picker",
+        "cancel_reply": "Cancel reply",
+        "replying_to": "Replying to"
       },
       "message": {
         "deleted": "[deleted]",
@@ -223,7 +225,8 @@
         "delete": "Delete",
         "react": "React",
         "more_reactions": "More",
-        "message_menu": "Message options"
+        "message_menu": "Message options",
+        "reply": "Reply"
       },
       "conversation": {
         "online": "Online",

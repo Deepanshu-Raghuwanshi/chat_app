@@ -102,8 +102,12 @@ beforeEach(() => {
   vi.mocked(useChatStore.getState).mockReturnValue({
     activeConversationId: null,
     draftMessages: {},
+    replyTargets: {},
+    highlightedMessageId: null,
     setActiveConversation: vi.fn(),
     setDraft: vi.fn(),
+    setReplyTarget: vi.fn(),
+    setHighlightedMessageId: vi.fn(),
   });
   vi.mocked(chatService.markRead).mockResolvedValue({
     lastReadAt: new Date().toISOString(),
@@ -183,8 +187,12 @@ describe("usePresence — message.new auto-read", () => {
     vi.mocked(useChatStore.getState).mockReturnValue({
       activeConversationId: "conv-1",
       draftMessages: {},
+      replyTargets: {},
+      highlightedMessageId: null,
       setActiveConversation: vi.fn(),
       setDraft: vi.fn(),
+      setReplyTarget: vi.fn(),
+      setHighlightedMessageId: vi.fn(),
     });
 
     act(() => {
@@ -198,8 +206,12 @@ describe("usePresence — message.new auto-read", () => {
     vi.mocked(useChatStore.getState).mockReturnValue({
       activeConversationId: "conv-2",
       draftMessages: {},
+      replyTargets: {},
+      highlightedMessageId: null,
       setActiveConversation: vi.fn(),
       setDraft: vi.fn(),
+      setReplyTarget: vi.fn(),
+      setHighlightedMessageId: vi.fn(),
     });
 
     act(() => {

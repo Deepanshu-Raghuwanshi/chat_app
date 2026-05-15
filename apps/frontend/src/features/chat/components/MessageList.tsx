@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { Message } from "@shared-types";
+import { ConversationParticipant, Message } from "@shared-types";
 import { MessageBubble } from "./MessageBubble";
 import { Spinner } from "../../../shared/components/ui/spinner";
 import { useAuthStore } from "../../auth/store/useAuthStore";
@@ -10,6 +10,7 @@ import { cn } from "../../../shared/utils/cn";
 interface MessageListProps {
   conversationId: string;
   messages: Message[];
+  participants: ConversationParticipant[];
   onLoadMore: () => void;
   hasMore: boolean;
   isFetchingMore?: boolean;
@@ -18,6 +19,7 @@ interface MessageListProps {
 export const MessageList = ({
   conversationId,
   messages,
+  participants,
   onLoadMore,
   hasMore,
   isFetchingMore,
@@ -66,6 +68,7 @@ export const MessageList = ({
           message={msg}
           isMine={msg.senderId === currentUserId}
           conversationId={conversationId}
+          participants={participants}
         />
       ))}
 

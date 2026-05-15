@@ -9,7 +9,10 @@ import { MessageComposer } from "./MessageComposer";
 import { Spinner } from "../../../shared/components/ui/spinner";
 import { useConversation, useMessages, useMarkRead } from "../hooks/useChat";
 import { useChatStore } from "../store/useChatStore";
-import { usePresence } from "../../friends/hooks/usePresence";
+import {
+  usePresence,
+  joinConversationRoom,
+} from "../../friends/hooks/usePresence";
 import type { Message } from "@shared-types";
 
 interface ConversationViewProps {
@@ -42,6 +45,11 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
     setActiveConversation(conversationId);
     return () => setActiveConversation(null);
   }, [conversationId, setActiveConversation]);
+
+  // Join the conversation room so socket events (edits, deletes) are received
+  useEffect(() => {
+    joinConversationRoom(conversationId);
+  }, [conversationId]);
 
   // Mark as read on open and whenever new messages arrive while viewing
   const latestMessageId = messagesData?.pages[0]?.data[0]?.id;
@@ -89,11 +97,15 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
         key={conversationId}
         conversationId={conversationId}
         messages={displayMessages}
+        participants={conversation.participants}
         onLoadMore={fetchNextPage}
         hasMore={!!hasNextPage}
         isFetchingMore={isFetchingNextPage}
       />
-      <MessageComposer conversationId={conversationId} />
+      <MessageComposer
+        conversationId={conversationId}
+        participants={conversation.participants}
+      />
     </div>
   );
 };

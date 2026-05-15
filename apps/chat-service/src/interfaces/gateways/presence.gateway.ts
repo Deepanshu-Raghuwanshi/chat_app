@@ -3,6 +3,9 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { Inject, Logger } from "@nestjs/common";
@@ -74,6 +77,16 @@ export class PresenceGateway
 
     // Notify all clients about the status change
     this.server.emit("presence.updated", event);
+  }
+
+  @SubscribeMessage("join.conversation")
+  async handleJoinConversation(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { conversationId: string },
+  ): Promise<void> {
+    const userId = this.getUserId(client);
+    if (!userId || !data?.conversationId) return;
+    await client.join(`conversation:${data.conversationId}`);
   }
 
   emitToRoom(room: string, event: string, payload: unknown): void {

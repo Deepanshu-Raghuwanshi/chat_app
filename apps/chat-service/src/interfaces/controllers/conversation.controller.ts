@@ -165,6 +165,7 @@ export class ConversationController {
       conversationId,
       content: dto.content,
       type: dto.type,
+      quotedMessageId: dto.quotedMessageId,
     });
   }
 

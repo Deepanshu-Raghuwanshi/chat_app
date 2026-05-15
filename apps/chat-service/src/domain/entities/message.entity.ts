@@ -4,6 +4,12 @@ export interface ReactionProps {
   createdAt: Date;
 }
 
+export interface ReplyToProps {
+  messageId: string;
+  senderId: string;
+  content: string;
+}
+
 export interface MessageProps {
   id: string;
   conversationId: string;
@@ -14,6 +20,7 @@ export interface MessageProps {
   isDeleted: boolean;
   isEdited: boolean;
   reactions?: ReactionProps[];
+  replyTo?: ReplyToProps;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +54,9 @@ export class MessageEntity {
   }
   get reactions(): ReactionProps[] {
     return this.props.reactions ?? [];
+  }
+  get replyTo(): ReplyToProps | undefined {
+    return this.props.replyTo;
   }
   get createdAt() {
     return this.props.createdAt;

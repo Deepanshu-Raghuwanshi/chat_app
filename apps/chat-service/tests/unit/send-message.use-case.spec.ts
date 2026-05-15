@@ -38,7 +38,9 @@ function makeParticipant(userId: string): ConversationParticipantEntity {
   });
 }
 
-function makeMessage(): MessageEntity {
+function makeMessage(
+  overrides?: Partial<Parameters<typeof MessageEntity.create>[0]>,
+): MessageEntity {
   return MessageEntity.create({
     id: "msg1",
     conversationId: "conv1",
@@ -50,6 +52,25 @@ function makeMessage(): MessageEntity {
     isEdited: false,
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
+    ...overrides,
+  });
+}
+
+function makeQuotedMessage(
+  overrides?: Partial<Parameters<typeof MessageEntity.create>[0]>,
+): MessageEntity {
+  return MessageEntity.create({
+    id: "quoted-msg",
+    conversationId: "conv1",
+    senderId: "user2",
+    content: "original message",
+    type: "TEXT",
+    status: "SENT",
+    isDeleted: false,
+    isEdited: false,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+    ...overrides,
   });
 }
 
@@ -71,6 +92,7 @@ describe("SendMessageUseCase (Unit)", () => {
     };
     messageRepoMock = {
       create: sinon.stub(),
+      findById: sinon.stub(),
     };
     friendshipVerifierMock = {
       areFriends: sinon.stub().resolves(true),
@@ -197,5 +219,187 @@ describe("SendMessageUseCase (Unit)", () => {
 
     expect(messageRepoMock.create.called).to.equal(false);
     expect(kafkaProducerMock.emit.called).to.equal(false);
+  });
+
+  // --- Quoted-reply tests ---
+
+  it("should create message without replyTo when no quotedMessageId is supplied", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.create.resolves(makeMessage());
+
+    await useCase.execute({
+      userId: "user1",
+      conversationId: "conv1",
+      content: "plain message",
+    });
+
+    const createArg = messageRepoMock.create.firstCall.args[0];
+    expect(createArg.replyTo).to.equal(undefined);
+    expect(messageRepoMock.findById.called).to.equal(false);
+  });
+
+  it("should create message with replyTo snapshot when quotedMessageId is valid", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.findById.resolves(makeQuotedMessage());
+    messageRepoMock.create.resolves(makeMessage());
+
+    await useCase.execute({
+      userId: "user1",
+      conversationId: "conv1",
+      content: "reply message",
+      quotedMessageId: "quoted-msg",
+    });
+
+    const createArg = messageRepoMock.create.firstCall.args[0];
+    expect(createArg.replyTo).to.deep.equal({
+      messageId: "quoted-msg",
+      senderId: "user2",
+      content: "original message",
+    });
+  });
+
+  it("should truncate quoted content to 200 chars in the snapshot", async () => {
+    const longContent = "x".repeat(300);
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.findById.resolves(
+      makeQuotedMessage({ content: longContent }),
+    );
+    messageRepoMock.create.resolves(makeMessage());
+
+    await useCase.execute({
+      userId: "user1",
+      conversationId: "conv1",
+      content: "reply",
+      quotedMessageId: "quoted-msg",
+    });
+
+    const createArg = messageRepoMock.create.firstCall.args[0];
+    expect(createArg.replyTo.content).to.have.lengthOf(200);
+  });
+
+  it("should include replyTo in the Kafka event when quoting", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.findById.resolves(makeQuotedMessage());
+    messageRepoMock.create.resolves(makeMessage());
+
+    await useCase.execute({
+      userId: "user1",
+      conversationId: "conv1",
+      content: "reply",
+      quotedMessageId: "quoted-msg",
+    });
+
+    const [, payload] = kafkaProducerMock.emit.firstCall.args;
+    expect(payload.replyTo).to.deep.equal({
+      messageId: "quoted-msg",
+      senderId: "user2",
+      content: "original message",
+    });
+  });
+
+  it("should not include replyTo in the Kafka event when not quoting", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.create.resolves(makeMessage());
+
+    await useCase.execute({
+      userId: "user1",
+      conversationId: "conv1",
+      content: "plain message",
+    });
+
+    const [, payload] = kafkaProducerMock.emit.firstCall.args;
+    expect(payload.replyTo).to.equal(undefined);
+  });
+
+  it("should throw NotFoundException when quotedMessageId maps to no document", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.findById.resolves(null);
+
+    try {
+      await useCase.execute({
+        userId: "user1",
+        conversationId: "conv1",
+        content: "reply",
+        quotedMessageId: "nonexistent",
+      });
+      expect.fail("Should have thrown NotFoundException");
+    } catch (error) {
+      expect(error).to.be.instanceOf(NotFoundException);
+      expect((error as NotFoundException).message).to.equal(
+        "Quoted message not found",
+      );
+    }
+
+    expect(messageRepoMock.create.called).to.equal(false);
+  });
+
+  it("should throw NotFoundException when quoted message belongs to a different conversation", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.findById.resolves(
+      makeQuotedMessage({ conversationId: "other-conv" }),
+    );
+
+    try {
+      await useCase.execute({
+        userId: "user1",
+        conversationId: "conv1",
+        content: "reply",
+        quotedMessageId: "quoted-msg",
+      });
+      expect.fail("Should have thrown NotFoundException");
+    } catch (error) {
+      expect(error).to.be.instanceOf(NotFoundException);
+      expect((error as NotFoundException).message).to.equal(
+        "Quoted message not found",
+      );
+    }
+
+    expect(messageRepoMock.create.called).to.equal(false);
+  });
+
+  it("should throw BadRequestException when quoted message is deleted", async () => {
+    conversationRepoMock.findById.resolves(makeConversation());
+    participantRepoMock.findByConversationAndUser.resolves(
+      makeParticipant("user1"),
+    );
+    messageRepoMock.findById.resolves(makeQuotedMessage({ isDeleted: true }));
+
+    try {
+      await useCase.execute({
+        userId: "user1",
+        conversationId: "conv1",
+        content: "reply",
+        quotedMessageId: "quoted-msg",
+      });
+      expect.fail("Should have thrown BadRequestException");
+    } catch (error) {
+      expect(error).to.be.instanceOf(BadRequestException);
+      expect((error as BadRequestException).message).to.equal(
+        "Cannot reply to a deleted message",
+      );
+    }
+
+    expect(messageRepoMock.create.called).to.equal(false);
   });
 });

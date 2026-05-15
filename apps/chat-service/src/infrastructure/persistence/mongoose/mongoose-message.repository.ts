@@ -51,6 +51,7 @@ export class MongooseMessageRepository implements MessageRepository {
       senderId: data.senderId,
       content: data.content,
       type: data.type,
+      ...(data.replyTo ? { replyTo: data.replyTo } : {}),
     });
     return this.toEntity(doc);
   }
@@ -145,6 +146,13 @@ export class MongooseMessageRepository implements MessageRepository {
         userId: r.userId,
         createdAt: r.createdAt,
       })),
+      replyTo: doc.replyTo
+        ? {
+            messageId: doc.replyTo.messageId,
+            senderId: doc.replyTo.senderId,
+            content: doc.replyTo.content,
+          }
+        : undefined,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     });

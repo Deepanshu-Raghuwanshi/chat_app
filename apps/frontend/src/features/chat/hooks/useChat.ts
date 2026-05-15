@@ -19,6 +19,7 @@ import {
 } from "@shared-types";
 import { showToast } from "../../../shared/utils/toast";
 import { useAuthStore } from "../../auth/store/useAuthStore";
+import { useChatStore } from "../store/useChatStore";
 import { useTranslations } from "next-intl";
 
 export const useConversations = () => {
@@ -80,9 +81,13 @@ export const useSendMessage = (conversationId: string) => {
   const t = useTranslations("features.chat.errors");
 
   return useMutation({
-    mutationFn: (content: string) =>
-      chatService.sendMessage(conversationId, content),
-    onMutate: async (content) => {
+    mutationFn: (vars: { content: string; quotedMessageId?: string }) =>
+      chatService.sendMessage(
+        conversationId,
+        vars.content,
+        vars.quotedMessageId,
+      ),
+    onMutate: async (vars) => {
       await queryClient.cancelQueries({
         queryKey: ["messages", conversationId],
       });
@@ -90,16 +95,26 @@ export const useSendMessage = (conversationId: string) => {
         InfiniteData<MessageListResponse>
       >(["messages", conversationId]);
 
+      const replyTarget =
+        useChatStore.getState().replyTargets[conversationId] ?? null;
+
       const optimisticMessage: Message = {
         id: `optimistic-${Date.now()}`,
         conversationId,
         senderId: user?.id ?? "",
-        content,
+        content: vars.content,
         type: "TEXT",
         status: "SENT",
         isDeleted: false,
         isEdited: false,
         reactions: [],
+        replyTo: replyTarget
+          ? {
+              messageId: replyTarget.id,
+              senderId: replyTarget.senderId,
+              content: replyTarget.content.slice(0, 200),
+            }
+          : undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -117,9 +132,9 @@ export const useSendMessage = (conversationId: string) => {
         },
       );
 
-      return { snapshot };
+      return { snapshot, optimisticId: optimisticMessage.id };
     },
-    onError: (err, _content, context) => {
+    onError: (err, _vars, context) => {
       if (context?.snapshot) {
         queryClient.setQueryData(
           ["messages", conversationId],
@@ -134,9 +149,32 @@ export const useSendMessage = (conversationId: string) => {
         showToast.error(t("send_failed"));
       }
     },
-    onSuccess: () => {
+    onSuccess: (savedMessage, _vars, context) => {
+      useChatStore.getState().setReplyTarget(conversationId, null);
+      // Swap the optimistic placeholder for the real saved message.
+      // The filter deduplicates in case the socket event already prepended
+      // the real message before this handler fired.
+      queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+        ["messages", conversationId],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data
+                .map((msg) =>
+                  msg.id === context?.optimisticId ? savedMessage : msg,
+                )
+                .filter(
+                  (msg, idx, arr) =>
+                    arr.findIndex((m) => m.id === msg.id) === idx,
+                ),
+            })),
+          };
+        },
+      );
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
     },
   });
 };
