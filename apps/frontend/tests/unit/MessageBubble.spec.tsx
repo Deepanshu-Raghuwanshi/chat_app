@@ -2,7 +2,7 @@ import React from "react";
 import { screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MessageBubble } from "../../src/features/chat/components/MessageBubble";
-import { Message } from "@shared-types";
+import { ConversationParticipant, Message } from "@shared-types";
 import { renderWithIntl } from "../utils/render";
 import { simulate } from "../utils/simulate";
 import {
@@ -10,6 +10,7 @@ import {
   useDeleteMessage,
   useToggleReaction,
 } from "../../src/features/chat/hooks/useChat";
+import { useChatStore } from "../../src/features/chat/store/useChatStore";
 
 vi.mock("../../src/features/chat/hooks/useChat", () => ({
   useEditMessage: vi.fn(),
@@ -66,6 +67,7 @@ describe("MessageBubble", () => {
         message={mockMessage}
         isMine={false}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
     expect(screen.queryByText("Edit")).toBeNull();
@@ -77,9 +79,12 @@ describe("MessageBubble", () => {
         message={mockMessage}
         isMine={true}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
-    const menuTrigger = screen.getAllByRole("button")[1];
+    const menuTrigger = screen.getByRole("button", {
+      name: /message options/i,
+    });
     await simulate.click(menuTrigger);
     expect(screen.getByText("Edit")).toBeTruthy();
     expect(screen.getByText("Delete")).toBeTruthy();
@@ -92,6 +97,7 @@ describe("MessageBubble", () => {
         message={deletedMessage}
         isMine={true}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
     expect(screen.getByText("[deleted]")).toBeTruthy();
@@ -111,6 +117,7 @@ describe("MessageBubble", () => {
         message={editedMessage}
         isMine={false}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
     expect(screen.getByText("(edited)")).toBeTruthy();
@@ -129,6 +136,7 @@ describe("MessageBubble status indicator", () => {
         message={{ ...mockMessage, status: "SENT" }}
         isMine={true}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
     // CheckCheck must be absent; Check must be present
@@ -142,6 +150,7 @@ describe("MessageBubble status indicator", () => {
         message={{ ...mockMessage, status: "DELIVERED" }}
         isMine={true}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
     const icon = container.querySelector("svg.lucide-check-check");
@@ -155,6 +164,7 @@ describe("MessageBubble status indicator", () => {
         message={{ ...mockMessage, status: "READ" }}
         isMine={true}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
     const icon = container.querySelector("svg.lucide-check-check");
@@ -164,7 +174,12 @@ describe("MessageBubble status indicator", () => {
 
   it("renders no status indicator when isMine is false", () => {
     const { container } = renderWithIntl(
-      <MessageBubble message={mockMessage} isMine={false} conversationId="conv-1" />,
+      <MessageBubble
+        message={mockMessage}
+        isMine={false}
+        conversationId="conv-1"
+        participants={[]}
+      />,
     );
     expect(container.querySelector("svg.lucide-check")).toBeNull();
     expect(container.querySelector("svg.lucide-check-check")).toBeNull();
@@ -176,9 +191,88 @@ describe("MessageBubble status indicator", () => {
         message={{ ...mockMessage, isDeleted: true }}
         isMine={true}
         conversationId="conv-1"
+        participants={[]}
       />,
     );
     expect(container.querySelector("svg.lucide-check")).toBeNull();
     expect(container.querySelector("svg.lucide-check-check")).toBeNull();
+  });
+});
+
+describe("MessageBubble quoted reply", () => {
+  const messageWithReplyTo: Message = {
+    ...mockMessage,
+    replyTo: {
+      messageId: "original-1",
+      senderId: "user-2",
+      content: "The original message content",
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupMocks();
+    vi.mocked(useToggleReaction).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useToggleReaction>);
+    useChatStore.setState({ replyTargets: {} });
+  });
+
+  it("renders quoted preview block when message.replyTo is present", () => {
+    renderWithIntl(
+      <MessageBubble
+        message={messageWithReplyTo}
+        isMine={false}
+        conversationId="conv-1"
+        participants={[]}
+      />,
+    );
+    expect(screen.getByText("The original message content")).toBeTruthy();
+  });
+
+  it("resolves sender name from participants in quoted preview", () => {
+    const participants: ConversationParticipant[] = [
+      {
+        userId: "user-2",
+        username: "Alice",
+        profilePicture: null,
+      } as unknown as ConversationParticipant,
+    ];
+    renderWithIntl(
+      <MessageBubble
+        message={messageWithReplyTo}
+        isMine={false}
+        conversationId="conv-1"
+        participants={participants}
+      />,
+    );
+    expect(screen.getByText("Alice")).toBeTruthy();
+  });
+
+  it("does not render quoted preview when message.replyTo is absent", () => {
+    renderWithIntl(
+      <MessageBubble
+        message={mockMessage}
+        isMine={false}
+        conversationId="conv-1"
+        participants={[]}
+      />,
+    );
+    expect(screen.queryByText("The original message content")).toBeNull();
+  });
+
+  it("Reply button sets replyTarget in store when clicked", async () => {
+    renderWithIntl(
+      <MessageBubble
+        message={mockMessage}
+        isMine={false}
+        conversationId="conv-1"
+        participants={[]}
+      />,
+    );
+    const replyButton = screen.getByRole("button", { name: /^reply$/i });
+    await simulate.click(replyButton);
+    expect(useChatStore.getState().replyTargets["conv-1"]).toEqual(mockMessage);
   });
 });

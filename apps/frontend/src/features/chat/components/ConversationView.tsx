@@ -89,11 +89,15 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
         key={conversationId}
         conversationId={conversationId}
         messages={displayMessages}
+        participants={conversation.participants}
         onLoadMore={fetchNextPage}
         hasMore={!!hasNextPage}
         isFetchingMore={isFetchingNextPage}
       />
-      <MessageComposer conversationId={conversationId} />
+      <MessageComposer
+        conversationId={conversationId}
+        participants={conversation.participants}
+      />
     </div>
   );
 };

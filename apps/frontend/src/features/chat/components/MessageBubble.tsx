@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Message } from "@shared-types";
+import { ConversationParticipant, Message } from "@shared-types";
 import {
   MoreVertical,
   Pencil,
@@ -10,6 +10,7 @@ import {
   X,
   Smile,
   CheckCheck,
+  Reply,
 } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useTranslations } from "next-intl";
@@ -19,13 +20,17 @@ import {
   useToggleReaction,
 } from "../hooks/useChat";
 import { useAuthStore } from "../../auth/store/useAuthStore";
+import { useChatStore } from "../store/useChatStore";
 import { ReactionBar } from "./ReactionBar";
 import { ReactionPicker } from "./ReactionPicker";
+import { QuotedPreview } from "./QuotedPreview";
+import { resolveParticipantName } from "../utils/resolveParticipantName";
 
 interface MessageBubbleProps {
   message: Message;
   isMine: boolean;
   conversationId: string;
+  participants: ConversationParticipant[];
 }
 
 function formatTime(dateString: string): string {
@@ -39,6 +44,7 @@ export const MessageBubble = ({
   message,
   isMine,
   conversationId,
+  participants,
 }: MessageBubbleProps) => {
   const t = useTranslations("features.chat.message");
   const [showMenu, setShowMenu] = useState(false);
@@ -48,6 +54,7 @@ export const MessageBubble = ({
   const reactionPickerAreaRef = useRef<HTMLDivElement>(null);
 
   const currentUserId = useAuthStore((state) => state.user?.id ?? "");
+  const setReplyTarget = useChatStore((state) => state.setReplyTarget);
 
   useEffect(() => {
     if (!showReactionPicker) return;
@@ -115,6 +122,13 @@ export const MessageBubble = ({
           isMine ? "items-end" : "items-start",
         )}
       >
+        {message.replyTo && (
+          <QuotedPreview
+            replyTo={message.replyTo}
+            isMine={isMine}
+            participants={participants}
+          />
+        )}
         {isEditing ? (
           <div className="flex items-center gap-2 bg-white border border-border rounded-2xl px-3 py-2 shadow-sm">
             <input
@@ -163,6 +177,14 @@ export const MessageBubble = ({
                     </div>
                   )}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setReplyTarget(conversationId, message)}
+                  aria-label={t("reply")}
+                  className="p-1 rounded-full hover:bg-secondary text-foreground/40 hover:text-foreground transition-colors"
+                >
+                  <Reply className="w-4 h-4" />
+                </button>
                 <div className="relative">
                   <button
                     onClick={() => setShowMenu((v) => !v)}
@@ -209,25 +231,32 @@ export const MessageBubble = ({
               {message.content}
             </div>
 
-            {/* Reaction picker for other's messages — right side */}
+            {/* Reaction picker + Reply for other's messages — right side */}
             {!isMine && (
-              <div
-                ref={reactionPickerAreaRef}
-                className="relative opacity-0 group-hover:opacity-100 transition-opacity mb-1"
-              >
+              <div className="relative opacity-0 group-hover:opacity-100 transition-opacity mb-1 flex items-center gap-1">
+                <div ref={reactionPickerAreaRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowReactionPicker((v) => !v)}
+                    aria-label={t("react")}
+                    className="p-1 rounded-full hover:bg-secondary text-foreground/40 hover:text-foreground transition-colors"
+                  >
+                    <Smile className="w-4 h-4" />
+                  </button>
+                  {showReactionPicker && (
+                    <div className="absolute bottom-8 left-0 z-20">
+                      <ReactionPicker onSelect={handleReactionSelect} />
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowReactionPicker((v) => !v)}
-                  aria-label={t("react")}
+                  onClick={() => setReplyTarget(conversationId, message)}
+                  aria-label={t("reply")}
                   className="p-1 rounded-full hover:bg-secondary text-foreground/40 hover:text-foreground transition-colors"
                 >
-                  <Smile className="w-4 h-4" />
+                  <Reply className="w-4 h-4" />
                 </button>
-                {showReactionPicker && (
-                  <div className="absolute bottom-8 left-0 z-20">
-                    <ReactionPicker onSelect={handleReactionSelect} />
-                  </div>
-                )}
               </div>
             )}
           </div>

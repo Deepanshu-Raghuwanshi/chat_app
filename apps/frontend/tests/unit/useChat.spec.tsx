@@ -22,6 +22,7 @@ import {
   Message,
   MessageListResponse,
 } from "@shared-types";
+import { useChatStore } from "../../src/features/chat/store/useChatStore";
 
 vi.mock("../../src/features/chat/services/chat.service", () => ({
   chatService: {
@@ -130,7 +131,10 @@ describe("useConversations", () => {
 });
 
 describe("useSendMessage", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useChatStore.setState({ replyTargets: {} });
+  });
 
   it("optimistically appends message before request resolves", async () => {
     let resolveMessage!: (msg: Message) => void;
@@ -151,7 +155,7 @@ describe("useSendMessage", () => {
     });
 
     act(() => {
-      result.current.mutate("hello optimistic");
+      result.current.mutate({ content: "hello optimistic" });
     });
 
     await waitFor(() => {
@@ -187,7 +191,7 @@ describe("useSendMessage", () => {
     });
 
     act(() => {
-      result.current.mutate("this will fail");
+      result.current.mutate({ content: "this will fail" });
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -215,12 +219,171 @@ describe("useSendMessage", () => {
     });
 
     act(() => {
-      result.current.mutate("hello");
+      result.current.mutate({ content: "hello" });
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["conversations"] });
+  });
+
+  it("optimistic message includes replyTo snapshot when store has a reply target", async () => {
+    const replyMessage: Message = {
+      id: "reply-msg-1",
+      conversationId: "conv-1",
+      senderId: "user-3",
+      content: "Original message content",
+      type: "TEXT",
+      status: "SENT",
+      isDeleted: false,
+      reactions: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    useChatStore.setState({ replyTargets: { "conv-1": replyMessage } });
+
+    let resolveMessage!: (msg: Message) => void;
+    vi.mocked(chatService.sendMessage).mockReturnValue(
+      new Promise<Message>((resolve) => {
+        resolveMessage = resolve;
+      }),
+    );
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      emptyMessagesCache,
+    );
+
+    const { result } = renderHook(() => useSendMessage("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ content: "quoting you" });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<
+        InfiniteData<MessageListResponse>
+      >(["messages", "conv-1"]);
+      expect(cached?.pages[0].data).toHaveLength(1);
+    });
+
+    const cached = queryClient.getQueryData<InfiniteData<MessageListResponse>>([
+      "messages",
+      "conv-1",
+    ]);
+    const optimistic = cached?.pages[0].data[0];
+    expect(optimistic?.replyTo?.messageId).toBe("reply-msg-1");
+    expect(optimistic?.replyTo?.senderId).toBe("user-3");
+    expect(optimistic?.replyTo?.content).toBe("Original message content");
+
+    resolveMessage(mockMessage);
+  });
+
+  it("optimistic message has no replyTo when store has no reply target", async () => {
+    let resolveMessage!: (msg: Message) => void;
+    vi.mocked(chatService.sendMessage).mockReturnValue(
+      new Promise<Message>((resolve) => {
+        resolveMessage = resolve;
+      }),
+    );
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      emptyMessagesCache,
+    );
+
+    const { result } = renderHook(() => useSendMessage("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ content: "plain message" });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<
+        InfiniteData<MessageListResponse>
+      >(["messages", "conv-1"]);
+      expect(cached?.pages[0].data).toHaveLength(1);
+    });
+
+    const cached = queryClient.getQueryData<InfiniteData<MessageListResponse>>([
+      "messages",
+      "conv-1",
+    ]);
+    expect(cached?.pages[0].data[0].replyTo).toBeUndefined();
+
+    resolveMessage(mockMessage);
+  });
+
+  it("passes quotedMessageId to chatService.sendMessage", async () => {
+    vi.mocked(chatService.sendMessage).mockResolvedValue(mockMessage);
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      emptyMessagesCache,
+    );
+
+    const { result } = renderHook(() => useSendMessage("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({
+        content: "reply content",
+        quotedMessageId: "quoted-msg-1",
+      });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(chatService.sendMessage).toHaveBeenCalledWith(
+      "conv-1",
+      "reply content",
+      "quoted-msg-1",
+    );
+  });
+
+  it("clears replyTarget in store on successful send", async () => {
+    const replyMessage: Message = {
+      id: "reply-msg-2",
+      conversationId: "conv-1",
+      senderId: "user-3",
+      content: "A message to reply to",
+      type: "TEXT",
+      status: "SENT",
+      isDeleted: false,
+      reactions: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    useChatStore.setState({ replyTargets: { "conv-1": replyMessage } });
+    vi.mocked(chatService.sendMessage).mockResolvedValue(mockMessage);
+
+    const { queryClient, Wrapper } = makeWrapper();
+    queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+      ["messages", "conv-1"],
+      emptyMessagesCache,
+    );
+
+    const { result } = renderHook(() => useSendMessage("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ content: "reply sent" });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(useChatStore.getState().replyTargets["conv-1"]).toBeNull();
   });
 });
 

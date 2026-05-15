@@ -52,10 +52,18 @@ export const chatService = {
     return data;
   },
 
-  async sendMessage(conversationId: string, content: string): Promise<Message> {
+  async sendMessage(
+    conversationId: string,
+    content: string,
+    quotedMessageId?: string,
+  ): Promise<Message> {
     const { data } = await apiClient.post<Message>(
       `/chat/conversations/${conversationId}/messages`,
-      { content, type: "TEXT" },
+      {
+        content,
+        type: "TEXT",
+        ...(quotedMessageId ? { quotedMessageId } : {}),
+      },
     );
     return data;
   },
