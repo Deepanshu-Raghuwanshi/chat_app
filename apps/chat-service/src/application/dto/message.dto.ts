@@ -5,9 +5,9 @@ import {
   MaxLength,
   IsEnum,
   IsInt,
+  IsMongoId,
   Min,
   Max,
-  IsUUID,
 } from "class-validator";
 
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
@@ -26,12 +26,9 @@ export class SendMessageDto {
   @IsEnum(MessageType)
   type?: MessageType;
 
-  @ApiPropertyOptional({
-    format: "uuid",
-    description: "ID of the message being replied to",
-  })
+  @ApiPropertyOptional({ description: "ID of the message being replied to" })
   @IsOptional()
-  @IsUUID()
+  @IsMongoId()
   quotedMessageId?: string;
 }
 
@@ -61,10 +58,9 @@ export class GetMessagesQueryDto {
   limit?: number;
 
   @ApiPropertyOptional({
-    format: "uuid",
     description: "Cursor — fetch messages older than this ID",
   })
   @IsOptional()
-  @IsUUID()
+  @IsMongoId()
   before?: string;
 }
