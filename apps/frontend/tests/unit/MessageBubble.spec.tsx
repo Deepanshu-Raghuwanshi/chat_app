@@ -231,12 +231,19 @@ describe("MessageBubble quoted reply", () => {
     expect(screen.getByText("The original message content")).toBeTruthy();
   });
 
-  it("resolves sender name from participants in quoted preview", () => {
+  it("resolves sender name from participants in quoted preview (group chat)", () => {
     const participants: ConversationParticipant[] = [
+      {
+        userId: "user-1",
+        username: "Me",
+      } as unknown as ConversationParticipant,
       {
         userId: "user-2",
         username: "Alice",
-        profilePicture: null,
+      } as unknown as ConversationParticipant,
+      {
+        userId: "user-3",
+        username: "Bob",
       } as unknown as ConversationParticipant,
     ];
     renderWithIntl(

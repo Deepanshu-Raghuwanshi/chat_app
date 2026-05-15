@@ -35,6 +35,10 @@ export const MessageComposer = ({
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
   useEffect(() => {
+    if (replyTarget) textareaRef.current?.focus();
+  }, [replyTarget]);
+
+  useEffect(() => {
     if (!emojiPickerOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -103,9 +107,11 @@ export const MessageComposer = ({
           <div className="flex items-center gap-2 px-4 py-2 border-b border-border/40 text-xs rounded-t-2xl">
             <Reply className="w-3.5 h-3.5 text-primary shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-primary truncate">
-                {resolveParticipantName(replyTarget.senderId, participants)}
-              </p>
+              {participants.length > 2 && (
+                <p className="font-medium text-primary truncate">
+                  {resolveParticipantName(replyTarget.senderId, participants)}
+                </p>
+              )}
               <p className="text-foreground/60 truncate">
                 {replyTarget.content.slice(0, 80)}
               </p>

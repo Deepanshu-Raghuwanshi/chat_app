@@ -132,7 +132,7 @@ export const useSendMessage = (conversationId: string) => {
         },
       );
 
-      return { snapshot };
+      return { snapshot, optimisticId: optimisticMessage.id };
     },
     onError: (err, _vars, context) => {
       if (context?.snapshot) {
@@ -149,10 +149,32 @@ export const useSendMessage = (conversationId: string) => {
         showToast.error(t("send_failed"));
       }
     },
-    onSuccess: () => {
+    onSuccess: (savedMessage, _vars, context) => {
       useChatStore.getState().setReplyTarget(conversationId, null);
+      // Swap the optimistic placeholder for the real saved message.
+      // The filter deduplicates in case the socket event already prepended
+      // the real message before this handler fired.
+      queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+        ["messages", conversationId],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data
+                .map((msg) =>
+                  msg.id === context?.optimisticId ? savedMessage : msg,
+                )
+                .filter(
+                  (msg, idx, arr) =>
+                    arr.findIndex((m) => m.id === msg.id) === idx,
+                ),
+            })),
+          };
+        },
+      );
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
     },
   });
 };

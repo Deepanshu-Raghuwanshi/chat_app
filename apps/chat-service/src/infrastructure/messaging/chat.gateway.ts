@@ -17,6 +17,7 @@ import {
   MessageEditedEventV1,
   MessageDeletedEventV1,
   MessageReadEventV1,
+  MessageReactionToggledEventV1,
 } from "@kafka-events";
 
 @Injectable()
@@ -46,6 +47,7 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
         ChatTopics.MESSAGE_EDITED,
         ChatTopics.MESSAGE_DELETED,
         ChatTopics.MESSAGE_READ,
+        ChatTopics.MESSAGE_REACTION_TOGGLED,
         FriendTopics.FRIEND_REMOVED,
         FriendTopics.FRIEND_REQUEST_SENT,
       ],
@@ -120,6 +122,14 @@ export class ChatGateway implements OnModuleInit, OnModuleDestroy {
       this.presenceGateway.emitToRoom(
         `user:${event.senderId}`,
         "message.read",
+        event,
+      );
+    } else if (topic === ChatTopics.MESSAGE_REACTION_TOGGLED) {
+      if (!p.conversationId) return;
+      const event = p as unknown as MessageReactionToggledEventV1;
+      this.presenceGateway.emitToRoom(
+        `conversation:${event.conversationId}`,
+        "message.reaction",
         event,
       );
     } else if (topic === FriendTopics.FRIEND_REMOVED) {

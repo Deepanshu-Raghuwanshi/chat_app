@@ -55,6 +55,20 @@ export const MessageBubble = ({
 
   const currentUserId = useAuthStore((state) => state.user?.id ?? "");
   const setReplyTarget = useChatStore((state) => state.setReplyTarget);
+  const isHighlighted = useChatStore(
+    (state) => state.highlightedMessageId === message.id,
+  );
+  const setHighlightedMessageId = useChatStore(
+    (state) => state.setHighlightedMessageId,
+  );
+
+  const handleJumpToMessage = () => {
+    if (!message.replyTo) return;
+    const el = document.getElementById(`msg-${message.replyTo.messageId}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    setHighlightedMessageId(message.replyTo.messageId);
+    setTimeout(() => setHighlightedMessageId(null), 1500);
+  };
 
   useEffect(() => {
     if (!showReactionPicker) return;
@@ -111,9 +125,11 @@ export const MessageBubble = ({
 
   return (
     <div
+      id={`msg-${message.id}`}
       className={cn(
-        "flex mb-2 group",
+        "flex mb-2 group rounded-xl transition-colors duration-700",
         isMine ? "justify-end" : "justify-start",
+        isHighlighted ? "bg-primary/5" : "bg-transparent",
       )}
     >
       <div
@@ -127,6 +143,8 @@ export const MessageBubble = ({
             replyTo={message.replyTo}
             isMine={isMine}
             participants={participants}
+            showSenderName={participants.length > 2}
+            onJumpToMessage={handleJumpToMessage}
           />
         )}
         {isEditing ? (

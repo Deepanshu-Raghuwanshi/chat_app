@@ -21,6 +21,7 @@ interface MessageNewPayload {
   content: string;
   type: string;
   sentAt: string;
+  replyTo?: { messageId: string; senderId: string; content: string };
 }
 
 interface MessageDeliveredPayload {
@@ -36,7 +37,35 @@ interface MessageReadPayload {
   lastReadAt: string;
 }
 
+interface MessageUpdatedPayload {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  editedAt: string;
+}
+
+interface MessageDeletedPayload {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  deletedAt: string;
+}
+
+interface MessageReactionPayload {
+  messageId: string;
+  conversationId: string;
+  reactorId: string;
+  emoji: string;
+  action: "added" | "removed";
+  toggledAt: string;
+}
+
 let socket: Socket | null = null;
+
+export const joinConversationRoom = (conversationId: string) => {
+  socket?.emit("join.conversation", { conversationId });
+};
 
 export const usePresence = () => {
   const queryClient = useQueryClient();
@@ -91,6 +120,7 @@ export const usePresence = () => {
           isDeleted: false,
           isEdited: false,
           reactions: [],
+          replyTo: data.replyTo,
           createdAt: data.sentAt,
           updatedAt: data.sentAt,
         };
@@ -172,6 +202,94 @@ export const usePresence = () => {
                     ? { ...msg, status: "READ" as const }
                     : msg,
                 ),
+              })),
+            };
+          },
+        );
+      });
+
+      socket.on("message.updated", (data: MessageUpdatedPayload) => {
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+          ["messages", data.conversationId],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                data: (page.data ?? []).map((msg) =>
+                  msg.id === data.messageId
+                    ? {
+                        ...msg,
+                        content: data.content,
+                        isEdited: true,
+                        updatedAt: data.editedAt,
+                      }
+                    : msg,
+                ),
+              })),
+            };
+          },
+        );
+      });
+
+      socket.on("message.deleted", (data: MessageDeletedPayload) => {
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+          ["messages", data.conversationId],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                data: (page.data ?? []).map((msg) =>
+                  msg.id === data.messageId
+                    ? { ...msg, isDeleted: true, updatedAt: data.deletedAt }
+                    : msg,
+                ),
+              })),
+            };
+          },
+        );
+      });
+
+      socket.on("message.reaction", (data: MessageReactionPayload) => {
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+          ["messages", data.conversationId],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                data: (page.data ?? []).map((msg) => {
+                  if (msg.id !== data.messageId) return msg;
+                  const reactions = msg.reactions ?? [];
+                  const existingIdx = reactions.findIndex(
+                    (r) =>
+                      r.emoji === data.emoji && r.userId === data.reactorId,
+                  );
+                  if (data.action === "added") {
+                    if (existingIdx >= 0) return msg;
+                    return {
+                      ...msg,
+                      reactions: [
+                        ...reactions,
+                        {
+                          emoji: data.emoji,
+                          userId: data.reactorId,
+                          createdAt: data.toggledAt,
+                        },
+                      ],
+                    };
+                  } else {
+                    if (existingIdx < 0) return msg;
+                    return {
+                      ...msg,
+                      reactions: reactions.filter((_, i) => i !== existingIdx),
+                    };
+                  }
+                }),
               })),
             };
           },
