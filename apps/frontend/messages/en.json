@@ -257,6 +257,10 @@
       "profile": "Profile",
       "buttons": {
         "logout": "Logout"
+      },
+      "theme": {
+        "switch_to_light": "Switch to light mode",
+        "switch_to_dark": "Switch to dark mode"
       }
     },
     "sub_navbar": {
@@ -301,12 +305,28 @@
         "change_email": "Change Email",
         "change_password": "Change Password"
       },
+      "preferences": {
+        "title": "Preferences",
+        "theme_label": "Theme",
+        "light": "Light",
+        "dark": "Dark"
+      },
       "placeholders": {
         "fullName": "Your full name",
         "bio": "Tell us something about yourself",
         "status": "What's on your mind?",
         "phoneNumber": "e.g. 1234567890",
         "countryCode": "+1"
+      },
+      "toasts": {
+        "profile_updated": "Profile updated",
+        "profile_update_failed": "Failed to update profile",
+        "avatar_updated": "Avatar updated",
+        "avatar_update_failed": "Failed to upload avatar",
+        "email_verification_sent": "Verification email sent to new address",
+        "email_change_failed": "Failed to request email change",
+        "email_updated": "Email updated",
+        "email_verify_failed": "Failed to verify email change"
       }
     }
   }

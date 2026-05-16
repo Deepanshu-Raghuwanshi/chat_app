@@ -147,7 +147,7 @@ export const MessageBubble = ({
           />
         )}
         {isEditing ? (
-          <div className="flex items-center gap-2 bg-white border border-border rounded-2xl px-3 py-2 shadow-sm">
+          <div className="flex items-center gap-2 bg-card border border-border rounded-2xl px-3 py-2 shadow-sm">
             <input
               type="text"
               value={editContent}
@@ -212,7 +212,7 @@ export const MessageBubble = ({
                     <MoreVertical className="w-4 h-4" />
                   </button>
                   {showMenu && (
-                    <div className="absolute bottom-7 right-0 bg-white border border-border rounded-xl shadow-lg py-1 z-10 min-w-28">
+                    <div className="absolute bottom-7 right-0 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-28">
                       <button
                         onClick={() => {
                           setIsEditing(true);
@@ -242,7 +242,7 @@ export const MessageBubble = ({
                 "px-4 py-2 rounded-2xl text-sm leading-relaxed",
                 isMine
                   ? "bg-primary text-white rounded-br-sm"
-                  : "bg-white border border-border text-foreground rounded-bl-sm shadow-sm",
+                  : "bg-card border border-border text-foreground rounded-bl-sm shadow-sm",
               )}
             >
               {message.content}

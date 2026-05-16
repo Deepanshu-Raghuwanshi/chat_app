@@ -95,6 +95,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
       countryCode?: string;
       status?: string;
       isOnline?: boolean;
+      theme?: string;
     },
   ): Promise<UserProfile> {
     return this.prisma.userProfile.update({

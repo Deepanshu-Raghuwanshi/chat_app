@@ -11,17 +11,18 @@ datasource db {
 }
 
 model UserProfile {
-  id        String   @id // Universal User ID from auth-service
-  username  String   @unique
-  fullName  String?
+  id          String   @id // Universal User ID from auth-service
+  username    String   @unique
+  fullName    String?
   avatarUrl   String?
   bio         String?
   phoneNumber String?
   countryCode String?
   status      String?
   isOnline    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  theme       String   @default("light")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([fullName])
   @@map("UserProfile")
@@ -37,23 +38,23 @@ enum FriendRequestStatus {
 }
 
 model FriendRequest {
-  id          String              @id @default(uuid())
-  senderId    String              // UUID from auth-service
-  receiverId  String              // UUID from auth-service
-  status      FriendRequestStatus @default(PENDING)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id         String              @id @default(uuid())
+  senderId   String // UUID from auth-service
+  receiverId String // UUID from auth-service
+  status     FriendRequestStatus @default(PENDING)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
 
   @@unique([senderId, receiverId]) // Prevent duplicate requests
-  @@index([receiverId, status])    // Speed up fetching incoming requests
+  @@index([receiverId, status]) // Speed up fetching incoming requests
   @@map("FriendRequest")
   @@schema("user_service")
 }
 
 model Friendship {
   id        String   @id @default(uuid())
-  userId1   String   // Always the smaller UUID lexicographically
-  userId2   String   // Always the larger UUID lexicographically
+  userId1   String // Always the smaller UUID lexicographically
+  userId2   String // Always the larger UUID lexicographically
   createdAt DateTime @default(now())
 
   @@unique([userId1, userId2]) // Prevent duplicate friendship entries

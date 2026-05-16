@@ -1,7 +1,7 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { UserProfileRepository } from '../ports/user-profile.repository';
-import { KafkaProducerService } from '../../infrastructure/messaging/kafka-producer.service';
-import { UserTopics } from '@kafka-events';
+import { Injectable, Inject, NotFoundException } from "@nestjs/common";
+import { UserProfileRepository } from "../ports/user-profile.repository";
+import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
+import { UserTopics } from "@kafka-events";
 
 interface UpdateProfileRequest {
   userId: string;
@@ -10,22 +10,23 @@ interface UpdateProfileRequest {
   phoneNumber?: string;
   countryCode?: string;
   status?: string;
+  theme?: string;
 }
 
 @Injectable()
 export class UpdateProfileUseCase {
   constructor(
-    @Inject('UserProfileRepository')
+    @Inject("UserProfileRepository")
     private readonly userProfileRepository: UserProfileRepository,
     private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
   async execute(request: UpdateProfileRequest) {
     const { userId, ...data } = request;
-    
+
     const user = await this.userProfileRepository.findById(userId);
     if (!user) {
-      throw new NotFoundException('User profile not found');
+      throw new NotFoundException("User profile not found");
     }
 
     const updatedUser = await this.userProfileRepository.update(userId, data);
@@ -38,6 +39,7 @@ export class UpdateProfileUseCase {
       avatarUrl: updatedUser.avatarUrl,
       bio: updatedUser.bio,
       status: updatedUser.status,
+      theme: updatedUser.theme,
     });
 
     return updatedUser;

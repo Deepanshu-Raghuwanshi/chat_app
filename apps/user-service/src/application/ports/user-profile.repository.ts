@@ -31,6 +31,7 @@ export interface UserProfileRepository {
       countryCode?: string;
       status?: string;
       isOnline?: boolean;
+      theme?: string;
     },
   ): Promise<UserProfile>;
 }
