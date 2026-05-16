@@ -25,7 +25,9 @@ import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
 import { ConversationController } from "./interfaces/controllers/conversation.controller";
 import { AiController } from "./interfaces/controllers/ai.controller";
 import { RewriteMessageUseCase } from "./application/use-cases/rewrite-message.use-case";
+import { GenerateSmartRepliesUseCase } from "./application/use-cases/generate-smart-replies.use-case";
 import { GeminiRewriteService } from "./infrastructure/ai/gemini-rewrite.service";
+import { GeminiSmartReplyService } from "./infrastructure/ai/gemini-smart-reply.service";
 import { UserThrottlerGuard } from "./infrastructure/guards/user-throttler.guard";
 import { CreateOrGetConversationUseCase } from "./application/use-cases/create-or-get-conversation.use-case";
 import { GetConversationUseCase } from "./application/use-cases/get-conversation.use-case";
@@ -110,6 +112,8 @@ import { UserProfileUpdatesConsumer } from "./infrastructure/messaging/user-prof
     // AI
     RewriteMessageUseCase,
     { provide: "AiRewriter", useClass: GeminiRewriteService },
+    GenerateSmartRepliesUseCase,
+    { provide: "AiSmartReplier", useClass: GeminiSmartReplyService },
     UserThrottlerGuard,
 
     // Repository bindings

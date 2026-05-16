@@ -19,7 +19,9 @@ import { RequestWithUser } from "../request-with-user.interface";
 import { JwtAuthGuard } from "../../infrastructure/guards/jwt-auth.guard";
 import { UserThrottlerGuard } from "../../infrastructure/guards/user-throttler.guard";
 import { RewriteMessageUseCase } from "../../application/use-cases/rewrite-message.use-case";
+import { GenerateSmartRepliesUseCase } from "../../application/use-cases/generate-smart-replies.use-case";
 import { AiRewriteDto } from "../../application/dto/ai-rewrite.dto";
+import { AiSmartReplyDto } from "../../application/dto/ai-smart-reply.dto";
 
 @ApiTags("AI")
 @ApiBearerAuth()
@@ -27,7 +29,10 @@ import { AiRewriteDto } from "../../application/dto/ai-rewrite.dto";
 @Throttle({ default: { limit: 15, ttl: 60_000 } })
 @Controller("chat/ai")
 export class AiController {
-  constructor(private readonly rewriteMessage: RewriteMessageUseCase) {}
+  constructor(
+    private readonly rewriteMessage: RewriteMessageUseCase,
+    private readonly generateSmartReplies: GenerateSmartRepliesUseCase,
+  ) {}
 
   @Post("rewrite")
   @HttpCode(HttpStatus.OK)
@@ -59,6 +64,47 @@ export class AiController {
       userId: req.user.id,
       text: dto.text,
       tone: dto.tone,
+    });
+  }
+
+  @Post("smart-replies")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Generate 3 smart reply suggestions for the last received message",
+  })
+  @ApiBody({ type: AiSmartReplyDto })
+  @ApiResponse({
+    status: 200,
+    description: "Three suggested replies",
+    schema: {
+      required: ["suggestions"],
+      properties: {
+        suggestions: {
+          type: "array",
+          items: { type: "string" },
+          minItems: 3,
+          maxItems: 3,
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: "Invalid request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({
+    status: 429,
+    description: "Rate limit exceeded (15 RPM per user)",
+  })
+  @ApiResponse({
+    status: 503,
+    description: "AI provider unavailable or timed out",
+  })
+  async smartReplies(
+    @Req() req: RequestWithUser,
+    @Body() dto: AiSmartReplyDto,
+  ): Promise<{ suggestions: string[] }> {
+    return this.generateSmartReplies.execute({
+      userId: req.user.id,
+      messages: dto.messages,
     });
   }
 }
