@@ -697,6 +697,23 @@ components:
 # Produces: message.reaction.toggled.v1
 # Consumes: friend.request.accepted.v1
 
+# WebSocket Events (Socket.IO namespace: /presence)
+# All typing events flow directly through PresenceGateway — no Kafka, no persistence.
+#
+# Client → Server (emit from frontend):
+#   typing.start  { conversationId: string }
+#     — emitted when the user starts typing in a conversation.
+#       The sender must already be in the conversation room (join.conversation first).
+#   typing.stop   { conversationId: string }
+#     — emitted when the user stops typing (debounced ~3 s after last keystroke,
+#       or immediately on message send / composer blur).
+#
+# Server → Client (broadcast to conversation room, sender excluded):
+#   typing.started  { conversationId: string, userId: string }
+#     — forwarded to all other sockets in conversation:{conversationId}.
+#   typing.stopped  { conversationId: string, userId: string }
+#     — forwarded to all other sockets in conversation:{conversationId}.
+
 # Search Mode Behaviour (q param)
 # When q is present: ConversationListResponse is returned with hasMore always false.
 # When q is absent:  Normal cursor pagination applies (hasMore / nextCursor populated).
