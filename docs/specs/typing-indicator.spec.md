@@ -231,22 +231,22 @@ interface TypingStoppedPayload {
 }
 
 export const emitTypingStart = (conversationId: string) => {
-  socket?.emit('typing.start', { conversationId });
+  socket?.emit("typing.start", { conversationId });
 };
 
 export const emitTypingStop = (conversationId: string) => {
-  socket?.emit('typing.stop', { conversationId });
+  socket?.emit("typing.stop", { conversationId });
 };
 ```
 
 Inside `useEffect`, after the existing `socket.on('message.reaction', ...)` block, add:
 
 ```typescript
-socket.on('typing.started', (data: TypingStartedPayload) => {
+socket.on("typing.started", (data: TypingStartedPayload) => {
   useChatStore.getState().setTyping(data.conversationId, data.userId, true);
 });
 
-socket.on('typing.stopped', (data: TypingStoppedPayload) => {
+socket.on("typing.stopped", (data: TypingStoppedPayload) => {
   useChatStore.getState().setTyping(data.conversationId, data.userId, false);
 });
 ```
@@ -282,9 +282,9 @@ setTyping: (conversationId, userId, isTyping) =>
 
 **Why `string[]` not `Set<string>`**: Zustand's `set` creates a shallow-merged object. `Set` is a reference type and Zustand's equality check would not detect inner mutations. An `Array` with explicit filter/spread is deterministic and produces a new reference on every change, ensuring React re-renders.
 
-| Field        | Type                      | Default | Purpose                                              |
-| ------------ | ------------------------- | ------- | ---------------------------------------------------- |
-| `typingUsers`| `Record<string, string[]>`| `{}`    | Maps conversationId to list of currently-typing userIds |
+| Field         | Type                       | Default | Purpose                                                 |
+| ------------- | -------------------------- | ------- | ------------------------------------------------------- |
+| `typingUsers` | `Record<string, string[]>` | `{}`    | Maps conversationId to list of currently-typing userIds |
 
 ### 3.5 Components
 
@@ -350,9 +350,18 @@ const typingUsers = useChatStore((s) => s.typingUsers[conversationId] ?? []);
 const otherIsTyping = other ? typingUsers.includes(other.userId) : false;
 
 // Replace the existing status <p>:
-<p className={cn('text-xs', otherIsTyping ? 'text-primary' : other?.isOnline ? 'text-green-500' : 'text-foreground/40')}>
-  {otherIsTyping ? t('typing') : other?.isOnline ? t('online') : t('offline')}
-</p>
+<p
+  className={cn(
+    "text-xs",
+    otherIsTyping
+      ? "text-primary"
+      : other?.isOnline
+        ? "text-green-500"
+        : "text-foreground/40",
+  )}
+>
+  {otherIsTyping ? t("typing") : other?.isOnline ? t("online") : t("offline")}
+</p>;
 ```
 
 A CSS animation for the dots (e.g., a pulsing `…` via `animate-pulse`) can be added via Tailwind's `animate-pulse` on the text or a separate 3-dot component.
@@ -360,14 +369,17 @@ A CSS animation for the dots (e.g., a pulsing `…` via `animate-pulse`) can be 
 Update `ConversationView` to pass `conversationId` to `ConversationHeader`:
 
 ```tsx
-<ConversationHeader conversation={conversation} conversationId={conversationId} />
+<ConversationHeader
+  conversation={conversation}
+  conversationId={conversationId}
+/>
 ```
 
-| Component            | New or Modified | Key Change                                             |
-| -------------------- | --------------- | ------------------------------------------------------ |
-| `ConversationHeader` | modified        | Add `conversationId` prop; show "typing…" sub-text    |
-| `ConversationView`   | modified        | Pass `conversationId` prop to `ConversationHeader`    |
-| `MessageComposer`    | modified        | Emit `typing.start`/`typing.stop` on draft changes    |
+| Component            | New or Modified | Key Change                                         |
+| -------------------- | --------------- | -------------------------------------------------- |
+| `ConversationHeader` | modified        | Add `conversationId` prop; show "typing…" sub-text |
+| `ConversationView`   | modified        | Pass `conversationId` prop to `ConversationHeader` |
+| `MessageComposer`    | modified        | Emit `typing.start`/`typing.stop` on draft changes |
 
 ### 3.6 i18n Keys
 
@@ -428,15 +440,15 @@ pnpm nx test frontend
 
 ## 4. Architecture Decisions
 
-| # | Decision | Options Considered | Choice | Rationale |
-|---|----------|--------------------|--------|-----------|
-| 1 | Transport for typing events | HTTP REST, Kafka, WebSocket | WebSocket only | Typing is ephemeral and high-frequency. REST adds ~50 ms round-trip per event. Kafka persists events to disk — wrong for transient state. WebSocket is already open; it's the correct channel for sub-100 ms, fire-and-forget events. |
-| 2 | Redis TTL for typing state | Store `typing:{cid}:{uid}` with 5 s TTL | None | The 3 s client-side debounce provides the same auto-expiry. Redis would require a pub/sub layer (beyond the current simple key/value usage) to push state to late-joining sockets. Complexity is not justified — a user who joins a conversation doesn't need to see that someone was typing 4 s ago. |
-| 3 | Where to display the indicator | Header sub-text vs. floating bubble above composer | Header sub-text | `ConversationHeader` already has a status sub-text slot (`"Online"` / `"Offline"`). WhatsApp, Telegram, and iMessage all use this slot. Adding a floating bubble would require layout changes and new components. |
-| 4 | Burst suppression on frontend | Emit `typing.start` per keystroke vs. once per burst | Once per burst (`isTypingRef`) | Emitting per-keystroke is a 10–30× amplification of socket traffic with zero UX benefit. `isTypingRef` tracks whether the stop timer is pending; if it is, we already told the other side the user is typing. |
-| 5 | Who owns typing state | TanStack Query vs. Zustand | Zustand (`useChatStore`) | Typing state is pure client-side UI state. It is not fetched from a server, has no loading/error states, and requires no cache invalidation. TanStack Query is the wrong tool. Zustand is already used for analogous ephemeral state (`draftMessages`, `replyTargets`). |
-| 6 | `typingUsers` shape | `Record<string, Set<string>>` vs `Record<string, string[]>` | `string[]` | `Set` is a reference type. Zustand compares old/new state by reference. Mutating a Set's contents does not produce a new reference, so React would not re-render. `Array` with explicit filter/spread always produces a new reference, ensuring correct reactivity. |
-| 7 | New `SubscribeMessage` handler location | New gateway file vs. extend `PresenceGateway` | Extend `PresenceGateway` | Typing notifications are a presence-layer concern (who is active in a conversation). `PresenceGateway` already owns the `/presence` namespace, room management, and `getUserId` resolution. A separate gateway would need its own JWT auth and namespace — unnecessary overhead. |
+| #   | Decision                                | Options Considered                                          | Choice                         | Rationale                                                                                                                                                                                                                                                                                             |
+| --- | --------------------------------------- | ----------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Transport for typing events             | HTTP REST, Kafka, WebSocket                                 | WebSocket only                 | Typing is ephemeral and high-frequency. REST adds ~50 ms round-trip per event. Kafka persists events to disk — wrong for transient state. WebSocket is already open; it's the correct channel for sub-100 ms, fire-and-forget events.                                                                 |
+| 2   | Redis TTL for typing state              | Store `typing:{cid}:{uid}` with 5 s TTL                     | None                           | The 3 s client-side debounce provides the same auto-expiry. Redis would require a pub/sub layer (beyond the current simple key/value usage) to push state to late-joining sockets. Complexity is not justified — a user who joins a conversation doesn't need to see that someone was typing 4 s ago. |
+| 3   | Where to display the indicator          | Header sub-text vs. floating bubble above composer          | Header sub-text                | `ConversationHeader` already has a status sub-text slot (`"Online"` / `"Offline"`). WhatsApp, Telegram, and iMessage all use this slot. Adding a floating bubble would require layout changes and new components.                                                                                     |
+| 4   | Burst suppression on frontend           | Emit `typing.start` per keystroke vs. once per burst        | Once per burst (`isTypingRef`) | Emitting per-keystroke is a 10–30× amplification of socket traffic with zero UX benefit. `isTypingRef` tracks whether the stop timer is pending; if it is, we already told the other side the user is typing.                                                                                         |
+| 5   | Who owns typing state                   | TanStack Query vs. Zustand                                  | Zustand (`useChatStore`)       | Typing state is pure client-side UI state. It is not fetched from a server, has no loading/error states, and requires no cache invalidation. TanStack Query is the wrong tool. Zustand is already used for analogous ephemeral state (`draftMessages`, `replyTargets`).                               |
+| 6   | `typingUsers` shape                     | `Record<string, Set<string>>` vs `Record<string, string[]>` | `string[]`                     | `Set` is a reference type. Zustand compares old/new state by reference. Mutating a Set's contents does not produce a new reference, so React would not re-render. `Array` with explicit filter/spread always produces a new reference, ensuring correct reactivity.                                   |
+| 7   | New `SubscribeMessage` handler location | New gateway file vs. extend `PresenceGateway`               | Extend `PresenceGateway`       | Typing notifications are a presence-layer concern (who is active in a conversation). `PresenceGateway` already owns the `/presence` namespace, room management, and `getUserId` resolution. A separate gateway would need its own JWT auth and namespace — unnecessary overhead.                      |
 
 ---
 
