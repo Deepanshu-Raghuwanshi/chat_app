@@ -52,21 +52,30 @@ describe("ConversationHeader — typing indicator", () => {
   it("renders 'typing…' when the other participant is typing", () => {
     useChatStore.setState({ typingUsers: { "conv-1": [otherUserId] } });
     renderWithIntl(
-      <ConversationHeader conversation={conversation} conversationId="conv-1" />,
+      <ConversationHeader
+        conversation={conversation}
+        conversationId="conv-1"
+      />,
     );
     expect(screen.getByText("typing…")).toBeTruthy();
   });
 
   it("does not render 'typing…' when typingUsers is empty", () => {
     renderWithIntl(
-      <ConversationHeader conversation={conversation} conversationId="conv-1" />,
+      <ConversationHeader
+        conversation={conversation}
+        conversationId="conv-1"
+      />,
     );
     expect(screen.queryByText("typing…")).toBeNull();
   });
 
   it("renders 'Online' when the other participant is online and not typing", () => {
     renderWithIntl(
-      <ConversationHeader conversation={conversation} conversationId="conv-1" />,
+      <ConversationHeader
+        conversation={conversation}
+        conversationId="conv-1"
+      />,
     );
     expect(screen.getByText("Online")).toBeTruthy();
   });
@@ -84,7 +93,10 @@ describe("ConversationHeader — typing indicator", () => {
   it("shows 'typing…' instead of 'Online' even when the other participant is online", () => {
     useChatStore.setState({ typingUsers: { "conv-1": [otherUserId] } });
     renderWithIntl(
-      <ConversationHeader conversation={conversation} conversationId="conv-1" />,
+      <ConversationHeader
+        conversation={conversation}
+        conversationId="conv-1"
+      />,
     );
     expect(screen.getByText("typing…")).toBeTruthy();
     expect(screen.queryByText("Online")).toBeNull();
@@ -93,7 +105,10 @@ describe("ConversationHeader — typing indicator", () => {
   it("does not show typing indicator for a different conversation", () => {
     useChatStore.setState({ typingUsers: { "conv-other": [otherUserId] } });
     renderWithIntl(
-      <ConversationHeader conversation={conversation} conversationId="conv-1" />,
+      <ConversationHeader
+        conversation={conversation}
+        conversationId="conv-1"
+      />,
     );
     expect(screen.queryByText("typing…")).toBeNull();
   });

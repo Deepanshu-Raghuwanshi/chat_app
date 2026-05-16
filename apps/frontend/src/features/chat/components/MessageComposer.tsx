@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect, KeyboardEvent } from "react";
+import React, { useRef, useState, useEffect, useCallback, KeyboardEvent } from "react";
 import { Send, Smile, Reply, X } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useTranslations } from "next-intl";
@@ -58,25 +58,18 @@ export const MessageComposer = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [emojiPickerOpen]);
 
-  const stopTyping = () => {
+  const stopTyping = useCallback(() => {
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     typingTimerRef.current = null;
     if (isTypingRef.current) {
       emitTypingStop(conversationId);
       isTypingRef.current = false;
     }
-  };
+  }, [conversationId]);
 
   useEffect(() => {
-    return () => {
-      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-      typingTimerRef.current = null;
-      if (isTypingRef.current) {
-        emitTypingStop(conversationId);
-        isTypingRef.current = false;
-      }
-    };
-  }, [conversationId]);
+    return () => stopTyping();
+  }, [stopTyping]);
 
   const handleEmojiSelect = (emoji: string) => {
     const textarea = textareaRef.current;

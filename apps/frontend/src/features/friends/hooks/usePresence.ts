@@ -314,7 +314,9 @@ export const usePresence = () => {
         );
       });
       socket.on("typing.started", (data: TypingStartedPayload) => {
-        useChatStore.getState().setTyping(data.conversationId, data.userId, true);
+        useChatStore
+          .getState()
+          .setTyping(data.conversationId, data.userId, true);
       });
 
       socket.on("typing.stopped", (data: TypingStoppedPayload) => {

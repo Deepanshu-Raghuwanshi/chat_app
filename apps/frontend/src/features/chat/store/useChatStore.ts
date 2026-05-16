@@ -11,7 +11,11 @@ interface ChatState {
   setDraft: (conversationId: string, text: string) => void;
   setReplyTarget: (conversationId: string, message: Message | null) => void;
   setHighlightedMessageId: (id: string | null) => void;
-  setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
+  setTyping: (
+    conversationId: string,
+    userId: string,
+    isTyping: boolean,
+  ) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
