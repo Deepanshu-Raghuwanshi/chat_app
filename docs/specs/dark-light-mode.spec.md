@@ -252,11 +252,11 @@ update(
 ): Promise<UserProfile>;
 ```
 
-**`UpdateProfileUseCase`** — no changes needed. The `request` object is already destructured as `{ userId, ...data }` and `data` is passed directly to `repository.update()`. The DTO extension is enough.
+**`UpdateProfileUseCase`** — add `theme?: string` to the internal `UpdateProfileRequest` interface. The `request` object is destructured as `{ userId, ...data }` and `data` is passed to `repository.update()`, but TypeScript requires `theme` to be declared in the interface for it to be included in the spread. Also add `theme: updatedUser.theme` to the Kafka emit payload so downstream consumers receive the updated value.
 
 ### 2.3 Infrastructure Layer
 
-**`PrismaUserProfileRepository`** — no changes needed. The `update()` method passes `data` directly to `prisma.userProfile.update({ where: { id }, data })`. Prisma's generated client from the new schema accepts all schema fields including `theme`.
+**`PrismaUserProfileRepository`** — add `theme?: string` to the explicit type parameter of the `update()` method to satisfy the updated port interface contract. The Prisma call itself (`prisma.userProfile.update({ where: { id }, data })`) requires no changes — it passes `data` through directly.
 
 **Kafka producer** — no changes. The existing `USER_PROFILE_UPDATED` emit in `UpdateProfileUseCase` passes the full updated profile row, which now includes `theme`.
 
@@ -284,8 +284,14 @@ No other backend files need changes.
 - [ ] Happy path: `execute({ userId, theme: 'dark' })` → repository receives `{ theme: 'dark' }`, `USER_PROFILE_UPDATED` emitted
 - [ ] Happy path: `execute({ userId, theme: 'light' })` → same
 - [ ] `theme` omitted → update succeeds with existing value unchanged
-- [ ] `theme: 'blue'` rejected by DTO validation → `BadRequestException` before use case runs
 - [ ] `NotFoundException` when user profile does not exist
+
+**E2E — `PATCH /api/v1/profile`** (DTO validation is only testable at this layer):
+
+- [ ] `{ theme: 'blue' }` → 400 Bad Request (ValidationPipe rejects before use case runs)
+- [ ] `{ theme: 'dark' }` → 200, response body has `theme: 'dark'`
+- [ ] `{ theme: 'light' }` → 200, response body has `theme: 'light'`
+- [ ] other fields patched without `theme` → 200, `theme` unchanged
 
 ```bash
 pnpm nx typecheck user-service

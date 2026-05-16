@@ -7,14 +7,13 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Kafka, Consumer, EachMessagePayload } from "kafkajs";
-import {
-  UserTopics,
-  UserProfileUpdatedEventV1,
-} from "@kafka-events";
+import { UserTopics, UserProfileUpdatedEventV1 } from "@kafka-events";
 import { ConversationParticipantRepository } from "../../application/ports/conversation-participant.repository";
 
 @Injectable()
-export class UserProfileUpdatesConsumer implements OnModuleInit, OnModuleDestroy {
+export class UserProfileUpdatesConsumer
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(UserProfileUpdatesConsumer.name);
   private readonly kafka: Kafka;
   private readonly consumer: Consumer;

@@ -1,13 +1,13 @@
 export enum UserTopics {
-  USER_CREATED = 'user.created.v1',
-  USER_UPDATED = 'user.updated.v1',
-  USER_PROFILE_UPDATED = 'user.profile.updated.v1',
-  USER_PRESENCE_UPDATED = 'user.presence.updated.v1',
+  USER_CREATED = "user.created.v1",
+  USER_UPDATED = "user.updated.v1",
+  USER_PROFILE_UPDATED = "user.profile.updated.v1",
+  USER_PRESENCE_UPDATED = "user.presence.updated.v1",
 }
 
 export enum PresenceStatus {
-  ONLINE = 'ONLINE',
-  OFFLINE = 'OFFLINE',
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
 }
 
 export interface UserPresenceUpdatedEventV1 {
