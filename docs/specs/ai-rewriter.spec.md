@@ -108,10 +108,10 @@ Verified by reading the following files:
 
 | Provider      | Model                  | Free Tier Limits         | How to Get Key                         |
 | ------------- | ---------------------- | ------------------------ | -------------------------------------- |
-| Google Gemini | `gemini-1.5-flash`     | 15 RPM, 1M TPM, 1500 RPD | https://aistudio.google.com/app/apikey |
+| Google Gemini | `gemini-2.0-flash`     | 15 RPM, 1M TPM, 1500 RPD | https://aistudio.google.com/app/apikey |
 | Groq          | `llama-3.1-8b-instant` | 30 RPM, 14400 RPD        | https://console.groq.com               |
 
-**Why Gemini 1.5 Flash is the better choice:**
+**Why Gemini 2.0 Flash is the better choice:**
 
 - Higher quality text rewriting than Llama 8B (far fewer hallucinations, better adherence to instructions)
 - Official `@google/generative-ai` Node.js SDK — no custom HTTP client needed

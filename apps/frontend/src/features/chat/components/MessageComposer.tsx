@@ -7,7 +7,7 @@ import React, {
   useCallback,
   KeyboardEvent,
 } from "react";
-import { Send, Smile, Reply, X, Sparkles } from "lucide-react";
+import { Send, Smile, Reply, X, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useTranslations } from "next-intl";
 import { useSendMessage, useRewriteMessage } from "../hooks/useChat";
@@ -192,10 +192,11 @@ export const MessageComposer = ({
             onKeyDown={handleKeyDown}
             placeholder={t("placeholder")}
             rows={1}
-            disabled={isPending}
+            disabled={isPending || isRewriting}
             className={cn(
               "flex-1 bg-transparent resize-none outline-none text-sm text-foreground",
               "placeholder:text-foreground/40 max-h-30 leading-relaxed py-1 disabled:opacity-50",
+              isRewriting && "animate-pulse",
             )}
           />
           <div ref={emojiAreaRef} className="relative shrink-0">
@@ -226,13 +227,17 @@ export const MessageComposer = ({
                 className={cn(
                   "p-2 rounded-xl transition-all duration-200",
                   isRewriting
-                    ? "text-primary bg-primary/10 animate-pulse cursor-wait"
+                    ? "text-primary bg-primary/10 cursor-wait"
                     : aiPickerOpen
                       ? "text-primary bg-primary/10"
                       : "text-foreground/40 hover:text-foreground hover:bg-foreground/5",
                 )}
               >
-                <Sparkles className="w-4 h-4" />
+                {isRewriting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
               </button>
               {aiPickerOpen && (
                 <AiTonePicker

@@ -1,4 +1,4 @@
-import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
 import {
@@ -23,13 +23,14 @@ const TIMEOUT_MS = 10_000;
 
 @Injectable()
 export class GeminiRewriteService implements AiRewriterPort {
+  private readonly logger = new Logger(GeminiRewriteService.name);
   private readonly model: GenerativeModel;
 
   constructor(private readonly config: ConfigService) {
     const apiKey = config.get<string>("GEMINI_API_KEY")!;
     const genAI = new GoogleGenerativeAI(apiKey);
     this.model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-flash-latest",
       generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
     });
   }
@@ -53,6 +54,9 @@ export class GeminiRewriteService implements AiRewriterPort {
       return result.response.text().trim();
     } catch (err) {
       if (err instanceof ServiceUnavailableException) throw err;
+      const message = err instanceof Error ? err.message : String(err);
+      const stack = err instanceof Error ? err.stack : undefined;
+      this.logger.error(`Gemini API call failed: ${message}`, stack);
       throw new ServiceUnavailableException("AI provider unavailable");
     } finally {
       clearTimeout(timerId);
