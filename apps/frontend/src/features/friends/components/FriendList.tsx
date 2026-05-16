@@ -67,7 +67,10 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
     );
   };
 
-  if ((isLoadingFriends || isLoadingRequests || isLoadingRecs) && activeTab !== "search") {
+  if (
+    (isLoadingFriends || isLoadingRequests || isLoadingRecs) &&
+    activeTab !== "search"
+  ) {
     return (
       <div className="flex justify-center p-12">
         <Spinner className="w-8 h-8 text-primary" />
@@ -95,7 +98,7 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
             <section className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-2 mb-2">
                 <UserPlus className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-foreground">
                   {t("sections.incoming_requests")}
                 </h2>
                 <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-full">
@@ -128,9 +131,11 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
               </div>
             </section>
           ) : (
-            <div className="text-center p-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-              <UserPlus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">{tSub("no_requests")}</p>
+            <div className="text-center p-12 bg-muted/40 rounded-2xl border-2 border-dashed border-border">
+              <UserPlus className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+              <p className="text-muted-foreground font-medium">
+                {tSub("no_requests")}
+              </p>
             </div>
           )}
 
@@ -148,11 +153,11 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
           <section className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-foreground">
                 {t("sections.friends")}
               </h2>
               {friends && friends.length > 0 && (
-                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">
+                <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs font-bold rounded-full">
                   {friends.length}
                 </span>
               )}
@@ -174,9 +179,9 @@ export const FriendList = ({ activeTab }: FriendListProps) => {
                 ))}
               </div>
             ) : (
-              <div className="text-center p-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 font-medium">
+              <div className="text-center p-12 bg-muted/40 rounded-2xl border-2 border-dashed border-border">
+                <Users className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium">
                   {t("placeholders.no_friends")}
                 </p>
               </div>

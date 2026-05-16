@@ -57,7 +57,9 @@ export const ConversationSidebar = () => {
     router.push(`/chat/${conversationId}`);
   };
 
-  const showSpinner = isSearchMode ? (isSearchLoading || searchData === undefined) : isLoading;
+  const showSpinner = isSearchMode
+    ? isSearchLoading || searchData === undefined
+    : isLoading;
   const showNoResults =
     isSearchMode &&
     !isSearchLoading &&
@@ -67,7 +69,7 @@ export const ConversationSidebar = () => {
   return (
     <div
       className={cn(
-        "flex flex-col w-80 shrink-0 bg-white border-r border-border h-full",
+        "flex flex-col w-80 shrink-0 bg-card border-r border-border h-full",
       )}
     >
       <div className="flex items-center gap-2 px-4 py-4 border-b border-border shrink-0">

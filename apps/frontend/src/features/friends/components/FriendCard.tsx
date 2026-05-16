@@ -32,7 +32,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
   const t = useTranslations("features.friends.buttons");
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+    <div className="flex items-center justify-between p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
       <Link
         href={`/profile/${userId}`}
         className="flex items-center gap-3 group cursor-pointer"
@@ -52,7 +52,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
           {isOnline !== undefined && (
             <div
               className={cn(
-                "absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-white rounded-full",
+                "absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-card rounded-full",
                 isOnline ? "bg-green-500" : "bg-gray-400",
               )}
               title={isOnline ? "Online" : "Offline"}
@@ -60,7 +60,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
           )}
         </div>
         <div>
-          <p className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
+          <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
             {fullName || username || userId}
           </p>
         </div>
@@ -97,7 +97,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
             )}
             <button
               onClick={onRemove}
-              className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-gray-100 hover:text-red-500 transition-colors"
+              className="p-2 bg-secondary text-muted-foreground rounded-lg hover:bg-muted hover:text-red-500 transition-colors"
               title={t("remove")}
             >
               <UserX className="w-5 h-5" />

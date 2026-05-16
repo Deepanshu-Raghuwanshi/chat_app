@@ -1,13 +1,14 @@
-import React, { useRef } from 'react';
-import { Camera } from 'lucide-react';
-import { Avatar } from '../../../shared/components/ui/Avatar';
-import { Spinner } from '../../../shared/components/ui/spinner';
-import { useProfile } from '../hooks/useProfile';
-import { useAuthStore } from '../../auth/store/useAuthStore';
-import { cn } from '../../../shared/utils/cn';
+import React, { useRef } from "react";
+import { Camera } from "lucide-react";
+import { Avatar } from "../../../shared/components/ui/Avatar";
+import { Spinner } from "../../../shared/components/ui/spinner";
+import { useProfile } from "../hooks/useProfile";
+import { useAuthStore } from "../../auth/store/useAuthStore";
+import { cn } from "../../../shared/utils/cn";
 
 const ProfileHeader = ({ userId }: { userId?: string }) => {
-  const { profile, uploadAvatar, isUploading, isOwnProfile } = useProfile(userId);
+  const { profile, uploadAvatar, isUploading, isOwnProfile } =
+    useProfile(userId);
   const { user: currentUser } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Use auth store data as fallback for own profile so initials show immediately
@@ -29,11 +30,8 @@ const ProfileHeader = ({ userId }: { userId?: string }) => {
 
   return (
     <div className="flex flex-col items-center gap-4 py-8">
-      <div 
-        className={cn(
-          "relative group",
-          isOwnProfile && "cursor-pointer"
-        )} 
+      <div
+        className={cn("relative group", isOwnProfile && "cursor-pointer")}
         onClick={handleAvatarClick}
       >
         <Avatar
@@ -42,8 +40,8 @@ const ProfileHeader = ({ userId }: { userId?: string }) => {
           username={profile?.username ?? fallback?.username}
           size="xl"
           className={cn(
-            "ring-4 ring-white shadow-lg transition-transform",
-            isOwnProfile && "group-hover:scale-105"
+            "ring-4 ring-card shadow-lg transition-transform",
+            isOwnProfile && "group-hover:scale-105",
           )}
         />
         {isOwnProfile && (
@@ -66,8 +64,10 @@ const ProfileHeader = ({ userId }: { userId?: string }) => {
         )}
       </div>
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">{profile?.fullName || profile?.username}</h1>
-        <p className="text-gray-500">@{profile?.username}</p>
+        <h1 className="text-2xl font-bold text-foreground">
+          {profile?.fullName || profile?.username}
+        </h1>
+        <p className="text-muted-foreground">@{profile?.username}</p>
       </div>
     </div>
   );

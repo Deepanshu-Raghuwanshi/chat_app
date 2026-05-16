@@ -1,16 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileService } from '../services/profile.service';
-import { useAuthStore } from '../../auth/store/useAuthStore';
-import { UserProfile } from '@shared-types';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { profileService } from "../services/profile.service";
+import { useAuthStore } from "../../auth/store/useAuthStore";
+import { UserProfile } from "@shared-types";
+import { useTranslations } from "next-intl";
+import showToast from "../../../shared/utils/toast";
 
 export const useProfile = (userId?: string) => {
   const { user: currentUser, setUser } = useAuthStore();
   const queryClient = useQueryClient();
+  const t = useTranslations("features.profile.toasts");
   const isOwnProfile = !userId || userId === currentUser?.id;
 
   const profileQuery = useQuery({
-    queryKey: ['profile', userId || currentUser?.id],
+    queryKey: ["profile", userId || currentUser?.id],
     queryFn: () => profileService.getProfile(userId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 3,
@@ -19,44 +21,45 @@ export const useProfile = (userId?: string) => {
 
   const updateProfileMutation = useMutation({
     mutationFn: (data: Parameters<typeof profileService.updateProfile>[0]) => {
-      if (!isOwnProfile) throw new Error('Cannot update another user\'s profile');
+      if (!isOwnProfile)
+        throw new Error("Cannot update another user's profile");
       return profileService.updateProfile(data);
     },
     onSuccess: (updatedUser: UserProfile) => {
       setUser(updatedUser);
-      queryClient.setQueryData(['profile', currentUser?.id], updatedUser);
-      toast.success('Profile updated successfully');
+      queryClient.setQueryData(["profile", currentUser?.id], updatedUser);
+      showToast.success(t("profile_updated"));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update profile');
+    onError: () => {
+      showToast.error(t("profile_update_failed"));
     },
   });
 
   const uploadAvatarMutation = useMutation({
     mutationFn: (file: File) => {
-      if (!isOwnProfile) throw new Error('Cannot update another user\'s avatar');
+      if (!isOwnProfile) throw new Error("Cannot update another user's avatar");
       return profileService.uploadAvatar(file);
     },
     onSuccess: (data) => {
       if (currentUser) {
         const updatedUser = { ...currentUser, avatarUrl: data.avatarUrl };
         setUser(updatedUser);
-        queryClient.setQueryData(['profile', currentUser.id], updatedUser);
+        queryClient.setQueryData(["profile", currentUser.id], updatedUser);
       }
-      toast.success('Avatar updated successfully');
+      showToast.success(t("avatar_updated"));
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
-      toast.error(error.response?.data?.message || 'Failed to upload avatar');
+    onError: () => {
+      showToast.error(t("avatar_update_failed"));
     },
   });
 
   const changeEmailMutation = useMutation({
     mutationFn: (newEmail: string) => profileService.changeEmail(newEmail),
     onSuccess: () => {
-      toast.success('Verification email sent to new address');
+      showToast.success(t("email_verification_sent"));
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
-      toast.error(error.response?.data?.message || 'Failed to request email change');
+    onError: () => {
+      showToast.error(t("email_change_failed"));
     },
   });
 
@@ -64,13 +67,25 @@ export const useProfile = (userId?: string) => {
     mutationFn: ({ token, newEmail }: { token: string; newEmail: string }) =>
       profileService.verifyEmailChange(token, newEmail),
     onSuccess: () => {
-      toast.success('Email updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      showToast.success(t("email_updated"));
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
-      toast.error(error.response?.data?.message || 'Failed to verify email change');
+    onError: () => {
+      showToast.error(t("email_verify_failed"));
     },
   });
+
+  const updateThemeMutation = useMutation({
+    mutationFn: (theme: "light" | "dark") =>
+      profileService.updateProfile({ theme }),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      queryClient.setQueryData(["profile", currentUser?.id], updatedUser);
+    },
+  });
+
+  const updateTheme = (newTheme: "light" | "dark") =>
+    updateThemeMutation.mutate(newTheme);
 
   return {
     profile: profileQuery.data,
@@ -86,6 +101,7 @@ export const useProfile = (userId?: string) => {
     isChangingEmail: changeEmailMutation.isPending,
     verifyEmailChange: verifyEmailChangeMutation.mutate,
     isVerifyingEmailChange: verifyEmailChangeMutation.isPending,
+    updateTheme,
     isOwnProfile,
   };
 };

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback, KeyboardEvent } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  KeyboardEvent,
+} from "react";
 import { Send, Smile, Reply, X } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useTranslations } from "next-intl";
@@ -126,7 +132,7 @@ export const MessageComposer = ({
   };
 
   return (
-    <div className="shrink-0 px-4 py-3 bg-white border-t border-border">
+    <div className="shrink-0 px-4 py-3 bg-card border-t border-border">
       <div
         className={cn(
           "flex flex-col bg-secondary rounded-2xl",
