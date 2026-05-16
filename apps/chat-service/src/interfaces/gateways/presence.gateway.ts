@@ -89,6 +89,32 @@ export class PresenceGateway
     await client.join(`conversation:${data.conversationId}`);
   }
 
+  @SubscribeMessage("typing.start")
+  handleTypingStart(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { conversationId: string },
+  ): void {
+    const userId = this.getUserId(client);
+    if (!userId || !data?.conversationId) return;
+    client.to(`conversation:${data.conversationId}`).emit("typing.started", {
+      conversationId: data.conversationId,
+      userId,
+    });
+  }
+
+  @SubscribeMessage("typing.stop")
+  handleTypingStop(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { conversationId: string },
+  ): void {
+    const userId = this.getUserId(client);
+    if (!userId || !data?.conversationId) return;
+    client.to(`conversation:${data.conversationId}`).emit("typing.stopped", {
+      conversationId: data.conversationId,
+      userId,
+    });
+  }
+
   emitToRoom(room: string, event: string, payload: unknown): void {
     this.server?.to(room).emit(event, payload);
   }

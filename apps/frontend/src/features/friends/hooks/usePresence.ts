@@ -61,10 +61,28 @@ interface MessageReactionPayload {
   toggledAt: string;
 }
 
+interface TypingStartedPayload {
+  conversationId: string;
+  userId: string;
+}
+
+interface TypingStoppedPayload {
+  conversationId: string;
+  userId: string;
+}
+
 let socket: Socket | null = null;
 
 export const joinConversationRoom = (conversationId: string) => {
   socket?.emit("join.conversation", { conversationId });
+};
+
+export const emitTypingStart = (conversationId: string) => {
+  socket?.emit("typing.start", { conversationId });
+};
+
+export const emitTypingStop = (conversationId: string) => {
+  socket?.emit("typing.stop", { conversationId });
 };
 
 export const usePresence = () => {
@@ -294,6 +312,17 @@ export const usePresence = () => {
             };
           },
         );
+      });
+      socket.on("typing.started", (data: TypingStartedPayload) => {
+        useChatStore
+          .getState()
+          .setTyping(data.conversationId, data.userId, true);
+      });
+
+      socket.on("typing.stopped", (data: TypingStoppedPayload) => {
+        useChatStore
+          .getState()
+          .setTyping(data.conversationId, data.userId, false);
       });
     }
 

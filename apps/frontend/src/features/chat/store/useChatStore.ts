@@ -6,10 +6,16 @@ interface ChatState {
   draftMessages: Record<string, string>;
   replyTargets: Record<string, Message | null>;
   highlightedMessageId: string | null;
+  typingUsers: Record<string, string[]>;
   setActiveConversation: (id: string | null) => void;
   setDraft: (conversationId: string, text: string) => void;
   setReplyTarget: (conversationId: string, message: Message | null) => void;
   setHighlightedMessageId: (id: string | null) => void;
+  setTyping: (
+    conversationId: string,
+    userId: string,
+    isTyping: boolean,
+  ) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -17,6 +23,7 @@ export const useChatStore = create<ChatState>((set) => ({
   draftMessages: {},
   replyTargets: {},
   highlightedMessageId: null,
+  typingUsers: {},
   setActiveConversation: (id) => set({ activeConversationId: id }),
   setDraft: (conversationId, text) =>
     set((state) => ({
@@ -27,4 +34,16 @@ export const useChatStore = create<ChatState>((set) => ({
       replyTargets: { ...state.replyTargets, [conversationId]: message },
     })),
   setHighlightedMessageId: (id) => set({ highlightedMessageId: id }),
+  setTyping: (conversationId, userId, isTyping) =>
+    set((state) => {
+      const current = state.typingUsers[conversationId] ?? [];
+      const updated = isTyping
+        ? current.includes(userId)
+          ? current
+          : [...current, userId]
+        : current.filter((id) => id !== userId);
+      return {
+        typingUsers: { ...state.typingUsers, [conversationId]: updated },
+      };
+    }),
 }));

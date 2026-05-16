@@ -231,6 +231,7 @@
       "conversation": {
         "online": "Online",
         "offline": "Offline",
+        "typing": "typing…",
         "no_messages": "No messages yet",
         "you": "You"
       },

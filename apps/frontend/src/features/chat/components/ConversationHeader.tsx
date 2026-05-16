@@ -6,22 +6,31 @@ import { Avatar } from "../../../shared/components/ui/Avatar";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useAuthStore } from "../../auth/store/useAuthStore";
+import { useChatStore } from "../store/useChatStore";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 interface ConversationHeaderProps {
   conversation: Conversation;
+  conversationId: string;
 }
 
 export const ConversationHeader = ({
   conversation,
+  conversationId,
 }: ConversationHeaderProps) => {
   const t = useTranslations("features.chat.conversation");
   const currentUserId = useAuthStore((state) => state.user?.id);
+  const typingUsersForConversation = useChatStore(
+    (s) => s.typingUsers[conversationId],
+  );
   const router = useRouter();
   const other = conversation.participants.find(
     (p) => p.userId !== currentUserId,
   );
+  const otherIsTyping = other
+    ? (typingUsersForConversation ?? []).includes(other.userId)
+    : false;
   const displayName = other?.fullName || other?.username || "Unknown";
 
   return (
@@ -51,10 +60,18 @@ export const ConversationHeader = ({
         <p
           className={cn(
             "text-xs",
-            other?.isOnline ? "text-green-500" : "text-foreground/40",
+            otherIsTyping
+              ? "text-primary animate-pulse"
+              : other?.isOnline
+                ? "text-green-500"
+                : "text-foreground/40",
           )}
         >
-          {other?.isOnline ? t("online") : t("offline")}
+          {otherIsTyping
+            ? t("typing")
+            : other?.isOnline
+              ? t("online")
+              : t("offline")}
         </p>
       </div>
     </div>

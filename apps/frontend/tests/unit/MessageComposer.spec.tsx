@@ -1,14 +1,23 @@
 import React from "react";
-import { screen, waitFor, act } from "@testing-library/react";
+import { screen, waitFor, act, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MessageComposer } from "../../src/features/chat/components/MessageComposer";
 import { renderWithIntl } from "../utils/render";
 import { simulate } from "../utils/simulate";
 import { useSendMessage } from "../../src/features/chat/hooks/useChat";
 import { useChatStore } from "../../src/features/chat/store/useChatStore";
+import {
+  emitTypingStart,
+  emitTypingStop,
+} from "../../src/features/friends/hooks/usePresence";
 
 vi.mock("../../src/features/chat/hooks/useChat", () => ({
   useSendMessage: vi.fn(),
+}));
+
+vi.mock("../../src/features/friends/hooks/usePresence", () => ({
+  emitTypingStart: vi.fn(),
+  emitTypingStop: vi.fn(),
 }));
 
 vi.mock("../../src/features/chat/components/EmojiPickerPopover", () => ({
@@ -32,6 +41,7 @@ describe("MessageComposer", () => {
       draftMessages: {},
       activeConversationId: null,
       replyTargets: {},
+      typingUsers: {},
     });
     vi.mocked(useSendMessage).mockReturnValue({
       mutate: mockSendMessage,
@@ -199,6 +209,7 @@ describe("MessageComposer reply strip", () => {
       draftMessages: {},
       activeConversationId: null,
       replyTargets: {},
+      typingUsers: {},
     });
     vi.mocked(useSendMessage).mockReturnValue({
       mutate: mockSendMessage,
@@ -248,5 +259,114 @@ describe("MessageComposer reply strip", () => {
       }),
       expect.any(Object),
     );
+  });
+});
+
+describe("MessageComposer — typing events", () => {
+  const mockSendMessage = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useChatStore.setState({
+      draftMessages: {},
+      activeConversationId: null,
+      replyTargets: {},
+      typingUsers: {},
+    });
+    vi.mocked(useSendMessage).mockReturnValue({
+      mutate: mockSendMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useSendMessage>);
+  });
+
+  it("emits typing.start once on the first non-empty keystroke", () => {
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-typing" />,
+    );
+    const textarea = screen.getByPlaceholderText("Type a message...");
+
+    act(() => {
+      fireEvent.change(textarea, { target: { value: "h" } });
+    });
+
+    expect(emitTypingStart).toHaveBeenCalledOnce();
+    expect(emitTypingStart).toHaveBeenCalledWith("conv-typing");
+  });
+
+  it("does not re-emit typing.start on subsequent keystrokes (burst suppression)", () => {
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-burst" />,
+    );
+    const textarea = screen.getByPlaceholderText("Type a message...");
+
+    act(() => {
+      fireEvent.change(textarea, { target: { value: "h" } });
+      fireEvent.change(textarea, { target: { value: "he" } });
+      fireEvent.change(textarea, { target: { value: "hel" } });
+    });
+
+    expect(emitTypingStart).toHaveBeenCalledOnce();
+  });
+
+  it("emits typing.stop immediately when the draft is cleared", () => {
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-clear" />,
+    );
+    const textarea = screen.getByPlaceholderText("Type a message...");
+
+    act(() => {
+      fireEvent.change(textarea, { target: { value: "hello" } });
+    });
+    act(() => {
+      fireEvent.change(textarea, { target: { value: "" } });
+    });
+
+    expect(emitTypingStop).toHaveBeenCalledOnce();
+    expect(emitTypingStop).toHaveBeenCalledWith("conv-clear");
+  });
+
+  it("emits typing.stop before the send mutation fires", async () => {
+    const callOrder: string[] = [];
+    vi.mocked(emitTypingStop).mockImplementation(() => {
+      callOrder.push("stop");
+    });
+    mockSendMessage.mockImplementation(() => {
+      callOrder.push("send");
+    });
+
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-send" />,
+    );
+    const textarea = screen.getByPlaceholderText("Type a message...");
+
+    act(() => {
+      fireEvent.change(textarea, { target: { value: "hello" } });
+    });
+    const sendButton = screen.getByRole("button", { name: /send/i });
+    await simulate.click(sendButton);
+
+    expect(callOrder).toEqual(["stop", "send"]);
+  });
+
+  it("emits typing.stop after 3 000 ms idle timer fires", () => {
+    vi.useFakeTimers();
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-timer" />,
+    );
+    const textarea = screen.getByPlaceholderText("Type a message...");
+
+    act(() => {
+      fireEvent.change(textarea, { target: { value: "hello" } });
+    });
+
+    expect(emitTypingStop).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(emitTypingStop).toHaveBeenCalledOnce();
+    expect(emitTypingStop).toHaveBeenCalledWith("conv-timer");
+    vi.useRealTimers();
   });
 });

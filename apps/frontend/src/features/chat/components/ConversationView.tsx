@@ -92,7 +92,10 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      <ConversationHeader conversation={conversation} />
+      <ConversationHeader
+        conversation={conversation}
+        conversationId={conversationId}
+      />
       <MessageList
         key={conversationId}
         conversationId={conversationId}

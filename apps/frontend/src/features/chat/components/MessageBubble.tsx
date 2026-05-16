@@ -24,7 +24,6 @@ import { useChatStore } from "../store/useChatStore";
 import { ReactionBar } from "./ReactionBar";
 import { ReactionPicker } from "./ReactionPicker";
 import { QuotedPreview } from "./QuotedPreview";
-import { resolveParticipantName } from "../utils/resolveParticipantName";
 
 interface MessageBubbleProps {
   message: Message;
