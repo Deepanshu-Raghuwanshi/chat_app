@@ -433,10 +433,12 @@ describe('<Action><Name>UseCase', () => {
 
 pnpm nx typecheck <service-name>   # must pass with zero errors
 pnpm nx lint <service-name>        # must pass with zero warnings
+pnpm nx format:write               # normalise quotes/indentation on all new/changed files
+pnpm nx format:check               # must output nothing (no files listed = clean)
 pnpm nx test <service-name>        # all tests must pass
 ```
 
-Do not report the task as done until all three commands pass cleanly.
+Do not report the task as done until all five commands pass cleanly. Run `pnpm nx format:write` **before** `format:check` — new files often use the wrong quote style and will fail the check without it.
 
 ---
 
@@ -461,4 +463,5 @@ Do not report the task as done until all three commands pass cleanly.
 - [ ] Tests written for every use case — all failure paths covered
 - [ ] `pnpm nx typecheck <service>` — zero errors
 - [ ] `pnpm nx lint <service>` — zero warnings
+- [ ] `pnpm nx format:write` then `pnpm nx format:check` — no files listed (clean)
 - [ ] `pnpm nx test <service>` — all pass

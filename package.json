@@ -23,6 +23,7 @@
     "db:setup": "pnpm prisma:migrate:all && pnpm prisma:generate"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",

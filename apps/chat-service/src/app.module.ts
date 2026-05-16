@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { LoggerModule } from "nestjs-pino";
 import { TerminusModule } from "@nestjs/terminus";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { validate } from "./config/env.validation";
 import { HealthController } from "./interfaces/controllers/health.controller";
 import { ChatModule } from "./chat.module";
@@ -31,6 +32,7 @@ import { RedisModule } from "./infrastructure/cache/redis.module";
       },
     }),
     TerminusModule,
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 1000 }]),
     RedisModule,
     ChatModule,
   ],

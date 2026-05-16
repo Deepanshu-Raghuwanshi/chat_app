@@ -23,6 +23,10 @@ import { FriendshipCacheService } from "./infrastructure/cache/friendship-cache.
 import { KafkaProducerService } from "./infrastructure/messaging/kafka-producer.service";
 import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
 import { ConversationController } from "./interfaces/controllers/conversation.controller";
+import { AiController } from "./interfaces/controllers/ai.controller";
+import { RewriteMessageUseCase } from "./application/use-cases/rewrite-message.use-case";
+import { GeminiRewriteService } from "./infrastructure/ai/gemini-rewrite.service";
+import { UserThrottlerGuard } from "./infrastructure/guards/user-throttler.guard";
 import { CreateOrGetConversationUseCase } from "./application/use-cases/create-or-get-conversation.use-case";
 import { GetConversationUseCase } from "./application/use-cases/get-conversation.use-case";
 import { ListConversationsUseCase } from "./application/use-cases/list-conversations.use-case";
@@ -77,7 +81,7 @@ import { UserProfileUpdatesConsumer } from "./infrastructure/messaging/user-prof
       },
     ]),
   ],
-  controllers: [ConversationController],
+  controllers: [ConversationController, AiController],
   providers: [
     // Application services
     ConversationViewBuilder,
@@ -102,6 +106,11 @@ import { UserProfileUpdatesConsumer } from "./infrastructure/messaging/user-prof
     KafkaProducerService,
     UserProfileUpdatesConsumer,
     JwtStrategy,
+
+    // AI
+    RewriteMessageUseCase,
+    { provide: "AiRewriter", useClass: GeminiRewriteService },
+    UserThrottlerGuard,
 
     // Repository bindings
     {
