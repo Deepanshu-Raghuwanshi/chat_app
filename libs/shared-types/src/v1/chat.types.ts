@@ -626,6 +626,85 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/chat/ai/smart-replies": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Generate 3 smart reply suggestions for the last received message
+     * @description Accepts the last 1–10 messages of a conversation (oldest first) with role labels ("me" / "them") and returns exactly 3 short, natural reply suggestions from "me"'s perspective. Nothing is persisted. Rate-limited to 15 requests per minute per user. The frontend is responsible for passing context; the backend never reads the database for this endpoint.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["AiSmartReplyDto"];
+        };
+      };
+      responses: {
+        /** @description Three suggested reply strings */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["AiSmartReplyResponse"];
+          };
+        };
+        /** @description Invalid request (empty messages array, invalid role, content too long) */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Rate limit exceeded (15 RPM per user) */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description AI provider unavailable or timed out */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/chat/ai/rewrite": {
     parameters: {
       query?: never;
@@ -840,6 +919,23 @@ export interface components {
        * @description ID of the message being replied to. When provided, the backend fetches the original message and embeds a snapshot in the new message's replyTo field.
        */
       quotedMessageId?: string;
+    };
+    MessageContextItem: {
+      /**
+       * @description "me" = the current user (the one who will send the smart reply). "them" = the other participant (the one whose last message is being replied to).
+       * @enum {string}
+       */
+      role: "me" | "them";
+      /** @description Message text. Truncated to 500 chars by the client before sending. */
+      content: string;
+    };
+    AiSmartReplyDto: {
+      /** @description Conversation context — last 1 to 10 messages, oldest first. Deleted messages must be excluded by the client before sending. The last item must always have role "them" (the message being replied to). */
+      messages: components["schemas"]["MessageContextItem"][];
+    };
+    AiSmartReplyResponse: {
+      /** @description Exactly 3 short reply suggestions, each 3–10 words. */
+      suggestions: string[];
     };
     AiRewriteDto: {
       /** @description The draft message text to rewrite. Stripped of leading/trailing whitespace before being sent to the AI provider. */

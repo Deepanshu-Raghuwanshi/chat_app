@@ -400,6 +400,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/chat/ai/smart-replies:
+    post:
+      summary: Generate 3 smart reply suggestions for the last received message
+      description: >
+        Accepts the last 1–10 messages of a conversation (oldest first) with
+        role labels ("me" / "them") and returns exactly 3 short, natural reply
+        suggestions from "me"'s perspective. Nothing is persisted. Rate-limited
+        to 15 requests per minute per user. The frontend is responsible for
+        passing context; the backend never reads the database for this endpoint.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiSmartReplyDto"
+      responses:
+        "200":
+          description: Three suggested reply strings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSmartReplyResponse"
+        "400":
+          description: Invalid request (empty messages array, invalid role, content too long)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded (15 RPM per user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI provider unavailable or timed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/chat/ai/rewrite:
     post:
       summary: Rewrite a draft message using AI
@@ -725,6 +774,54 @@ components:
           format: uuid
           description: ID of the message being replied to. When provided, the backend fetches the original message and embeds a snapshot in the new message's replyTo field.
 
+    MessageContextItem:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [me, them]
+          description: >
+            "me" = the current user (the one who will send the smart reply).
+            "them" = the other participant (the one whose last message is being replied to).
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Message text. Truncated to 500 chars by the client before sending.
+
+    AiSmartReplyDto:
+      type: object
+      required:
+        - messages
+      properties:
+        messages:
+          type: array
+          description: >
+            Conversation context — last 1 to 10 messages, oldest first.
+            Deleted messages must be excluded by the client before sending.
+            The last item must always have role "them" (the message being replied to).
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/MessageContextItem"
+
+    AiSmartReplyResponse:
+      type: object
+      required:
+        - suggestions
+      properties:
+        suggestions:
+          type: array
+          description: Exactly 3 short reply suggestions, each 3–10 words.
+          minItems: 3
+          maxItems: 3
+          items:
+            type: string
+            minLength: 1
+
     AiRewriteDto:
       type: object
       required:
@@ -765,12 +862,6 @@ components:
           type: string
           minLength: 1
           maxLength: 4000
-
-# AI Rewrite
-# POST /api/v1/chat/ai/rewrite
-# Calls Google Gemini 1.5 Flash API. No events produced or consumed. No DB writes.
-# Env: GEMINI_API_KEY (obtained free from https://aistudio.google.com/app/apikey)
-# Rate limit: 15 RPM per user (matches Gemini free tier: 15 RPM, 1 million TPM, 1500 RPD).
 
 # Kafka Events
 # Produces: message.sent.v1        — payload includes optional replyTo: { messageId, senderId, content } when message is a quoted reply
