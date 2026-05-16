@@ -7,12 +7,13 @@ import React, {
   useCallback,
   KeyboardEvent,
 } from "react";
-import { Send, Smile, Reply, X } from "lucide-react";
+import { Send, Smile, Reply, X, Sparkles } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useTranslations } from "next-intl";
-import { useSendMessage } from "../hooks/useChat";
+import { useSendMessage, useRewriteMessage } from "../hooks/useChat";
 import { useChatStore } from "../store/useChatStore";
 import { EmojiPickerPopover } from "./EmojiPickerPopover";
+import { AiTonePicker, type RewriteTone } from "./AiTonePicker";
 import type { ConversationParticipant } from "@shared-types";
 import { resolveParticipantName } from "../utils/resolveParticipantName";
 import {
@@ -40,9 +41,14 @@ export const MessageComposer = ({
   const setReplyTarget = useChatStore((state) => state.setReplyTarget);
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
 
+  const { mutate: rewriteMessage, isPending: isRewriting } =
+    useRewriteMessage(conversationId);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiAreaRef = useRef<HTMLDivElement>(null);
+  const aiAreaRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [aiPickerOpen, setAiPickerOpen] = useState(false);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
 
@@ -63,6 +69,17 @@ export const MessageComposer = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [emojiPickerOpen]);
+
+  useEffect(() => {
+    if (!aiPickerOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (aiAreaRef.current && !aiAreaRef.current.contains(e.target as Node)) {
+        setAiPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [aiPickerOpen]);
 
   const stopTyping = useCallback(() => {
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
@@ -89,6 +106,11 @@ export const MessageComposer = ({
       textarea.focus();
       textarea.setSelectionRange(start + emoji.length, start + emoji.length);
     });
+  };
+
+  const handleToneSelect = (tone: RewriteTone) => {
+    setAiPickerOpen(false);
+    rewriteMessage({ text: draft.trim(), tone });
   };
 
   const handleSend = () => {
@@ -194,6 +216,32 @@ export const MessageComposer = ({
               <EmojiPickerPopover onEmojiSelect={handleEmojiSelect} />
             )}
           </div>
+          {draft.trim() && (
+            <div ref={aiAreaRef} className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setAiPickerOpen((v) => !v)}
+                disabled={isRewriting}
+                aria-label={t("ai_rewrite_button_label")}
+                className={cn(
+                  "p-2 rounded-xl transition-all duration-200",
+                  isRewriting
+                    ? "text-primary bg-primary/10 animate-pulse cursor-wait"
+                    : aiPickerOpen
+                      ? "text-primary bg-primary/10"
+                      : "text-foreground/40 hover:text-foreground hover:bg-foreground/5",
+                )}
+              >
+                <Sparkles className="w-4 h-4" />
+              </button>
+              {aiPickerOpen && (
+                <AiTonePicker
+                  onSelect={handleToneSelect}
+                  isLoading={isRewriting}
+                />
+              )}
+            </div>
+          )}
           <button
             onClick={handleSend}
             disabled={!draft.trim() || isPending}

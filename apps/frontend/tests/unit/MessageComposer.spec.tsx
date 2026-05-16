@@ -4,7 +4,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MessageComposer } from "../../src/features/chat/components/MessageComposer";
 import { renderWithIntl } from "../utils/render";
 import { simulate } from "../utils/simulate";
-import { useSendMessage } from "../../src/features/chat/hooks/useChat";
+import {
+  useSendMessage,
+  useRewriteMessage,
+} from "../../src/features/chat/hooks/useChat";
 import { useChatStore } from "../../src/features/chat/store/useChatStore";
 import {
   emitTypingStart,
@@ -13,6 +16,17 @@ import {
 
 vi.mock("../../src/features/chat/hooks/useChat", () => ({
   useSendMessage: vi.fn(),
+  useRewriteMessage: vi.fn(),
+}));
+
+vi.mock("../../src/features/chat/components/AiTonePicker", () => ({
+  AiTonePicker: ({ onSelect }: { onSelect: (tone: string) => void }) => (
+    <div data-testid="mock-ai-tone-picker">
+      <button type="button" onClick={() => onSelect("professional")}>
+        Professional
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock("../../src/features/friends/hooks/usePresence", () => ({
@@ -34,6 +48,7 @@ vi.mock("../../src/features/chat/components/EmojiPickerPopover", () => ({
 
 describe("MessageComposer", () => {
   const mockSendMessage = vi.fn();
+  const mockRewriteMessage = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,6 +62,10 @@ describe("MessageComposer", () => {
       mutate: mockSendMessage,
       isPending: false,
     } as unknown as ReturnType<typeof useSendMessage>);
+    vi.mocked(useRewriteMessage).mockReturnValue({
+      mutate: mockRewriteMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useRewriteMessage>);
   });
 
   it("send button is disabled when textarea is empty", () => {
@@ -186,6 +205,104 @@ describe("MessageComposer", () => {
   });
 });
 
+describe("MessageComposer — AI rewrite", () => {
+  const mockSendMessage = vi.fn();
+  const mockRewriteMessage = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useChatStore.setState({
+      draftMessages: {},
+      activeConversationId: null,
+      replyTargets: {},
+      typingUsers: {},
+    });
+    vi.mocked(useSendMessage).mockReturnValue({
+      mutate: mockSendMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useSendMessage>);
+    vi.mocked(useRewriteMessage).mockReturnValue({
+      mutate: mockRewriteMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useRewriteMessage>);
+  });
+
+  it("sparkle button is not rendered when draft is empty", () => {
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    expect(
+      screen.queryByRole("button", { name: /rewrite with ai/i }),
+    ).toBeNull();
+  });
+
+  it("sparkle button is rendered when draft is non-empty", () => {
+    useChatStore.setState({ draftMessages: { "conv-ai": "hello" } });
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    expect(
+      screen.getByRole("button", { name: /rewrite with ai/i }),
+    ).toBeTruthy();
+  });
+
+  it("clicking the sparkle button opens AiTonePicker", async () => {
+    useChatStore.setState({ draftMessages: { "conv-ai": "hello" } });
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    await simulate.click(
+      screen.getByRole("button", { name: /rewrite with ai/i }),
+    );
+    expect(screen.getByTestId("mock-ai-tone-picker")).toBeTruthy();
+  });
+
+  it("selecting a tone calls rewriteMessage with trimmed draft and closes picker", async () => {
+    useChatStore.setState({ draftMessages: { "conv-ai": " hello " } });
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    await simulate.click(
+      screen.getByRole("button", { name: /rewrite with ai/i }),
+    );
+    await simulate.click(screen.getByText("Professional"));
+    expect(mockRewriteMessage).toHaveBeenCalledWith({
+      text: "hello",
+      tone: "professional",
+    });
+    expect(screen.queryByTestId("mock-ai-tone-picker")).toBeNull();
+  });
+
+  it("sparkle button is disabled and has animate-pulse class while isRewriting", () => {
+    useChatStore.setState({ draftMessages: { "conv-ai": "hello" } });
+    vi.mocked(useRewriteMessage).mockReturnValue({
+      mutate: mockRewriteMessage,
+      isPending: true,
+    } as unknown as ReturnType<typeof useRewriteMessage>);
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    const sparkleButton = screen.getByRole("button", {
+      name: /rewrite with ai/i,
+    });
+    expect((sparkleButton as HTMLButtonElement).disabled).toBe(true);
+    expect(sparkleButton.className).toContain("animate-pulse");
+  });
+
+  it("clicking outside the AI picker closes it", async () => {
+    useChatStore.setState({ draftMessages: { "conv-ai": "hello" } });
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    await simulate.click(
+      screen.getByRole("button", { name: /rewrite with ai/i }),
+    );
+    expect(screen.getByTestId("mock-ai-tone-picker")).toBeTruthy();
+    await simulate.click(document.body);
+    expect(screen.queryByTestId("mock-ai-tone-picker")).toBeNull();
+  });
+});
+
 describe("MessageComposer reply strip", () => {
   const mockReplyTarget = {
     id: "msg-quoted-1",
@@ -202,6 +319,7 @@ describe("MessageComposer reply strip", () => {
   };
 
   const mockSendMessage = vi.fn();
+  const mockRewriteMessage = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -215,6 +333,10 @@ describe("MessageComposer reply strip", () => {
       mutate: mockSendMessage,
       isPending: false,
     } as unknown as ReturnType<typeof useSendMessage>);
+    vi.mocked(useRewriteMessage).mockReturnValue({
+      mutate: mockRewriteMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useRewriteMessage>);
   });
 
   it("shows reply strip when replyTarget is set in store", () => {
@@ -264,6 +386,7 @@ describe("MessageComposer reply strip", () => {
 
 describe("MessageComposer — typing events", () => {
   const mockSendMessage = vi.fn();
+  const mockRewriteMessage = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -277,6 +400,10 @@ describe("MessageComposer — typing events", () => {
       mutate: mockSendMessage,
       isPending: false,
     } as unknown as ReturnType<typeof useSendMessage>);
+    vi.mocked(useRewriteMessage).mockReturnValue({
+      mutate: mockRewriteMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useRewriteMessage>);
   });
 
   it("emits typing.start once on the first non-empty keystroke", () => {

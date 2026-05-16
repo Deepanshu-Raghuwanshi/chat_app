@@ -354,6 +354,22 @@ export const useToggleReaction = (conversationId: string) => {
   });
 };
 
+export const useRewriteMessage = (conversationId: string) => {
+  const setDraft = useChatStore((state) => state.setDraft);
+  const t = useTranslations("features.chat.errors");
+
+  return useMutation({
+    mutationFn: (vars: Parameters<typeof chatService.rewriteMessage>[0]) =>
+      chatService.rewriteMessage(vars),
+    onSuccess: ({ rewrittenText }) => {
+      setDraft(conversationId, rewrittenText);
+    },
+    onError: () => {
+      showToast.error(t("rewrite_failed"));
+    },
+  });
+};
+
 export const useGetOtherParticipant = (
   conversation: Conversation | undefined,
 ) => {

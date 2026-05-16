@@ -216,7 +216,13 @@
         "send": "Send",
         "emoji_button_label": "Open emoji picker",
         "cancel_reply": "Cancel reply",
-        "replying_to": "Replying to"
+        "replying_to": "Replying to",
+        "ai_rewrite_button_label": "Rewrite with AI",
+        "ai_tone_fix_grammar": "Fix Grammar",
+        "ai_tone_professional": "Professional",
+        "ai_tone_casual": "Casual",
+        "ai_tone_shorter": "Shorter",
+        "ai_tone_longer": "Longer"
       },
       "message": {
         "deleted": "[deleted]",
@@ -247,7 +253,8 @@
         "open_failed": "Failed to open conversation",
         "not_found": "Conversation not found",
         "back_to_chats": "Back to conversations",
-        "no_longer_friends": "You're no longer friends with this user"
+        "no_longer_friends": "You're no longer friends with this user",
+        "rewrite_failed": "AI rewrite failed. Please try again."
       }
     },
     "navbar": {
