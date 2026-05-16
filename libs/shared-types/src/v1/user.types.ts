@@ -26,7 +26,18 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": components["schemas"]["UserProfile"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
         };
       };
     };
@@ -45,13 +56,7 @@ export interface paths {
       };
       requestBody: {
         content: {
-          "application/json": {
-            fullName?: string;
-            bio?: string;
-            phoneNumber?: string;
-            countryCode?: string;
-            status?: string;
-          };
+          "application/json": components["schemas"]["UpdateProfileRequest"];
         };
       };
       responses: {
@@ -60,7 +65,27 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": components["schemas"]["UserProfile"];
+          };
+        };
+        /** @description Validation error */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
         };
       };
     };
@@ -135,7 +160,27 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": components["schemas"]["UserProfile"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Profile not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
         };
       };
     };
@@ -380,9 +425,25 @@ export interface components {
     UserSearchResult: components["schemas"]["UserProfile"] & {
       relationshipStatus: components["schemas"]["RelationshipStatus"];
     };
+    /**
+     * @description User's preferred UI theme. Persisted on the backend and restored on every login.
+     * @default light
+     * @enum {string}
+     */
+    Theme: "light" | "dark";
+    UpdateProfileRequest: {
+      fullName?: string;
+      bio?: string;
+      phoneNumber?: string;
+      countryCode?: string;
+      status?: string;
+      theme?: components["schemas"]["Theme"];
+    };
     UserProfile: {
+      /** Format: uuid */
       id: string;
       username: string;
+      /** Format: email */
       email?: string;
       fullName?: string;
       avatarUrl?: string;
@@ -391,6 +452,7 @@ export interface components {
       countryCode?: string;
       status?: string;
       isOnline?: boolean;
+      theme?: components["schemas"]["Theme"];
     };
     FriendRequest: {
       id?: string;

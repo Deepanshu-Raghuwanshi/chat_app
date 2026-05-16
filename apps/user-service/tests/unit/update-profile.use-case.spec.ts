@@ -35,7 +35,7 @@ describe('UpdateProfileUseCase', () => {
     expect(result).to.deep.equal(mockUser);
     expect(userProfileRepository.update.calledWith(userId, updateData)).to.equal(true);
     expect(kafkaProducer.emit.calledOnce).to.equal(true);
-    expect(kafkaProducer.emit.firstCall.args[0]).to.equal('user.profile.updated');
+    expect(kafkaProducer.emit.firstCall.args[0]).to.equal('user.profile.updated.v1');
   });
 
   it('should throw NotFoundException if user profile not found', async () => {

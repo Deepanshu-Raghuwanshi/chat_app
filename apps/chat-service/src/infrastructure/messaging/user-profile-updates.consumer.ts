@@ -50,7 +50,7 @@ export class UserProfileUpdatesConsumer implements OnModuleInit, OnModuleDestroy
         await this.handleUserProfileUpdated(event);
       },
     });
-    this.logger.log("Subscribed to user.profile.updated events");
+    this.logger.log("Subscribed to user.profile.updated.v1 events");
   }
 
   async onModuleDestroy() {

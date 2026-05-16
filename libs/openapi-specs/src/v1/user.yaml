@@ -6,31 +6,50 @@ paths:
   /api/v1/profile:
     get:
       summary: Get current user profile
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     patch:
       summary: Update user profile
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                fullName:
-                  type: string
-                bio:
-                  type: string
-                phoneNumber:
-                  type: string
-                countryCode:
-                  type: string
-                status:
-                  type: string
+              $ref: "#/components/schemas/UpdateProfileRequest"
       responses:
         "200":
           description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/profile/avatar:
     post:
       summary: Upload profile picture
@@ -57,15 +76,34 @@ paths:
   /api/v1/users/{userId}:
     get:
       summary: Get user profile by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: userId
           in: path
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/friends:
     get:
       summary: List all friends
@@ -199,6 +237,33 @@ components:
             relationshipStatus:
               $ref: "#/components/schemas/RelationshipStatus"
 
+    Theme:
+      type: string
+      enum: [light, dark]
+      default: light
+      description: User's preferred UI theme. Persisted on the backend and restored on every login.
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          maxLength: 100
+        bio:
+          type: string
+          maxLength: 500
+        phoneNumber:
+          type: string
+          maxLength: 20
+        countryCode:
+          type: string
+          maxLength: 10
+        status:
+          type: string
+          maxLength: 50
+        theme:
+          $ref: "#/components/schemas/Theme"
+
     UserProfile:
       type: object
       required:
@@ -207,10 +272,12 @@ components:
       properties:
         id:
           type: string
+          format: uuid
         username:
           type: string
         email:
           type: string
+          format: email
         fullName:
           type: string
         avatarUrl:
@@ -225,6 +292,9 @@ components:
           type: string
         isOnline:
           type: boolean
+        theme:
+          $ref: "#/components/schemas/Theme"
+
     FriendRequest:
       type: object
       properties:
