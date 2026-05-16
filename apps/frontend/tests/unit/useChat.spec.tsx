@@ -15,7 +15,9 @@ import {
   useMarkRead,
   useSearchConversations,
   useToggleReaction,
+  useRewriteMessage,
 } from "../../src/features/chat/hooks/useChat";
+import { showToast } from "../../src/shared/utils/toast";
 import {
   Conversation,
   ConversationListResponse,
@@ -36,6 +38,7 @@ vi.mock("../../src/features/chat/services/chat.service", () => ({
     markRead: vi.fn(),
     searchConversations: vi.fn(),
     toggleReaction: vi.fn(),
+    rewriteMessage: vi.fn(),
   },
 }));
 
@@ -632,5 +635,78 @@ describe("useToggleReaction", () => {
     ]);
     expect(cached?.pages[0].data[0].reactions).toHaveLength(1);
     expect(cached?.pages[0].data[0].reactions[0].emoji).toBe("👍");
+  });
+});
+
+describe("useRewriteMessage", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useChatStore.setState({ draftMessages: {} });
+  });
+
+  it("calls setDraft with rewrittenText on success", async () => {
+    vi.mocked(chatService.rewriteMessage).mockResolvedValue({
+      rewrittenText: "Improved text",
+    });
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useRewriteMessage("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ text: "hello", tone: "professional" });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(useChatStore.getState().draftMessages["conv-1"]).toBe(
+      "Improved text",
+    );
+  });
+
+  it("calls showToast.error with rewrite_failed message on error", async () => {
+    vi.mocked(chatService.rewriteMessage).mockRejectedValue(
+      new Error("AI failed"),
+    );
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useRewriteMessage("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ text: "hello", tone: "casual" });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(vi.mocked(showToast.error)).toHaveBeenCalledWith(
+      "AI rewrite failed. Please try again.",
+    );
+  });
+
+  it("does not modify draft when the request fails", async () => {
+    useChatStore.setState({
+      draftMessages: { "conv-1": "original draft" },
+    });
+    vi.mocked(chatService.rewriteMessage).mockRejectedValue(
+      new Error("AI failed"),
+    );
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useRewriteMessage("conv-1"), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate({ text: "original draft", tone: "shorter" });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(useChatStore.getState().draftMessages["conv-1"]).toBe(
+      "original draft",
+    );
   });
 });

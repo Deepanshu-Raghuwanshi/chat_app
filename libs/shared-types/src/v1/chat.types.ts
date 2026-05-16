@@ -626,6 +626,85 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/chat/ai/rewrite": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Rewrite a draft message using AI
+     * @description Accepts a draft message and a rewrite tone, calls the Gemini AI API on the backend, and returns the rewritten text. The API key is stored server-side; nothing is persisted. Rate-limited to 15 requests per minute per user.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["AiRewriteDto"];
+        };
+      };
+      responses: {
+        /** @description Rewritten text */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["AiRewriteResponse"];
+          };
+        };
+        /** @description Invalid request (e.g. empty text, unknown tone) */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Rate limit exceeded (15 RPM per user) */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description AI provider unavailable or API key not configured */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -761,6 +840,19 @@ export interface components {
        * @description ID of the message being replied to. When provided, the backend fetches the original message and embeds a snapshot in the new message's replyTo field.
        */
       quotedMessageId?: string;
+    };
+    AiRewriteDto: {
+      /** @description The draft message text to rewrite. Stripped of leading/trailing whitespace before being sent to the AI provider. */
+      text: string;
+      /**
+       * @description fix-grammar — correct typos, grammar, and punctuation only. professional — rewrite as formal business language. casual — rewrite as relaxed, conversational language. shorter — condense to essential meaning. longer — expand with additional context and detail.
+       * @enum {string}
+       */
+      tone: "fix-grammar" | "professional" | "casual" | "shorter" | "longer";
+    };
+    AiRewriteResponse: {
+      /** @description The AI-rewritten version of the input text. */
+      rewrittenText: string;
     };
     EditMessageDto: {
       content: string;

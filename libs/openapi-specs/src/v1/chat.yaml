@@ -400,6 +400,53 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/chat/ai/rewrite:
+    post:
+      summary: Rewrite a draft message using AI
+      description: >
+        Accepts a draft message and a rewrite tone, calls the Gemini AI API on the
+        backend, and returns the rewritten text. The API key is stored server-side;
+        nothing is persisted. Rate-limited to 15 requests per minute per user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiRewriteDto"
+      responses:
+        "200":
+          description: Rewritten text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiRewriteResponse"
+        "400":
+          description: Invalid request (e.g. empty text, unknown tone)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded (15 RPM per user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI provider unavailable or API key not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -678,6 +725,37 @@ components:
           format: uuid
           description: ID of the message being replied to. When provided, the backend fetches the original message and embeds a snapshot in the new message's replyTo field.
 
+    AiRewriteDto:
+      type: object
+      required:
+        - text
+        - tone
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: The draft message text to rewrite. Stripped of leading/trailing whitespace before being sent to the AI provider.
+        tone:
+          type: string
+          enum: [fix-grammar, professional, casual, shorter, longer]
+          description: >
+            fix-grammar — correct typos, grammar, and punctuation only.
+            professional — rewrite as formal business language.
+            casual — rewrite as relaxed, conversational language.
+            shorter — condense to essential meaning.
+            longer — expand with additional context and detail.
+
+    AiRewriteResponse:
+      type: object
+      required:
+        - rewrittenText
+      properties:
+        rewrittenText:
+          type: string
+          minLength: 1
+          description: The AI-rewritten version of the input text.
+
     EditMessageDto:
       type: object
       required:
@@ -687,6 +765,12 @@ components:
           type: string
           minLength: 1
           maxLength: 4000
+
+# AI Rewrite
+# POST /api/v1/chat/ai/rewrite
+# Calls Google Gemini 1.5 Flash API. No events produced or consumed. No DB writes.
+# Env: GEMINI_API_KEY (obtained free from https://aistudio.google.com/app/apikey)
+# Rate limit: 15 RPM per user (matches Gemini free tier: 15 RPM, 1 million TPM, 1500 RPD).
 
 # Kafka Events
 # Produces: message.sent.v1        — payload includes optional replyTo: { messageId, senderId, content } when message is a quoted reply

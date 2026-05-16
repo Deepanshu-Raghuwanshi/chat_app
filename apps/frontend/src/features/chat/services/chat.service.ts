@@ -4,7 +4,9 @@ import {
   ConversationListResponse,
   Message,
   MessageListResponse,
+  AiRewriteResponse,
 } from "@shared-types";
+import type { RewriteTone } from "../types";
 
 export const chatService = {
   async listConversations(params?: {
@@ -113,6 +115,17 @@ export const chatService = {
     const { data } = await apiClient.post<Message>(
       `/chat/conversations/${conversationId}/messages/${messageId}/reactions`,
       { emoji },
+    );
+    return data;
+  },
+
+  async rewriteMessage(dto: {
+    text: string;
+    tone: RewriteTone;
+  }): Promise<AiRewriteResponse> {
+    const { data } = await apiClient.post<AiRewriteResponse>(
+      "/chat/ai/rewrite",
+      dto,
     );
     return data;
   },
