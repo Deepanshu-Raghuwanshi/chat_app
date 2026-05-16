@@ -370,6 +370,21 @@ export const useRewriteMessage = (conversationId: string) => {
   });
 };
 
+export const useSmartReplies = (params: {
+  lastMessageId: string;
+  context: Array<{ role: "me" | "them"; content: string }>;
+  enabled: boolean;
+}) => {
+  return useQuery({
+    queryKey: ["smart-replies", params.lastMessageId],
+    queryFn: () => chatService.getSmartReplies({ messages: params.context }),
+    enabled: params.enabled && !!params.lastMessageId,
+    staleTime: Infinity,
+    gcTime: 5 * 60 * 1000,
+    retry: false,
+  });
+};
+
 export const useGetOtherParticipant = (
   conversation: Conversation | undefined,
 ) => {

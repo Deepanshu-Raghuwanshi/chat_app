@@ -16,6 +16,7 @@ import {
   useSearchConversations,
   useToggleReaction,
   useRewriteMessage,
+  useSmartReplies,
 } from "../../src/features/chat/hooks/useChat";
 import { showToast } from "../../src/shared/utils/toast";
 import {
@@ -39,6 +40,7 @@ vi.mock("../../src/features/chat/services/chat.service", () => ({
     searchConversations: vi.fn(),
     toggleReaction: vi.fn(),
     rewriteMessage: vi.fn(),
+    getSmartReplies: vi.fn(),
   },
 }));
 
@@ -708,5 +710,127 @@ describe("useRewriteMessage", () => {
     expect(useChatStore.getState().draftMessages["conv-1"]).toBe(
       "original draft",
     );
+  });
+});
+
+describe("useSmartReplies", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const context = [{ role: "them" as const, content: "Are you free?" }];
+
+  it("does not fire when enabled is false", async () => {
+    const { Wrapper } = makeWrapper();
+    renderHook(
+      () =>
+        useSmartReplies({
+          lastMessageId: "msg-1",
+          context,
+          enabled: false,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await new Promise((r) => setTimeout(r, 50));
+    expect(chatService.getSmartReplies).not.toHaveBeenCalled();
+  });
+
+  it("does not fire when lastMessageId is empty string", async () => {
+    const { Wrapper } = makeWrapper();
+    renderHook(
+      () =>
+        useSmartReplies({
+          lastMessageId: "",
+          context,
+          enabled: true,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await new Promise((r) => setTimeout(r, 50));
+    expect(chatService.getSmartReplies).not.toHaveBeenCalled();
+  });
+
+  it("fires when enabled is true and lastMessageId is non-empty", async () => {
+    vi.mocked(chatService.getSmartReplies).mockResolvedValue({
+      suggestions: ["s1", "s2", "s3"],
+    });
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () =>
+        useSmartReplies({
+          lastMessageId: "msg-1",
+          context,
+          enabled: true,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(chatService.getSmartReplies).toHaveBeenCalledTimes(1);
+  });
+
+  it("caches result under ['smart-replies', lastMessageId]", async () => {
+    vi.mocked(chatService.getSmartReplies).mockResolvedValue({
+      suggestions: ["s1", "s2", "s3"],
+    });
+
+    const { queryClient, Wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () =>
+        useSmartReplies({
+          lastMessageId: "msg-42",
+          context,
+          enabled: true,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const cached = queryClient.getQueryData(["smart-replies", "msg-42"]);
+    expect(cached).toEqual({ suggestions: ["s1", "s2", "s3"] });
+  });
+
+  it("returns suggestions on success", async () => {
+    vi.mocked(chatService.getSmartReplies).mockResolvedValue({
+      suggestions: ["Yes!", "No thanks", "Maybe later"],
+    });
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () =>
+        useSmartReplies({
+          lastMessageId: "msg-1",
+          context,
+          enabled: true,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual({
+      suggestions: ["Yes!", "No thanks", "Maybe later"],
+    });
+  });
+
+  it("does not retry on error — service called exactly once", async () => {
+    vi.mocked(chatService.getSmartReplies).mockRejectedValue(
+      new Error("503 Service Unavailable"),
+    );
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () =>
+        useSmartReplies({
+          lastMessageId: "msg-1",
+          context,
+          enabled: true,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(chatService.getSmartReplies).toHaveBeenCalledTimes(1);
   });
 });

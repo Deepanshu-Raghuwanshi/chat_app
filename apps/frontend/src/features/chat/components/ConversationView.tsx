@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ConversationHeader } from "./ConversationHeader";
 import { MessageList } from "./MessageList";
+import { SmartReplyChips } from "./SmartReplyChips";
 import { MessageComposer } from "./MessageComposer";
 import { Spinner } from "../../../shared/components/ui/spinner";
 import { useConversation, useMessages, useMarkRead } from "../hooks/useChat";
@@ -104,6 +105,10 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
         onLoadMore={fetchNextPage}
         hasMore={!!hasNextPage}
         isFetchingMore={isFetchingNextPage}
+      />
+      <SmartReplyChips
+        conversationId={conversationId}
+        messages={displayMessages}
       />
       <MessageComposer
         conversationId={conversationId}
