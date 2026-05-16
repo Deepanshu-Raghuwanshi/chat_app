@@ -9,6 +9,10 @@ import { useChatStore } from "../store/useChatStore";
 import { EmojiPickerPopover } from "./EmojiPickerPopover";
 import type { ConversationParticipant } from "@shared-types";
 import { resolveParticipantName } from "../utils/resolveParticipantName";
+import {
+  emitTypingStart,
+  emitTypingStop,
+} from "../../friends/hooks/usePresence";
 
 interface MessageComposerProps {
   conversationId: string;
@@ -33,6 +37,8 @@ export const MessageComposer = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiAreaRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
 
   useEffect(() => {
     if (replyTarget) textareaRef.current?.focus();
@@ -52,6 +58,26 @@ export const MessageComposer = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [emojiPickerOpen]);
 
+  const stopTyping = () => {
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = null;
+    if (isTypingRef.current) {
+      emitTypingStop(conversationId);
+      isTypingRef.current = false;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
+      if (isTypingRef.current) {
+        emitTypingStop(conversationId);
+        isTypingRef.current = false;
+      }
+    };
+  }, [conversationId]);
+
   const handleEmojiSelect = (emoji: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -69,6 +95,7 @@ export const MessageComposer = ({
   const handleSend = () => {
     const content = draft.trim();
     if (!content || isPending) return;
+    stopTyping();
     sendMessage(
       { content, quotedMessageId: replyTarget?.id },
       {
@@ -93,6 +120,16 @@ export const MessageComposer = ({
     setDraft(conversationId, e.target.value);
     e.target.style.height = "auto";
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+    if (e.target.value.trim()) {
+      if (!isTypingRef.current) {
+        emitTypingStart(conversationId);
+        isTypingRef.current = true;
+      }
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(stopTyping, 3000);
+    } else {
+      stopTyping();
+    }
   };
 
   return (

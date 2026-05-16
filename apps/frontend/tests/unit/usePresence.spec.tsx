@@ -6,7 +6,11 @@ import {
   QueryClientProvider,
   InfiniteData,
 } from "@tanstack/react-query";
-import { usePresence } from "../../src/features/friends/hooks/usePresence";
+import {
+  usePresence,
+  emitTypingStart,
+  emitTypingStop,
+} from "../../src/features/friends/hooks/usePresence";
 import { Message, MessageListResponse } from "@shared-types";
 import { chatService } from "../../src/features/chat/services/chat.service";
 import { useChatStore } from "../../src/features/chat/store/useChatStore";
@@ -18,6 +22,7 @@ const mockSocket = {
   on: vi.fn((event: string, handler: (data: unknown) => void) => {
     socketHandlers[event] = handler;
   }),
+  emit: vi.fn(),
 };
 
 vi.mock("socket.io-client", () => ({
@@ -36,8 +41,10 @@ vi.mock("../../src/features/chat/store/useChatStore", () => {
   const getState = vi.fn(() => ({
     activeConversationId: null as string | null,
     draftMessages: {} as Record<string, string>,
+    typingUsers: {} as Record<string, string[]>,
     setActiveConversation: vi.fn(),
     setDraft: vi.fn(),
+    setTyping: vi.fn(),
   }));
   return { useChatStore: Object.assign(vi.fn(), { getState }) };
 });
@@ -104,10 +111,12 @@ beforeEach(() => {
     draftMessages: {},
     replyTargets: {},
     highlightedMessageId: null,
+    typingUsers: {},
     setActiveConversation: vi.fn(),
     setDraft: vi.fn(),
     setReplyTarget: vi.fn(),
     setHighlightedMessageId: vi.fn(),
+    setTyping: vi.fn(),
   });
   vi.mocked(chatService.markRead).mockResolvedValue({
     lastReadAt: new Date().toISOString(),
@@ -189,10 +198,12 @@ describe("usePresence — message.new auto-read", () => {
       draftMessages: {},
       replyTargets: {},
       highlightedMessageId: null,
+      typingUsers: {},
       setActiveConversation: vi.fn(),
       setDraft: vi.fn(),
       setReplyTarget: vi.fn(),
       setHighlightedMessageId: vi.fn(),
+      setTyping: vi.fn(),
     });
 
     act(() => {
@@ -208,10 +219,12 @@ describe("usePresence — message.new auto-read", () => {
       draftMessages: {},
       replyTargets: {},
       highlightedMessageId: null,
+      typingUsers: {},
       setActiveConversation: vi.fn(),
       setDraft: vi.fn(),
       setReplyTarget: vi.fn(),
       setHighlightedMessageId: vi.fn(),
+      setTyping: vi.fn(),
     });
 
     act(() => {
@@ -219,5 +232,73 @@ describe("usePresence — message.new auto-read", () => {
     });
 
     expect(chatService.markRead).not.toHaveBeenCalled();
+  });
+});
+
+describe("usePresence — typing.started / typing.stopped", () => {
+  it("calls setTyping(conversationId, userId, true) when typing.started arrives", () => {
+    const setTypingMock = vi.fn();
+    vi.mocked(useChatStore.getState).mockReturnValue({
+      activeConversationId: null,
+      draftMessages: {},
+      replyTargets: {},
+      highlightedMessageId: null,
+      typingUsers: {},
+      setActiveConversation: vi.fn(),
+      setDraft: vi.fn(),
+      setReplyTarget: vi.fn(),
+      setHighlightedMessageId: vi.fn(),
+      setTyping: setTypingMock,
+    });
+
+    act(() => {
+      socketHandlers["typing.started"]?.({
+        conversationId: "conv-1",
+        userId: "user-a",
+      });
+    });
+
+    expect(setTypingMock).toHaveBeenCalledWith("conv-1", "user-a", true);
+  });
+
+  it("calls setTyping(conversationId, userId, false) when typing.stopped arrives", () => {
+    const setTypingMock = vi.fn();
+    vi.mocked(useChatStore.getState).mockReturnValue({
+      activeConversationId: null,
+      draftMessages: {},
+      replyTargets: {},
+      highlightedMessageId: null,
+      typingUsers: {},
+      setActiveConversation: vi.fn(),
+      setDraft: vi.fn(),
+      setReplyTarget: vi.fn(),
+      setHighlightedMessageId: vi.fn(),
+      setTyping: setTypingMock,
+    });
+
+    act(() => {
+      socketHandlers["typing.stopped"]?.({
+        conversationId: "conv-1",
+        userId: "user-a",
+      });
+    });
+
+    expect(setTypingMock).toHaveBeenCalledWith("conv-1", "user-a", false);
+  });
+});
+
+describe("usePresence — emitTypingStart / emitTypingStop", () => {
+  it("emitTypingStart emits typing.start with conversationId via the socket", () => {
+    emitTypingStart("conv-1");
+    expect(mockSocket.emit).toHaveBeenCalledWith("typing.start", {
+      conversationId: "conv-1",
+    });
+  });
+
+  it("emitTypingStop emits typing.stop with conversationId via the socket", () => {
+    emitTypingStop("conv-1");
+    expect(mockSocket.emit).toHaveBeenCalledWith("typing.stop", {
+      conversationId: "conv-1",
+    });
   });
 });

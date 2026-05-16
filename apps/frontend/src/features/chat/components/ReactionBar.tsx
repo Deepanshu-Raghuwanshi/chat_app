@@ -32,7 +32,6 @@ export const ReactionBar = ({
   const entries = Object.entries(grouped);
   if (entries.length === 0) return null;
 
-  const totalCount = reactions.length;
   const isCollapsed = entries.length > MAX_VISIBLE && !expanded;
 
   useEffect(() => {
