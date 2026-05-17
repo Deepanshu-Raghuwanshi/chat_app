@@ -239,7 +239,18 @@
         "offline": "Offline",
         "typing": "typing…",
         "no_messages": "No messages yet",
-        "you": "You"
+        "you": "You",
+        "summarize_button_label": "Summarize conversation",
+        "summarize_button_tooltip": "Summarize last 50 messages"
+      },
+      "summary": {
+        "title": "Chat Summary",
+        "loading": "Summarizing…",
+        "error_message": "Could not generate summary. Please try again.",
+        "retry": "Try again",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "close": "Close"
       },
       "empty": {
         "title": "Select a conversation",
@@ -254,7 +265,8 @@
         "not_found": "Conversation not found",
         "back_to_chats": "Back to conversations",
         "no_longer_friends": "You're no longer friends with this user",
-        "rewrite_failed": "AI rewrite failed. Please try again."
+        "rewrite_failed": "AI rewrite failed. Please try again.",
+        "summarize_rate_limited": "Summarize is limited to 15 times per minute. Please wait."
       }
     },
     "navbar": {

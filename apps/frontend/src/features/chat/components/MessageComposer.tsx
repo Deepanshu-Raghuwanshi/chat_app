@@ -39,6 +39,9 @@ export const MessageComposer = ({
     (state) => state.replyTargets[conversationId] ?? null,
   );
   const setReplyTarget = useChatStore((state) => state.setReplyTarget);
+  const composerFocusToken = useChatStore(
+    (state) => state.composerFocusTokens[conversationId] ?? 0,
+  );
   const { mutate: sendMessage, isPending } = useSendMessage(conversationId);
 
   const { mutate: rewriteMessage, isPending: isRewriting } =
@@ -55,6 +58,14 @@ export const MessageComposer = ({
   useEffect(() => {
     if (replyTarget) textareaRef.current?.focus();
   }, [replyTarget]);
+
+  useEffect(() => {
+    if (composerFocusToken === 0) return;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  }, [composerFocusToken]);
 
   useEffect(() => {
     if (!emojiPickerOpen) return;

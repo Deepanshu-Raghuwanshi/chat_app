@@ -117,6 +117,8 @@ beforeEach(() => {
     setReplyTarget: vi.fn(),
     setHighlightedMessageId: vi.fn(),
     setTyping: vi.fn(),
+    composerFocusTokens: {},
+    requestComposerFocus: vi.fn(),
   });
   vi.mocked(chatService.markRead).mockResolvedValue({
     lastReadAt: new Date().toISOString(),
@@ -204,6 +206,8 @@ describe("usePresence — message.new auto-read", () => {
       setReplyTarget: vi.fn(),
       setHighlightedMessageId: vi.fn(),
       setTyping: vi.fn(),
+      composerFocusTokens: {},
+      requestComposerFocus: vi.fn(),
     });
 
     act(() => {
@@ -225,6 +229,8 @@ describe("usePresence — message.new auto-read", () => {
       setReplyTarget: vi.fn(),
       setHighlightedMessageId: vi.fn(),
       setTyping: vi.fn(),
+      composerFocusTokens: {},
+      requestComposerFocus: vi.fn(),
     });
 
     act(() => {
@@ -249,6 +255,8 @@ describe("usePresence — typing.started / typing.stopped", () => {
       setReplyTarget: vi.fn(),
       setHighlightedMessageId: vi.fn(),
       setTyping: setTypingMock,
+      composerFocusTokens: {},
+      requestComposerFocus: vi.fn(),
     });
 
     act(() => {
@@ -274,6 +282,8 @@ describe("usePresence — typing.started / typing.stopped", () => {
       setReplyTarget: vi.fn(),
       setHighlightedMessageId: vi.fn(),
       setTyping: setTypingMock,
+      composerFocusTokens: {},
+      requestComposerFocus: vi.fn(),
     });
 
     act(() => {

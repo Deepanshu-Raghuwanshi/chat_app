@@ -1,14 +1,20 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ConversationHeader } from "./ConversationHeader";
 import { MessageList } from "./MessageList";
 import { SmartReplyChips } from "./SmartReplyChips";
 import { MessageComposer } from "./MessageComposer";
+import { SummaryModal } from "./SummaryModal";
 import { Spinner } from "../../../shared/components/ui/spinner";
-import { useConversation, useMessages, useMarkRead } from "../hooks/useChat";
+import {
+  useConversation,
+  useMessages,
+  useMarkRead,
+  useSummarizeConversation,
+} from "../hooks/useChat";
 import { useChatStore } from "../store/useChatStore";
 import {
   usePresence,
@@ -40,6 +46,25 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
     isFetchingNextPage,
   } = useMessages(conversationId);
   const { mutate: markRead } = useMarkRead(conversationId);
+
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const {
+    mutate: summarize,
+    isPending: isSummarizing,
+    data: summaryData,
+    isError: isSummaryError,
+    reset: resetSummary,
+  } = useSummarizeConversation(conversationId);
+
+  const handleSummarize = () => {
+    setIsSummaryOpen(true);
+    summarize(50);
+  };
+
+  const handleSummaryClose = () => {
+    setIsSummaryOpen(false);
+    resetSummary();
+  };
 
   // Sync store with current route
   useEffect(() => {
@@ -96,6 +121,8 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
       <ConversationHeader
         conversation={conversation}
         conversationId={conversationId}
+        onSummarize={handleSummarize}
+        isSummarizing={isSummarizing}
       />
       <MessageList
         key={conversationId}
@@ -113,6 +140,14 @@ export const ConversationView = ({ conversationId }: ConversationViewProps) => {
       <MessageComposer
         conversationId={conversationId}
         participants={conversation.participants}
+      />
+      <SummaryModal
+        isOpen={isSummaryOpen}
+        isLoading={isSummarizing}
+        isError={isSummaryError}
+        summary={summaryData?.summary}
+        onClose={handleSummaryClose}
+        onRetry={() => summarize(50)}
       />
     </div>
   );

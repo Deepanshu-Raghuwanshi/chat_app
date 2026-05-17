@@ -17,6 +17,7 @@ import {
   useToggleReaction,
   useRewriteMessage,
   useSmartReplies,
+  useSummarizeConversation,
 } from "../../src/features/chat/hooks/useChat";
 import { showToast } from "../../src/shared/utils/toast";
 import {
@@ -41,6 +42,7 @@ vi.mock("../../src/features/chat/services/chat.service", () => ({
     toggleReaction: vi.fn(),
     rewriteMessage: vi.fn(),
     getSmartReplies: vi.fn(),
+    summarizeConversation: vi.fn(),
   },
 }));
 
@@ -832,5 +834,72 @@ describe("useSmartReplies", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(chatService.getSmartReplies).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("useSummarizeConversation", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("resolves with data.summary from the service on success", async () => {
+    vi.mocked(chatService.summarizeConversation).mockResolvedValue({
+      summary: "• They discussed plans.",
+    });
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useSummarizeConversation("conv-1"),
+      { wrapper: Wrapper },
+    );
+
+    act(() => {
+      result.current.mutate(50);
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.summary).toBe("• They discussed plans.");
+  });
+
+  it("calls showToast.error with summarize_rate_limited on 429 error", async () => {
+    const error = Object.assign(new Error("Rate limited"), {
+      isAxiosError: true,
+      response: { status: 429 },
+    });
+    vi.mocked(chatService.summarizeConversation).mockRejectedValue(error);
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useSummarizeConversation("conv-1"),
+      { wrapper: Wrapper },
+    );
+
+    act(() => {
+      result.current.mutate(50);
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(vi.mocked(showToast.error)).toHaveBeenCalledWith(
+      "Summarize is limited to 15 times per minute. Please wait.",
+    );
+  });
+
+  it("does not call showToast.error on a non-429 error (error shown in modal instead)", async () => {
+    const error = Object.assign(new Error("Service unavailable"), {
+      isAxiosError: true,
+      response: { status: 503 },
+    });
+    vi.mocked(chatService.summarizeConversation).mockRejectedValue(error);
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useSummarizeConversation("conv-1"),
+      { wrapper: Wrapper },
+    );
+
+    act(() => {
+      result.current.mutate(50);
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(vi.mocked(showToast.error)).not.toHaveBeenCalled();
   });
 });

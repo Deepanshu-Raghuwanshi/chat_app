@@ -1,12 +1,12 @@
-import { IsUUID, IsOptional, IsInt, Min, Max } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsInt, Min, Max } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class AiSummarizeDto {
   @ApiProperty({
     description: "ID of the conversation to summarize",
-    format: "uuid",
   })
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   conversationId!: string;
 
   @ApiPropertyOptional({

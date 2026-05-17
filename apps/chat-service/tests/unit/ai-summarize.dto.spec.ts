@@ -9,35 +9,35 @@ function makeDto(data: Record<string, unknown>): AiSummarizeDto {
 
 describe("AiSummarizeDto (Unit)", () => {
   describe("valid inputs", () => {
-    it("should pass with a valid UUID and no limit", async () => {
+    it("should pass with a MongoDB ObjectId-style conversationId and no limit", async () => {
       const dto = makeDto({
-        conversationId: "123e4567-e89b-12d3-a456-426614174000",
+        conversationId: "507f1f77bcf86cd799439011",
       });
       const errors = await validate(dto);
       expect(errors).to.have.length(0);
     });
 
-    it("should pass with a valid UUID and limit = 1 (lower boundary)", async () => {
+    it("should pass with a conversationId string and limit = 1 (lower boundary)", async () => {
       const dto = makeDto({
-        conversationId: "123e4567-e89b-12d3-a456-426614174000",
+        conversationId: "507f1f77bcf86cd799439011",
         limit: 1,
       });
       const errors = await validate(dto);
       expect(errors).to.have.length(0);
     });
 
-    it("should pass with a valid UUID and limit = 50 (default value)", async () => {
+    it("should pass with a conversationId string and limit = 50 (default value)", async () => {
       const dto = makeDto({
-        conversationId: "123e4567-e89b-12d3-a456-426614174000",
+        conversationId: "507f1f77bcf86cd799439011",
         limit: 50,
       });
       const errors = await validate(dto);
       expect(errors).to.have.length(0);
     });
 
-    it("should pass with a valid UUID and limit = 100 (upper boundary)", async () => {
+    it("should pass with a conversationId string and limit = 100 (upper boundary)", async () => {
       const dto = makeDto({
-        conversationId: "123e4567-e89b-12d3-a456-426614174000",
+        conversationId: "507f1f77bcf86cd799439011",
         limit: 100,
       });
       const errors = await validate(dto);
@@ -46,8 +46,8 @@ describe("AiSummarizeDto (Unit)", () => {
   });
 
   describe("invalid conversationId", () => {
-    it("should fail when conversationId is not a UUID", async () => {
-      const dto = makeDto({ conversationId: "not-a-uuid" });
+    it("should fail when conversationId is a non-string value", async () => {
+      const dto = makeDto({ conversationId: 12345 });
       const errors = await validate(dto);
       const field = errors.find((e) => e.property === "conversationId");
       expect(field).to.not.equal(undefined);

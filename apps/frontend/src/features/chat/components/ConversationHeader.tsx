@@ -3,7 +3,7 @@
 import React from "react";
 import { Conversation } from "@shared-types";
 import { Avatar } from "../../../shared/components/ui/Avatar";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ScrollText, Loader2 } from "lucide-react";
 import { cn } from "../../../shared/utils/cn";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
@@ -13,11 +13,15 @@ import { useRouter } from "next/navigation";
 interface ConversationHeaderProps {
   conversation: Conversation;
   conversationId: string;
+  onSummarize: () => void;
+  isSummarizing: boolean;
 }
 
 export const ConversationHeader = ({
   conversation,
   conversationId,
+  onSummarize,
+  isSummarizing,
 }: ConversationHeaderProps) => {
   const t = useTranslations("features.chat.conversation");
   const currentUserId = useAuthStore((state) => state.user?.id);
@@ -73,6 +77,30 @@ export const ConversationHeader = ({
               ? t("online")
               : t("offline")}
         </p>
+      </div>
+
+      <div className="relative group/summarize">
+        <button
+          type="button"
+          onClick={onSummarize}
+          disabled={isSummarizing}
+          aria-label={t("summarize_button_label")}
+          className={cn(
+            "p-2 rounded-xl transition-all duration-200",
+            isSummarizing
+              ? "text-primary bg-primary/10 cursor-wait"
+              : "text-foreground/40 hover:text-foreground hover:bg-foreground/5",
+          )}
+        >
+          {isSummarizing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <ScrollText className="w-4 h-4" />
+          )}
+        </button>
+        <span className="pointer-events-none absolute top-full right-0 mt-2 z-50 whitespace-nowrap rounded-lg bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity group-hover/summarize:opacity-100">
+          {t("summarize_button_tooltip")}
+        </span>
       </div>
     </div>
   );

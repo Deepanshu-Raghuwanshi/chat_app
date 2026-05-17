@@ -6,6 +6,7 @@ import {
   MessageListResponse,
   AiRewriteResponse,
   AiSmartReplyResponse,
+  AiSummarizeResponse,
 } from "@shared-types";
 import type { RewriteTone } from "../types";
 
@@ -136,6 +137,17 @@ export const chatService = {
   }): Promise<AiSmartReplyResponse> {
     const { data } = await apiClient.post<AiSmartReplyResponse>(
       "/chat/ai/smart-replies",
+      dto,
+    );
+    return data;
+  },
+
+  async summarizeConversation(dto: {
+    conversationId: string;
+    limit?: number;
+  }): Promise<AiSummarizeResponse> {
+    const { data } = await apiClient.post<AiSummarizeResponse>(
+      "/chat/ai/summarize",
       dto,
     );
     return data;

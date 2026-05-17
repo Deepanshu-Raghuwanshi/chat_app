@@ -931,7 +931,6 @@ components:
       properties:
         conversationId:
           type: string
-          format: uuid
           description: ID of the conversation to summarize. The backend fetches messages directly from the database; the client does not pass message content.
         limit:
           type: integer
