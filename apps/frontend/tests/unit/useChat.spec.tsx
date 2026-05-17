@@ -99,6 +99,7 @@ const mockMessage: Message = {
   type: "TEXT",
   status: "SENT",
   isDeleted: false,
+  isAI: false,
   reactions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -243,6 +244,7 @@ describe("useSendMessage", () => {
       type: "TEXT",
       status: "SENT",
       isDeleted: false,
+      isAI: false,
       reactions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -366,6 +368,7 @@ describe("useSendMessage", () => {
       type: "TEXT",
       status: "SENT",
       isDeleted: false,
+      isAI: false,
       reactions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -846,10 +849,9 @@ describe("useSummarizeConversation", () => {
     });
 
     const { Wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useSummarizeConversation("conv-1"),
-      { wrapper: Wrapper },
-    );
+    const { result } = renderHook(() => useSummarizeConversation("conv-1"), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
       result.current.mutate(50);
@@ -867,10 +869,9 @@ describe("useSummarizeConversation", () => {
     vi.mocked(chatService.summarizeConversation).mockRejectedValue(error);
 
     const { Wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useSummarizeConversation("conv-1"),
-      { wrapper: Wrapper },
-    );
+    const { result } = renderHook(() => useSummarizeConversation("conv-1"), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
       result.current.mutate(50);
@@ -890,10 +891,9 @@ describe("useSummarizeConversation", () => {
     vi.mocked(chatService.summarizeConversation).mockRejectedValue(error);
 
     const { Wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useSummarizeConversation("conv-1"),
-      { wrapper: Wrapper },
-    );
+    const { result } = renderHook(() => useSummarizeConversation("conv-1"), {
+      wrapper: Wrapper,
+    });
 
     act(() => {
       result.current.mutate(50);

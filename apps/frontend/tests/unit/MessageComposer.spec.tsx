@@ -313,6 +313,7 @@ describe("MessageComposer reply strip", () => {
     status: "SENT" as const,
     isDeleted: false,
     isEdited: false,
+    isAI: false,
     reactions: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

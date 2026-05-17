@@ -27,6 +27,7 @@ const mockMessage: Message = {
   status: "SENT",
   isDeleted: false,
   isEdited: false,
+  isAI: false,
   reactions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

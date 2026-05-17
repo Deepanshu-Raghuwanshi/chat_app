@@ -107,6 +107,7 @@ export const useSendMessage = (conversationId: string) => {
         status: "SENT",
         isDeleted: false,
         isEdited: false,
+        isAI: false,
         reactions: [],
         replyTo: replyTarget
           ? {

@@ -62,6 +62,7 @@ function makeMessage(overrides: Partial<Message>): Message {
     type: "TEXT",
     status: "SENT",
     isDeleted: false,
+    isAI: false,
     reactions: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

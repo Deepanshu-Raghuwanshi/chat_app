@@ -137,6 +137,7 @@ export const usePresence = () => {
           status: "SENT",
           isDeleted: false,
           isEdited: false,
+          isAI: false,
           reactions: [],
           replyTo: data.replyTo,
           createdAt: data.sentAt,
