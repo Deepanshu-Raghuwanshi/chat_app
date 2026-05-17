@@ -5,6 +5,7 @@ import {
   Message,
   MessageListResponse,
   AiRewriteResponse,
+  AiSmartReplyResponse,
 } from "@shared-types";
 import type { RewriteTone } from "../types";
 
@@ -125,6 +126,16 @@ export const chatService = {
   }): Promise<AiRewriteResponse> {
     const { data } = await apiClient.post<AiRewriteResponse>(
       "/chat/ai/rewrite",
+      dto,
+    );
+    return data;
+  },
+
+  async getSmartReplies(dto: {
+    messages: Array<{ role: "me" | "them"; content: string }>;
+  }): Promise<AiSmartReplyResponse> {
+    const { data } = await apiClient.post<AiSmartReplyResponse>(
+      "/chat/ai/smart-replies",
       dto,
     );
     return data;

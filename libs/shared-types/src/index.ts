@@ -30,3 +30,8 @@ export type ToggleReactionDto = chatComponents["schemas"]["ToggleReactionDto"];
 export type QuotedMessage = chatComponents["schemas"]["QuotedMessage"];
 export type AiRewriteDto = chatComponents["schemas"]["AiRewriteDto"];
 export type AiRewriteResponse = chatComponents["schemas"]["AiRewriteResponse"];
+export type MessageContextItem =
+  chatComponents["schemas"]["MessageContextItem"];
+export type AiSmartReplyDto = chatComponents["schemas"]["AiSmartReplyDto"];
+export type AiSmartReplyResponse =
+  chatComponents["schemas"]["AiSmartReplyResponse"];

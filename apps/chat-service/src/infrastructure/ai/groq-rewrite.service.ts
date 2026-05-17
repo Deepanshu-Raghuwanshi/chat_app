@@ -1,10 +1,16 @@
-import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import {
   AiRewriterPort,
   RewriteTone,
 } from "../../application/ports/ai-rewriter.port";
+
+const MODEL = "llama-3.3-70b-versatile";
 
 const SYSTEM_INSTRUCTION =
   "You are a message rewriting assistant embedded in a chat application. " +
@@ -27,48 +33,39 @@ const PROMPTS: Record<RewriteTone, (text: string) => string> = {
     `Expand the message below to be more detailed and elaborate. Add relevant context.\n\n[MSG]\n${text}\n[/MSG]`,
 };
 
-const TIMEOUT_MS = 10_000;
-
 @Injectable()
-export class GeminiRewriteService implements AiRewriterPort {
-  private readonly logger = new Logger(GeminiRewriteService.name);
-  private readonly model: GenerativeModel;
+export class GroqRewriteService implements AiRewriterPort {
+  private readonly logger = new Logger(GroqRewriteService.name);
+  private readonly groq: Groq;
 
   constructor(private readonly config: ConfigService) {
-    const apiKey = config.get<string>("GEMINI_API_KEY")!;
-    const genAI = new GoogleGenerativeAI(apiKey);
-    this.model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
-      systemInstruction: SYSTEM_INSTRUCTION,
-      generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+    this.groq = new Groq({
+      apiKey: config.get<string>("GROQ_API_KEY")!,
+      timeout: 10_000,
     });
   }
 
   async rewrite(text: string, tone: RewriteTone): Promise<string> {
-    const prompt = PROMPTS[tone](text);
-    let timerId: ReturnType<typeof setTimeout> | undefined;
-
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timerId = setTimeout(
-        () => reject(new ServiceUnavailableException("AI provider timed out")),
-        TIMEOUT_MS,
-      );
-    });
-
     try {
-      const result = await Promise.race([
-        this.model.generateContent(prompt),
-        timeoutPromise,
-      ]);
-      return result.response.text().trim();
+      const result = await this.groq.chat.completions.create({
+        model: MODEL,
+        messages: [
+          { role: "system", content: SYSTEM_INSTRUCTION },
+          { role: "user", content: PROMPTS[tone](text) },
+        ],
+        max_tokens: 1024,
+        temperature: 0.7,
+      });
+
+      return result.choices[0]?.message?.content?.trim() ?? "";
     } catch (err) {
       if (err instanceof ServiceUnavailableException) throw err;
-      const message = err instanceof Error ? err.message : String(err);
-      const stack = err instanceof Error ? err.stack : undefined;
-      this.logger.error(`Gemini API call failed: ${message}`, stack);
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Groq rewrite failed: ${msg}`,
+        err instanceof Error ? err.stack : undefined,
+      );
       throw new ServiceUnavailableException("AI provider unavailable");
-    } finally {
-      clearTimeout(timerId);
     }
   }
 }

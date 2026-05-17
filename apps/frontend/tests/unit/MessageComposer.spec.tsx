@@ -286,7 +286,7 @@ describe("MessageComposer — AI rewrite", () => {
       name: /rewrite with ai/i,
     });
     expect((sparkleButton as HTMLButtonElement).disabled).toBe(true);
-    expect(sparkleButton.className).toContain("animate-pulse");
+    expect(sparkleButton.className).toContain("cursor-wait");
   });
 
   it("clicking outside the AI picker closes it", async () => {
