@@ -12,6 +12,8 @@ export const envSchema = z.object({
   REDIS_PASSWORD: z.string().optional(),
   KAFKA_BROKERS: z.string().default("localhost:9092"),
   GROQ_API_KEY: z.string().min(1),
+  TAVILY_API_KEY: z.string().min(1),
+  OPENWEATHER_API_KEY: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

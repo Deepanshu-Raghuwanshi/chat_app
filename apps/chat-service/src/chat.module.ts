@@ -41,6 +41,12 @@ import { MarkConversationReadUseCase } from "./application/use-cases/mark-conver
 import { SearchConversationsUseCase } from "./application/use-cases/search-conversations.use-case";
 import { ToggleReactionUseCase } from "./application/use-cases/toggle-reaction.use-case";
 import { SummarizeConversationUseCase } from "./application/use-cases/summarize-conversation.use-case";
+import { RunAiAgentUseCase } from "./application/use-cases/run-ai-agent.use-case";
+import { AgentRateLimiterService } from "./infrastructure/ai/agent-rate-limiter.service";
+import { GroqAgentService } from "./infrastructure/ai/groq-agent.service";
+import { TavilyWebSearchService } from "./infrastructure/ai/tavily-web-search.service";
+import { OpenWeatherService } from "./infrastructure/ai/openweather.service";
+import { UrlSummarizerService } from "./infrastructure/ai/url-summarizer.service";
 import { ConversationViewBuilder } from "./application/services/conversation-view.builder";
 import { PresenceGateway } from "./interfaces/gateways/presence.gateway";
 import { ChatGateway } from "./infrastructure/messaging/chat.gateway";
@@ -118,6 +124,12 @@ import { UserProfileUpdatesConsumer } from "./infrastructure/messaging/user-prof
     { provide: "AiSmartReplier", useClass: GroqSmartReplyService },
     SummarizeConversationUseCase,
     { provide: "AiSummarizer", useClass: GroqSummaryService },
+    RunAiAgentUseCase,
+    AgentRateLimiterService,
+    { provide: "AiAgent", useClass: GroqAgentService },
+    TavilyWebSearchService,
+    OpenWeatherService,
+    UrlSummarizerService,
     UserThrottlerGuard,
 
     // Repository bindings
