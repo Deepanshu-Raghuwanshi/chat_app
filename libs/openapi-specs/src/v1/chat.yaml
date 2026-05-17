@@ -449,6 +449,67 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/chat/ai/summarize:
+    post:
+      summary: Summarize the recent message history of a conversation
+      description: >
+        Fetches the last N non-deleted messages of the conversation from the database,
+        formats them as a conversation transcript, sends to the AI provider, and returns
+        a bullet-point summary. Nothing is persisted. The request body only needs the
+        conversationId; the backend handles the DB read and participant authorization.
+        Rate-limited to 15 requests per minute per user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiSummarizeDto"
+      responses:
+        "200":
+          description: Bullet-point summary of the conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSummarizeResponse"
+        "400":
+          description: No messages to summarize (conversation is empty or all messages are deleted)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Authenticated user is not a participant in this conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded (15 RPM per user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI provider unavailable or timed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/chat/ai/rewrite:
     post:
       summary: Rewrite a draft message using AI
@@ -862,6 +923,34 @@ components:
           type: string
           minLength: 1
           maxLength: 4000
+
+    AiSummarizeDto:
+      type: object
+      required:
+        - conversationId
+      properties:
+        conversationId:
+          type: string
+          format: uuid
+          description: ID of the conversation to summarize. The backend fetches messages directly from the database; the client does not pass message content.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+          description: Number of most-recent non-deleted messages to include in the summary context.
+
+    AiSummarizeResponse:
+      type: object
+      required:
+        - summary
+      properties:
+        summary:
+          type: string
+          minLength: 1
+          description: >
+            Bullet-point summary of the conversation, formatted as lines starting with "• ".
+            3–7 bullets for normal conversations; 1–2 bullets for very short ones.
 
 # Kafka Events
 # Produces: message.sent.v1        — payload includes optional replyTo: { messageId, senderId, content } when message is a quoted reply

@@ -705,6 +705,103 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/chat/ai/summarize": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Summarize the recent message history of a conversation
+     * @description Fetches the last N non-deleted messages of the conversation from the database, formats them as a conversation transcript, sends to the AI provider, and returns a bullet-point summary. Nothing is persisted. The request body only needs the conversationId; the backend handles the DB read and participant authorization. Rate-limited to 15 requests per minute per user.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["AiSummarizeDto"];
+        };
+      };
+      responses: {
+        /** @description Bullet-point summary of the conversation */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["AiSummarizeResponse"];
+          };
+        };
+        /** @description No messages to summarize (conversation is empty or all messages are deleted) */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Authenticated user is not a participant in this conversation */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Conversation not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Rate limit exceeded (15 RPM per user) */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description AI provider unavailable or timed out */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/chat/ai/rewrite": {
     parameters: {
       query?: never;
@@ -952,6 +1049,22 @@ export interface components {
     };
     EditMessageDto: {
       content: string;
+    };
+    AiSummarizeDto: {
+      /**
+       * Format: uuid
+       * @description ID of the conversation to summarize. The backend fetches messages directly from the database; the client does not pass message content.
+       */
+      conversationId: string;
+      /**
+       * @description Number of most-recent non-deleted messages to include in the summary context.
+       * @default 50
+       */
+      limit: number;
+    };
+    AiSummarizeResponse: {
+      /** @description Bullet-point summary of the conversation, formatted as lines starting with "• ". 3–7 bullets for normal conversations; 1–2 bullets for very short ones. */
+      summary: string;
     };
   };
   responses: never;

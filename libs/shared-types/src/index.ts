@@ -35,3 +35,6 @@ export type MessageContextItem =
 export type AiSmartReplyDto = chatComponents["schemas"]["AiSmartReplyDto"];
 export type AiSmartReplyResponse =
   chatComponents["schemas"]["AiSmartReplyResponse"];
+export type AiSummarizeDto = chatComponents["schemas"]["AiSummarizeDto"];
+export type AiSummarizeResponse =
+  chatComponents["schemas"]["AiSummarizeResponse"];
