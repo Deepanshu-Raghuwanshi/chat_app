@@ -21,6 +21,9 @@ export const SmartReplyChips = ({
     (state) => state.draftMessages[conversationId] ?? "",
   );
   const setDraft = useChatStore((state) => state.setDraft);
+  const requestComposerFocus = useChatStore(
+    (state) => state.requestComposerFocus,
+  );
 
   const lastMessage = messages.at(-1);
   const isLastFromOther =
@@ -72,7 +75,10 @@ export const SmartReplyChips = ({
         <button
           key={i}
           type="button"
-          onClick={() => setDraft(conversationId, suggestion)}
+          onClick={() => {
+              setDraft(conversationId, suggestion);
+              requestComposerFocus(conversationId);
+            }}
           className={cn(
             "shrink-0 px-3 py-1.5 rounded-full text-sm border border-border",
             "bg-secondary text-foreground/80 whitespace-nowrap",

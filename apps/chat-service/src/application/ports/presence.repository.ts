@@ -1,4 +1,4 @@
-import { PresenceStatus } from '@kafka-events';
+import { PresenceStatus } from "@kafka-events";
 
 export interface PresenceRepository {
   setStatus(userId: string, status: PresenceStatus): Promise<void>;

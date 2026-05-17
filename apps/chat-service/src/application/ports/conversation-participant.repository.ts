@@ -38,7 +38,9 @@ export interface ConversationParticipantRepository {
     lastReadAt: Date,
   ): Promise<void>;
   updateProfile(data: UpdateParticipantProfileInput): Promise<void>;
-  updateProfileByUserId(data: UpdateParticipantProfileByUserInput): Promise<void>;
+  updateProfileByUserId(
+    data: UpdateParticipantProfileByUserInput,
+  ): Promise<void>;
   findConversationIdsByParticipantName(
     userId: string,
     query: string,

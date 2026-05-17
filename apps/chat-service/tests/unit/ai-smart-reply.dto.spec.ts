@@ -43,7 +43,7 @@ describe("AiSmartReplyDto — LastMessageIsFromThem constraint (Unit)", () => {
       ]);
       const errors = await validate(dto);
       const messagesError = errors.find((e) => e.property === "messages");
-      expect(messagesError).to.exist;
+      expect(messagesError).to.not.equal(undefined);
       const constraints = Object.values(messagesError!.constraints ?? {});
       expect(constraints.some((c) => c.includes('"them"'))).to.equal(true);
     });
@@ -52,7 +52,7 @@ describe("AiSmartReplyDto — LastMessageIsFromThem constraint (Unit)", () => {
       const dto = makeDto([{ role: "me", content: "I said something" }]);
       const errors = await validate(dto);
       const messagesError = errors.find((e) => e.property === "messages");
-      expect(messagesError).to.exist;
+      expect(messagesError).to.not.equal(undefined);
     });
   });
 });

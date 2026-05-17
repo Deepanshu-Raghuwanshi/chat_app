@@ -7,6 +7,7 @@ interface ChatState {
   replyTargets: Record<string, Message | null>;
   highlightedMessageId: string | null;
   typingUsers: Record<string, string[]>;
+  composerFocusTokens: Record<string, number>;
   setActiveConversation: (id: string | null) => void;
   setDraft: (conversationId: string, text: string) => void;
   setReplyTarget: (conversationId: string, message: Message | null) => void;
@@ -16,6 +17,7 @@ interface ChatState {
     userId: string,
     isTyping: boolean,
   ) => void;
+  requestComposerFocus: (conversationId: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -24,6 +26,7 @@ export const useChatStore = create<ChatState>((set) => ({
   replyTargets: {},
   highlightedMessageId: null,
   typingUsers: {},
+  composerFocusTokens: {},
   setActiveConversation: (id) => set({ activeConversationId: id }),
   setDraft: (conversationId, text) =>
     set((state) => ({
@@ -46,4 +49,11 @@ export const useChatStore = create<ChatState>((set) => ({
         typingUsers: { ...state.typingUsers, [conversationId]: updated },
       };
     }),
+  requestComposerFocus: (conversationId) =>
+    set((state) => ({
+      composerFocusTokens: {
+        ...state.composerFocusTokens,
+        [conversationId]: (state.composerFocusTokens[conversationId] ?? 0) + 1,
+      },
+    })),
 }));

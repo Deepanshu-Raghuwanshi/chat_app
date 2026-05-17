@@ -392,3 +392,17 @@ export const useGetOtherParticipant = (
   if (!conversation) return undefined;
   return conversation.participants.find((p) => p.userId !== userId);
 };
+
+export const useSummarizeConversation = (conversationId: string) => {
+  const t = useTranslations("features.chat.errors");
+
+  return useMutation({
+    mutationFn: (limit?: number) =>
+      chatService.summarizeConversation({ conversationId, limit }),
+    onError: (err) => {
+      if (axios.isAxiosError(err) && err.response?.status === 429) {
+        showToast.error(t("summarize_rate_limited"));
+      }
+    },
+  });
+};

@@ -1,23 +1,23 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { Logger } from 'nestjs-pino';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import cookieParser from 'cookie-parser';
-import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from '@shared-exceptions';
-import { RedisIoAdapter } from './infrastructure/messaging/websocket.adapter';
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
+import { Logger } from "nestjs-pino";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import cookieParser from "cookie-parser";
+import { AppModule } from "./app.module";
+import { GlobalExceptionFilter } from "@shared-exceptions";
+import { RedisIoAdapter } from "./infrastructure/messaging/websocket.adapter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix("api/v1");
 
   // WebSocket Adapter
   const redisIoAdapter = new RedisIoAdapter(app);
-  const redisHost = process.env.REDIS_HOST || 'localhost';
-  const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
+  const redisHost = process.env.REDIS_HOST || "localhost";
+  const redisPort = parseInt(process.env.REDIS_PORT || "6379", 10);
   const redisPassword = process.env.REDIS_PASSWORD;
   await redisIoAdapter.connectToRedis(redisHost, redisPort, redisPassword);
   app.useWebSocketAdapter(redisIoAdapter);
@@ -33,13 +33,13 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Chat Service')
-    .setDescription('Real-time Chat Service API')
-    .setVersion('1.0')
+    .setTitle("Chat Service")
+    .setDescription("Real-time Chat Service API")
+    .setVersion("1.0")
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup("api/docs", app, document);
 
   const port = process.env.PORT || 3003;
   await app.listen(port);

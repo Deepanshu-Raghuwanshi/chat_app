@@ -28,6 +28,7 @@ import { RewriteMessageUseCase } from "./application/use-cases/rewrite-message.u
 import { GenerateSmartRepliesUseCase } from "./application/use-cases/generate-smart-replies.use-case";
 import { GroqRewriteService } from "./infrastructure/ai/groq-rewrite.service";
 import { GroqSmartReplyService } from "./infrastructure/ai/groq-smart-reply.service";
+import { GroqSummaryService } from "./infrastructure/ai/groq-summary.service";
 import { UserThrottlerGuard } from "./infrastructure/guards/user-throttler.guard";
 import { CreateOrGetConversationUseCase } from "./application/use-cases/create-or-get-conversation.use-case";
 import { GetConversationUseCase } from "./application/use-cases/get-conversation.use-case";
@@ -39,6 +40,7 @@ import { DeleteMessageUseCase } from "./application/use-cases/delete-message.use
 import { MarkConversationReadUseCase } from "./application/use-cases/mark-conversation-read.use-case";
 import { SearchConversationsUseCase } from "./application/use-cases/search-conversations.use-case";
 import { ToggleReactionUseCase } from "./application/use-cases/toggle-reaction.use-case";
+import { SummarizeConversationUseCase } from "./application/use-cases/summarize-conversation.use-case";
 import { ConversationViewBuilder } from "./application/services/conversation-view.builder";
 import { PresenceGateway } from "./interfaces/gateways/presence.gateway";
 import { ChatGateway } from "./infrastructure/messaging/chat.gateway";
@@ -114,6 +116,8 @@ import { UserProfileUpdatesConsumer } from "./infrastructure/messaging/user-prof
     { provide: "AiRewriter", useClass: GroqRewriteService },
     GenerateSmartRepliesUseCase,
     { provide: "AiSmartReplier", useClass: GroqSmartReplyService },
+    SummarizeConversationUseCase,
+    { provide: "AiSummarizer", useClass: GroqSummaryService },
     UserThrottlerGuard,
 
     // Repository bindings
