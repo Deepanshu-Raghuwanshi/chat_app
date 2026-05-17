@@ -62,11 +62,13 @@ export const SmartReplyChips = ({
     );
   }
 
-  if (isError || !data?.suggestions.length) return null;
+  const validSuggestions = data?.suggestions.filter((s) => s.length >= 3) ?? [];
+
+  if (isError || !validSuggestions.length) return null;
 
   return (
     <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0" aria-label="Smart reply suggestions">
-      {data.suggestions.map((suggestion, i) => (
+      {validSuggestions.map((suggestion, i) => (
         <button
           key={i}
           type="button"
