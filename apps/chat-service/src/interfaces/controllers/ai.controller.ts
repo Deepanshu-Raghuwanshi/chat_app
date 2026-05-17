@@ -20,8 +20,10 @@ import { JwtAuthGuard } from "../../infrastructure/guards/jwt-auth.guard";
 import { UserThrottlerGuard } from "../../infrastructure/guards/user-throttler.guard";
 import { RewriteMessageUseCase } from "../../application/use-cases/rewrite-message.use-case";
 import { GenerateSmartRepliesUseCase } from "../../application/use-cases/generate-smart-replies.use-case";
+import { SummarizeConversationUseCase } from "../../application/use-cases/summarize-conversation.use-case";
 import { AiRewriteDto } from "../../application/dto/ai-rewrite.dto";
 import { AiSmartReplyDto } from "../../application/dto/ai-smart-reply.dto";
+import { AiSummarizeDto } from "../../application/dto/ai-summarize.dto";
 
 @ApiTags("AI")
 @ApiBearerAuth()
@@ -32,6 +34,7 @@ export class AiController {
   constructor(
     private readonly rewriteMessage: RewriteMessageUseCase,
     private readonly generateSmartReplies: GenerateSmartRepliesUseCase,
+    private readonly summarizeConversation: SummarizeConversationUseCase,
   ) {}
 
   @Post("rewrite")
@@ -105,6 +108,43 @@ export class AiController {
     return this.generateSmartReplies.execute({
       userId: req.user.id,
       messages: dto.messages,
+    });
+  }
+
+  @Post("summarize")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Summarize the recent message history of a conversation",
+  })
+  @ApiBody({ type: AiSummarizeDto })
+  @ApiResponse({
+    status: 200,
+    description: "Bullet-point summary of the conversation",
+    schema: {
+      required: ["summary"],
+      properties: { summary: { type: "string" } },
+    },
+  })
+  @ApiResponse({ status: 400, description: "No messages to summarize" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Not a participant" })
+  @ApiResponse({ status: 404, description: "Conversation not found" })
+  @ApiResponse({
+    status: 429,
+    description: "Rate limit exceeded (15 RPM per user)",
+  })
+  @ApiResponse({
+    status: 503,
+    description: "AI provider unavailable or timed out",
+  })
+  async summarize(
+    @Req() req: RequestWithUser,
+    @Body() dto: AiSummarizeDto,
+  ): Promise<{ summary: string }> {
+    return this.summarizeConversation.execute({
+      userId: req.user.id,
+      conversationId: dto.conversationId,
+      limit: dto.limit,
     });
   }
 }

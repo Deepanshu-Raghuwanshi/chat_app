@@ -93,8 +93,10 @@ describe("GroqRewriteService (Unit)", () => {
       const systemMsg = call.messages.find(
         (m: { role: string }) => m.role === "system",
       );
-      expect(systemMsg).to.exist;
-      expect(systemMsg.content).to.be.a("string").and.have.length.greaterThan(0);
+      expect(systemMsg).to.not.equal(undefined);
+      expect(systemMsg.content)
+        .to.be.a("string")
+        .and.have.length.greaterThan(0);
     });
 
     it("should handle all five supported tones without throwing", async () => {
