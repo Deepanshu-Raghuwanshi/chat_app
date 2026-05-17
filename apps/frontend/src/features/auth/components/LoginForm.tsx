@@ -14,14 +14,9 @@ export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { mutate: login, isPending, error: loginError } = useLogin();
   const { mutate: forgotPassword, isPending: isForgotPasswordPending } = useForgotPassword();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (loginError) {
@@ -65,12 +60,10 @@ export const LoginForm = () => {
     });
   };
 
-  if (!mounted) return null;
-
   return (
     <div className="flex items-center justify-center p-4">
       <div className="w-120 max-w-130 animate-in fade-in slide-up duration-500">
-        <div className="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
           <div className="bg-gradient-to-r from-primary to-blue-600 p-8 text-center">
             <h1 className="text-3xl font-bold text-white mb-2">{t('title')}</h1>
             <p className="text-blue-100">{t('subtitle')}</p>
@@ -89,7 +82,7 @@ export const LoginForm = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t('email_placeholder')}
-                    className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-white"
+                    className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-background text-foreground"
                     required
                     disabled={isPending}
                   />
@@ -117,7 +110,7 @@ export const LoginForm = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t('password_placeholder')}
-                    className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-white"
+                    className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 bg-background text-foreground"
                     required
                     disabled={isPending}
                   />
@@ -158,7 +151,7 @@ export const LoginForm = () => {
                 <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-white text-foreground/60">{t('or_continue_with')}</span>
+                <span className="px-3 bg-card text-foreground/60">{t('or_continue_with')}</span>
               </div>
             </div>
 
