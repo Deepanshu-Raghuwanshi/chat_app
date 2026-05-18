@@ -7,6 +7,7 @@ import { simulate } from "../utils/simulate";
 import {
   useSendMessage,
   useRewriteMessage,
+  useAiAgent,
 } from "../../src/features/chat/hooks/useChat";
 import { useChatStore } from "../../src/features/chat/store/useChatStore";
 import {
@@ -17,6 +18,7 @@ import {
 vi.mock("../../src/features/chat/hooks/useChat", () => ({
   useSendMessage: vi.fn(),
   useRewriteMessage: vi.fn(),
+  useAiAgent: vi.fn(),
 }));
 
 vi.mock("../../src/features/chat/components/AiTonePicker", () => ({
@@ -49,6 +51,7 @@ vi.mock("../../src/features/chat/components/EmojiPickerPopover", () => ({
 describe("MessageComposer", () => {
   const mockSendMessage = vi.fn();
   const mockRewriteMessage = vi.fn();
+  const mockTriggerAiAgent = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -66,6 +69,10 @@ describe("MessageComposer", () => {
       mutate: mockRewriteMessage,
       isPending: false,
     } as unknown as ReturnType<typeof useRewriteMessage>);
+    vi.mocked(useAiAgent).mockReturnValue({
+      mutate: mockTriggerAiAgent,
+      isPending: false,
+    } as unknown as ReturnType<typeof useAiAgent>);
   });
 
   it("send button is disabled when textarea is empty", () => {
@@ -208,6 +215,7 @@ describe("MessageComposer", () => {
 describe("MessageComposer — AI rewrite", () => {
   const mockSendMessage = vi.fn();
   const mockRewriteMessage = vi.fn();
+  const mockTriggerAiAgent = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -225,6 +233,10 @@ describe("MessageComposer — AI rewrite", () => {
       mutate: mockRewriteMessage,
       isPending: false,
     } as unknown as ReturnType<typeof useRewriteMessage>);
+    vi.mocked(useAiAgent).mockReturnValue({
+      mutate: mockTriggerAiAgent,
+      isPending: false,
+    } as unknown as ReturnType<typeof useAiAgent>);
   });
 
   it("sparkle button is not rendered when draft is empty", () => {
@@ -321,6 +333,7 @@ describe("MessageComposer reply strip", () => {
 
   const mockSendMessage = vi.fn();
   const mockRewriteMessage = vi.fn();
+  const mockTriggerAiAgent = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -338,6 +351,10 @@ describe("MessageComposer reply strip", () => {
       mutate: mockRewriteMessage,
       isPending: false,
     } as unknown as ReturnType<typeof useRewriteMessage>);
+    vi.mocked(useAiAgent).mockReturnValue({
+      mutate: mockTriggerAiAgent,
+      isPending: false,
+    } as unknown as ReturnType<typeof useAiAgent>);
   });
 
   it("shows reply strip when replyTarget is set in store", () => {
@@ -388,6 +405,7 @@ describe("MessageComposer reply strip", () => {
 describe("MessageComposer — typing events", () => {
   const mockSendMessage = vi.fn();
   const mockRewriteMessage = vi.fn();
+  const mockTriggerAiAgent = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -405,6 +423,10 @@ describe("MessageComposer — typing events", () => {
       mutate: mockRewriteMessage,
       isPending: false,
     } as unknown as ReturnType<typeof useRewriteMessage>);
+    vi.mocked(useAiAgent).mockReturnValue({
+      mutate: mockTriggerAiAgent,
+      isPending: false,
+    } as unknown as ReturnType<typeof useAiAgent>);
   });
 
   it("emits typing.start once on the first non-empty keystroke", () => {
@@ -496,5 +518,88 @@ describe("MessageComposer — typing events", () => {
     expect(emitTypingStop).toHaveBeenCalledOnce();
     expect(emitTypingStop).toHaveBeenCalledWith("conv-timer");
     vi.useRealTimers();
+  });
+});
+
+describe("MessageComposer — @AI agent", () => {
+  const mockSendMessage = vi.fn();
+  const mockRewriteMessage = vi.fn();
+  const mockTriggerAiAgent = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useChatStore.setState({
+      draftMessages: {},
+      activeConversationId: null,
+      replyTargets: {},
+      typingUsers: {},
+    });
+    vi.mocked(useSendMessage).mockReturnValue({
+      mutate: mockSendMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useSendMessage>);
+    vi.mocked(useRewriteMessage).mockReturnValue({
+      mutate: mockRewriteMessage,
+      isPending: false,
+    } as unknown as ReturnType<typeof useRewriteMessage>);
+    vi.mocked(useAiAgent).mockReturnValue({
+      mutate: mockTriggerAiAgent,
+      isPending: false,
+    } as unknown as ReturnType<typeof useAiAgent>);
+  });
+
+  it("calls triggerAiAgent (not sendMessage) when draft starts with @AI", async () => {
+    useChatStore.setState({
+      draftMessages: { "conv-ai": "@AI weather in Tokyo" },
+    });
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    const sendButton = screen.getByRole("button", { name: /send/i });
+    await simulate.click(sendButton);
+    expect(mockTriggerAiAgent).toHaveBeenCalledWith("@AI weather in Tokyo");
+    expect(mockSendMessage).not.toHaveBeenCalled();
+  });
+
+  it("calls sendMessage (not triggerAiAgent) when draft does not start with @AI", async () => {
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    const textarea = screen.getByPlaceholderText("Type a message...");
+    await simulate.type(textarea, "hello there");
+    const sendButton = screen.getByRole("button", { name: /send/i });
+    await simulate.click(sendButton);
+    expect(mockSendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ content: "hello there" }),
+      expect.any(Object),
+    );
+    expect(mockTriggerAiAgent).not.toHaveBeenCalled();
+  });
+
+  it("textarea is disabled when isAgentPending is true", () => {
+    vi.mocked(useAiAgent).mockReturnValue({
+      mutate: mockTriggerAiAgent,
+      isPending: true,
+    } as unknown as ReturnType<typeof useAiAgent>);
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai" />,
+    );
+    const textarea = screen.getByPlaceholderText("Type a message...");
+    expect((textarea as HTMLTextAreaElement).disabled).toBe(true);
+  });
+
+  it("send button is disabled when isAgentPending is true", () => {
+    useChatStore.setState({
+      draftMessages: { "conv-ai-pend": "@AI some query" },
+    });
+    vi.mocked(useAiAgent).mockReturnValue({
+      mutate: mockTriggerAiAgent,
+      isPending: true,
+    } as unknown as ReturnType<typeof useAiAgent>);
+    renderWithIntl(
+      <MessageComposer participants={[]} conversationId="conv-ai-pend" />,
+    );
+    const sendButton = screen.getByRole("button", { name: /send/i });
+    expect((sendButton as HTMLButtonElement).disabled).toBe(true);
   });
 });

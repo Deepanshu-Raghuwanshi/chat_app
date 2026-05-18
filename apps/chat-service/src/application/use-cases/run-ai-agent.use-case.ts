@@ -225,6 +225,10 @@ export class RunAiAgentUseCase {
         "typing.stopped",
         { conversationId, userId: "AI" },
       );
+      this.logger.error(
+        `[AGENT] run failed | userId=${userId} | query="${cleanQuery}" | ${err instanceof Error ? err.message : String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+      );
       if (err instanceof ServiceUnavailableException) throw err;
       throw new ServiceUnavailableException(
         "AI is unavailable right now, try again shortly",

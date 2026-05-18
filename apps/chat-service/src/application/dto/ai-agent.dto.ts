@@ -1,12 +1,11 @@
-import { IsString, IsUUID, MinLength, MaxLength } from "class-validator";
+import { IsString, IsMongoId, MinLength, MaxLength } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class AiAgentDto {
   @ApiProperty({
     description: "The conversation to post the AI reply into",
-    format: "uuid",
   })
-  @IsUUID()
+  @IsMongoId()
   conversationId!: string;
 
   @ApiProperty({

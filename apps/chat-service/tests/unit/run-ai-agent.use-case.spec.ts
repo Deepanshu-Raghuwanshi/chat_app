@@ -163,7 +163,10 @@ describe("RunAiAgentUseCase (Unit)", () => {
       );
       messageRepo.findByConversationId.resolves([]);
       rateLimiter.check.returns({ allowed: true });
-      aiAgent.run.resolves({ reply: "Here is your answer", toolUsed: "direct" });
+      aiAgent.run.resolves({
+        reply: "Here is your answer",
+        toolUsed: "direct",
+      });
       messageRepo.create.resolves(
         MessageEntity.create({
           id: "ai-msg-2",
